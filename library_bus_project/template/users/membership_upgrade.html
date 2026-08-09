@@ -1,0 +1,200 @@
+<!-- templates/users/membership_upgrade.html -->
+{% extends "users/base_user.html" %}
+{% load static %}
+
+{% block user_title %}Nâng cấp tài khoản{% endblock %}
+
+{% block user_content %}
+<style>
+    .upgrade-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:3rem 2rem;border-radius:20px;margin-bottom:2rem;text-align:center;position:relative;overflow:hidden;}
+    .upgrade-header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/><circle cx="20" cy="20" r="15" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/><circle cx="80" cy="80" r="25" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/></svg>');animation:rotate 20s linear infinite;opacity:0.3;}
+    .upgrade-header h2{font-size:2.5rem;margin-bottom:1rem;font-weight:700;}
+    .upgrade-header p{font-size:1.2rem;opacity:0.9;margin-bottom:0;}
+    .membership-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:2rem;margin-bottom:3rem;}
+    .membership-card{background:#fff;border-radius:20px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,0.1);border:3px solid transparent;transition:all 0.4s ease;position:relative;overflow:hidden;}
+    .membership-card.featured{border-color:#ffd700;transform:scale(1.05);box-shadow:0 15px 50px rgba(255,215,0,0.2);}
+    .membership-card:hover{transform:translateY(-10px);box-shadow:0 20px 60px rgba(0,0,0,0.15);}
+    .membership-card.featured:hover{transform:scale(1.05) translateY(-10px);}
+    .card-header-premium{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:2rem;text-align:center;position:relative;}
+    .card-header-vip{background:linear-gradient(135deg,#ffd700 0%,#ff8c00 100%);color:#333;padding:2rem;text-align:center;position:relative;}
+    .card-header-premium::before,.card-header-vip::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,10 60,35 90,35 70,55 80,80 50,65 20,80 30,55 10,35 40,35" fill="rgba(255,255,255,0.1)"/></svg>');opacity:0.2;}
+    .card-header-premium h4,.card-header-vip h4{font-size:1.8rem;margin-bottom:0.5rem;font-weight:700;position:relative;z-index:2;}
+    .card-header-premium .price,.card-header-vip .price{font-size:2.5rem;font-weight:800;margin-bottom:0.5rem;position:relative;z-index:2;}
+    .card-header-premium .period,.card-header-vip .period{opacity:0.8;font-size:1rem;position:relative;z-index:2;}
+    .card-body-upgrade{padding:2rem;}
+    .benefits-list{list-style:none;padding:0;margin:0 0 2rem 0;}
+    .benefits-list li{padding:0.75rem 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:0.75rem;}
+    .benefits-list li:last-child{border-bottom:none;}
+    .benefits-list li i{color:#28a745;font-size:1.2rem;flex-shrink:0;}
+    .benefits-list li span{color:#333;font-size:1rem;}
+    .benefits-list li.highlight{background:linear-gradient(90deg,#fff8dc 0%,rgba(255,215,0,0.1) 100%);padding:1rem 0.75rem;border-radius:8px;margin:0.25rem 0;border:none;}
+    .benefits-list li.highlight i{color:#ffd700;}
+    .benefits-list li.highlight span{font-weight:600;}
+    .upgrade-btn{width:100%;padding:1rem 2rem;border:none;border-radius:12px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all 0.3s ease;text-decoration:none;display:inline-block;text-align:center;}
+    .upgrade-btn-premium{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;}
+    .upgrade-btn-premium:hover{background:linear-gradient(135deg,#764ba2 0%,#667eea 100%);transform:translateY(-2px);box-shadow:0 8px 25px rgba(102,126,234,0.3);}
+    .upgrade-btn-vip{background:linear-gradient(135deg,#ffd700 0%,#ff8c00 100%);color:#333;}
+    .upgrade-btn-vip:hover{background:linear-gradient(135deg,#ff8c00 0%,#ffd700 100%);transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,140,0,0.3);}
+    .popular-badge{position:absolute;top:-10px;right:20px;background:linear-gradient(135deg,#ff6b6b 0%,#ee5a52 100%);color:#fff;padding:0.5rem 1rem;border-radius:20px;font-size:0.8rem;font-weight:600;box-shadow:0 4px 12px rgba(255,107,107,0.3);z-index:10;}
+    .upgrade-form{background:#fff;border-radius:20px;padding:2rem;box-shadow:0 10px 40px rgba(0,0,0,0.1);border:2px solid #ffd700;}
+    .upgrade-form h4{color:#333;margin-bottom:2rem;font-size:1.5rem;font-weight:600;text-align:center;}
+    .form-group-upgrade{margin-bottom:2rem;}
+    .form-group-upgrade label{display:block;color:#333;font-weight:600;margin-bottom:0.5rem;}
+    .form-control-upgrade{width:100%;padding:1rem;border:2px solid #e9ecef;border-radius:10px;font-size:1rem;transition:all 0.3s ease;}
+    .form-control-upgrade:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,0.1);}
+    .payment-methods{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1rem;margin-bottom:2rem;}
+    .payment-method{padding:1rem;border:2px solid #e9ecef;border-radius:10px;text-align:center;cursor:pointer;transition:all 0.3s ease;background:#fff;}
+    .payment-method:hover{border-color:#ffd700;background:#fff8dc;}
+    .payment-method.selected{border-color:#ffd700;background:linear-gradient(135deg,#fff8dc 0%,rgba(255,215,0,0.1) 100%);}
+    .payment-method i{font-size:2rem;color:#ffd700;margin-bottom:0.5rem;}
+    .payment-method span{display:block;font-size:0.9rem;color:#333;font-weight:500;}
+    .security-info{background:#f8f9fa;border-radius:10px;padding:1rem;margin-bottom:2rem;border-left:4px solid #28a745;}
+    .security-info i{color:#28a745;margin-right:0.5rem;}
+    .security-info span{color:#333;font-size:0.9rem;}
+    @keyframes rotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+    @media (max-width:768px){
+        .membership-grid{grid-template-columns:1fr;gap:1rem;}
+        .membership-card.featured{transform:none;}
+        .membership-card.featured:hover{transform:translateY(-5px);}
+        .upgrade-header{padding:2rem 1rem;}
+        .upgrade-header h2{font-size:2rem;}
+        .card-body-upgrade{padding:1.5rem;}
+        .payment-methods{grid-template-columns:repeat(2,1fr);}
+    }
+</style>
+
+<div class="upgrade-header">
+    <h2>Nâng cấp hạng thành viên</h2>
+    <p>Mở khóa thêm nhiều quyền lợi và tính năng hấp dẫn với Library Bus</p>
+</div>
+
+<div class="membership-grid">
+    <!-- Gói Premium -->
+    <div class="membership-card">
+        <div class="card-header-premium">
+            <h4>Premium</h4>
+            <div class="price">299K</div>
+            <div class="period">/ tháng</div>
+        </div>
+        <div class="card-body-upgrade">
+            <ul class="benefits-list">
+                <li><i class="fas fa-check-circle"></i><span>Mượn tối đa 5 cuốn sách</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Thời gian mượn lên đến 21 ngày</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Đặt trước sách hot</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Ưu tiên hỗ trợ khách hàng</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Truy cập thư viện số</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Nhận thông báo sách mới</span></li>
+            </ul>
+            <button class="upgrade-btn upgrade-btn-premium">Chọn gói Premium</button>
+        </div>
+    </div>
+
+    <!-- Gói VIP -->
+    <div class="membership-card featured">
+        <div class="popular-badge">Phổ biến nhất</div>
+        <div class="card-header-vip">
+            <h4>VIP</h4>
+            <div class="price">499K</div>
+            <div class="period">/ tháng</div>
+        </div>
+        <div class="card-body-upgrade">
+            <ul class="benefits-list">
+                <li><i class="fas fa-check-circle"></i><span>Tất cả quyền lợi của Premium</span></li>
+                <li class="highlight"><i class="fas fa-star"></i><span>Mượn tối đa 10 cuốn sách</span></li>
+                <li class="highlight"><i class="fas fa-star"></i><span>Giao sách tận nơi miễn phí</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Tham gia sự kiện độc quyền</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Tư vấn sách cá nhân hóa</span></li>
+                <li><i class="fas fa-check-circle"></i><span>Giảm giá 20% sự kiện</span></li>
+            </ul>
+            <button class="upgrade-btn upgrade-btn-vip">Chọn gói VIP</button>
+        </div>
+    </div>
+</div>
+
+<div class="upgrade-form">
+    <h4>Hoàn tất thanh toán</h4>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group-upgrade">
+            <label>Chọn gói nâng cấp:</label>
+            {{ form.membership_type }}
+        </div>
+        
+        <div class="form-group-upgrade">
+            <label>Phương thức thanh toán:</label>
+            <div class="payment-methods">
+                <div class="payment-method" data-method="momo">
+                    <i class="fab fa-cc-paypal"></i>
+                    <span>MoMo</span>
+                </div>
+                <div class="payment-method" data-method="banking">
+                    <i class="fas fa-university"></i>
+                    <span>Ngân hàng</span>
+                </div>
+                <div class="payment-method" data-method="visa">
+                    <i class="fab fa-cc-visa"></i>
+                    <span>Visa</span>
+                </div>
+                <div class="payment-method" data-method="mastercard">
+                    <i class="fab fa-cc-mastercard"></i>
+                    <span>Mastercard</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="security-info">
+            <i class="fas fa-shield-alt"></i>
+            <span>Thông tin thanh toán của bạn được bảo mật tuyệt đối bằng mã hóa SSL 256-bit</span>
+        </div>
+
+        <button type="submit" class="upgrade-btn upgrade-btn-vip">
+            <i class="fas fa-credit-card"></i> Thanh toán & Nâng cấp
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animation for cards
+    const cards = document.querySelectorAll('.membership-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+
+    // Payment method selection
+    const paymentMethods = document.querySelectorAll('.payment-method');
+    paymentMethods.forEach(method => {
+        method.addEventListener('click', function() {
+            paymentMethods.forEach(m => m.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+
+    // Membership card selection
+    const membershipCards = document.querySelectorAll('.membership-card');
+    const membershipSelect = document.querySelector('select[name="membership_type"]');
+    
+    membershipCards.forEach(card => {
+        const btn = card.querySelector('.upgrade-btn');
+        btn.addEventListener('click', function() {
+            const isPremium = card.querySelector('.card-header-premium');
+            if (membershipSelect) {
+                membershipSelect.value = isPremium ? 'premium' : 'vip';
+            }
+            
+            // Scroll to form
+            document.querySelector('.upgrade-form').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

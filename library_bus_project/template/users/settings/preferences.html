@@ -1,0 +1,53 @@
+{% extends "users/base_user.html" %}
+{% load static %}
+
+{% block user_title %}Tùy chọn & Giao diện{% endblock %}
+
+{% block user_content %}
+<div class="content-header">
+    <h2>Tùy chọn & Giao diện</h2>
+    <p>Tùy chỉnh trải nghiệm của bạn trên trang web.</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.theme.label_tag }}
+                {{ form.theme }}
+                <small class="form-text text-muted">Chọn giao diện sáng hoặc tối cho trang web.</small>
+            </div>
+
+            <div class="form-group">
+                {{ form.books_per_page.label_tag }}
+                {{ form.books_per_page }}
+                <small class="form-text text-muted">Số lượng sách hiển thị trên mỗi trang danh sách.</small>
+            </div>
+
+            <hr>
+
+            <div class="form-group form-check">
+                {{ form.auto_renew_books }}
+                {{ form.auto_renew_books.label_tag }}
+                <small class="form-text text-muted d-block">Tự động gia hạn sách sắp hết hạn nếu có thể.</small>
+            </div>
+
+            <div class="form-group form-check">
+                {{ form.show_reading_progress }}
+                {{ form.show_reading_progress.label_tag }}
+                <small class="form-text text-muted d-block">Hiển thị tiến độ đọc của bạn cho người khác thấy.</small>
+            </div>
+
+            <div class="form-group form-check">
+                {{ form.public_reading_list }}
+                {{ form.public_reading_list.label_tag }}
+                <small class="form-text text-muted d-block">Cho phép người dùng khác xem danh sách sách bạn đã đọc.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Lưu thay đổi</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

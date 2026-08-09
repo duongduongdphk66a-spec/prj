@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Danh sách Sách - Tủ Sách Lưu Động{% endblock %}
+
+
+
+{% block extra_css %}
+<style>
+    :root {
+        --pastel-gold: #FDE68A;
+        --pastel-gold-hover: #FCD34D;
+        --card-gold: #D4AF37;
+    }
+    
+    .search-filter-option {
+        padding: 10px 20px;
+        margin: 2px 8px;
+        border-radius: 6px;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+        color: #333;
+        display: block;
+        backface-visibility: hidden;
+        -webkit-font-smoothing: antialiased;
+        transform-origin: left center;
+    }
+    .search-filter-option:hover {
+        color: #000 !important;
+        transform: scale(1.05);
+        font-weight: 700;
+    }
+
+    body {
+        background-color: #ffffff;
+    }
+
+    /* Container adjustments */
+    .catalog-container {
+        display: flex;
+        min-height: calc(100vh - 80px); /* Adjust based on navbar height */
+    }
+
+    /* Sidebar Styling */
+    .category-sidebar {
+        width: 300px;
+        background-color: var(--pastel-gold);
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .category-sidebar-header {
+        padding: 24px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #000;
+        border-bottom: 2px solid white;
+    }
+
+    .category-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .category-item {
+        border-bottom: 2px solid white;
+    }
+
+    .category-link {
+        display: block;
+        padding: 16px 24px;
+        color: #000;
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+    }
+
+
+    .subcategory-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        background-color: rgba(255,255,255,0.15);
+    }
+    
+    .subcategory-link {
+        display: block;
+        padding: 12px 24px 12px 40px;
+        color: #333;
+        text-decoration: none;
+        font-size: 1.05rem;
+        transition: background-color 0.2s ease;
+    }
+    
+
+    .subcategory-link:hover, .subcategory-link.active {
+        color: #000;
+        font-weight: 600;
+    }
+    
+    .category-link[aria-expanded="true"] .toggle-icon {
+        transform: rotate(180deg);
+    }
+    
+    .collapse {
+        display: none;
+    }
+    
+    .collapse.show {
+        display: block;
+    }
+
+    /* Main Content Area */
+    .catalog-content {
+        flex-grow: 1;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Top Bar: Search and Donate */
+    .catalog-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        gap: 20px;
+    }
+
+    .search-container {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        max-width: 600px;
+        gap: 20px;
+    }
+
+    .search-input-group {
+        display: flex;
+        align-items: center;
+        border: 2px solid #000;
+        border-radius: 0;
+        padding: 8px 20px;
+        flex-grow: 1;
+        background: white;
+        position: relative;
+    }
+
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        z-index: 100;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .autocomplete-item {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .autocomplete-item:hover {
+        background-color: #f8fafc;
+    }
+
+    .autocomplete-title {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .autocomplete-author {
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    /* Modal styling */
+    .filter-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .filter-modal {
+        background: white;
+        padding: 30px;
+        border-radius: 0;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .search-input-group input {
+        border: none;
+        outline: none;
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 4px;
+    }
+
+    .search-input-group i {
+        font-size: 1.2rem;
+        color: #000;
+        cursor: pointer;
+    }
+
+    .filter-icon {
+        font-size: 2.5rem;
+        color: #000;
+        cursor: pointer;
+    }
+
+        .btn-donate {
+        background-color: var(--pastel-gold);
+        color: #000;
+        font-size: 1.2rem;
+        font-weight: 600;
+        padding: 12px 32px;
+        border-radius: 0;
+        text-decoration: none;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-donate:hover {
+        color: #fff;
+    }
+
+    /* Book Grid */
+    .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 30px;
+    }
+
+    .book-card {
+        background-color: var(--pastel-gold);
+        border-radius: 0;
+        aspect-ratio: 3/4; /* Makes it tall like the mockup */
+        display: flex;
+        flex-direction: column;
+        padding: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+    
+    .book-card-image-wrapper {
+        background-color: white;
+        border-radius: 0;
+        flex-grow: 1;
+        width: 100%;
+        min-height: 0; /* Fixes flexbox stretching issue */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .book-card-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    
+    .book-card-placeholder {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 500;
+        text-align: center;
+        padding: 10px;
+    }
+    
+    .btn-manage {
+        background-color: var(--card-gold);
+    }
+    
+        .btn-detail {
+        background-color: #a67c00;
+        color: #000;
+        font-weight: 600;
+        font-size: 1.1rem;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        border-radius: 0;
+        text-decoration: none;
+        border: none;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        transition: color 0.3s ease, transform 0.2s ease;
+    }
+    
+    .btn-detail:hover {
+        color: #fff;
+    }
+    
+    .book-card:hover .btn-detail {
+        transform: scale(1.02);
+    }
+    
+    /* Responsive */
+    @media (max-width: 991px) {
+        .catalog-container {
+            flex-direction: column;
+        }
+        .category-sidebar {
+            width: 100%;
+            height: auto;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="catalog-container">
+    <!-- Left Sidebar: Categories -->
+    <div class="category-sidebar">
+        <div class="category-sidebar-header">
+            Thể loại
+        </div>
+        <ul class="category-list">
+            <li class="category-item">
+                <a href="{% url 'inventory:book_list' %}" class="category-link {% if not request.GET.category %}active{% endif %}">
+                    Tất cả sách
+                </a>
+            </li>
+            {% for cat in categories %}
+            <li class="category-item">
+                {% if cat.subcategories.all %}
+                <div class="category-link d-flex align-items-center justify-content-between {% if active_parent_id == cat.id|stringformat:'s' or request.GET.category == cat.id|stringformat:'s' %}active{% endif %}" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseCat{{ cat.id }}" aria-expanded="{% if request.GET.category == cat.id|stringformat:'s' or active_parent_id == cat.id|stringformat:'s' %}true{% else %}false{% endif %}">
+                    <span>{{ cat.name }}</span>
+                    <i class="fas fa-chevron-down toggle-icon" style="transition: transform 0.3s;"></i>
+                </div>
+                <div class="collapse {% if request.GET.category == cat.id|stringformat:'s' or active_parent_id == cat.id|stringformat:'s' %}show{% endif %}" id="collapseCat{{ cat.id }}">
+                    <ul class="subcategory-list">
+                        <li>
+                            <a href="{% url 'inventory:book_list' %}?category={{ cat.id }}" class="subcategory-link {% if request.GET.category == cat.id|stringformat:'s' %}active{% endif %}">
+                                Tất cả {{ cat.name }}
+                            </a>
+                        </li>
+                        {% for sub in cat.subcategories.all %}
+                        <li>
+                            <a href="{% url 'inventory:book_list' %}?category={{ sub.id }}" class="subcategory-link {% if request.GET.category == sub.id|stringformat:'s' %}active{% endif %}">
+                                {{ sub.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{% url 'inventory:book_list' %}?category={{ cat.id }}" class="category-link {% if request.GET.category == cat.id|stringformat:'s' %}active{% endif %}">
+                    {{ cat.name }}
+                </a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Right Content -->
+    <div class="catalog-content">
+        <!-- Top Bar -->
+        <div class="catalog-top-bar">
+            <div class="search-container">
+                <form method="get" class="search-input-group w-100 m-0">
+                    <input type="text" name="query" id="search-input" placeholder="Tìm kiếm sách..." value="{{ request.GET.query|default:'' }}" autocomplete="off">
+                    {% if request.GET.category %}
+                        <input type="hidden" name="category" value="{{ request.GET.category }}">
+                    {% endif %}
+                    <button type="submit" style="background:none; border:none; padding:0;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <!-- Autocomplete dropdown -->
+                    <div id="autocomplete-results" class="autocomplete-dropdown"></div>
+                </form>
+                <div class="filter-dropdown" style="position: relative;">
+                    <div class="filter-icon" id="filter-dropdown-btn" style="font-size: 2.5rem; color: #000; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <ul class="dropdown-menu shadow" id="filter-dropdown-menu" style="position: absolute; top: 100%; right: 0; display: none; min-width: 250px; padding: 10px 0; border-radius: 8px; border: 1px solid #eee; background-color: white; z-index: 1000;">
+                        <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="query" data-placeholder="Tìm kiếm sách...">Tất cả (Mặc định)</a></li>
+                        <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="title" data-placeholder="Tìm kiếm theo tên sách...">Tên sách</a></li>
+                        <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="author" data-placeholder="Tìm kiếm theo tác giả...">Tác giả</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div>
+                <a href="{% url 'inventory:book_donate' %}" class="btn-donate">Đóng góp</a>
+                {% if user.is_staff %}
+                <a href="{% url 'inventory:admin_book_list' %}" class="btn-donate btn-manage" style="margin-left: 10px; background-color: #D4AF37;">Quản lý</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Grid -->
+        <div class="book-grid">
+            {% for book in books %}
+            <div class="book-card">
+                <div class="book-card-image-wrapper">
+                    {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                    {% else %}
+                        <span class="book-card-placeholder">Bìa sách</span>
+                    {% endif %}
+                </div>
+                
+                <a href="{% url 'inventory:book_detail' book.pk %}" class="btn-detail">Chi tiết</a>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 50px 0;">
+                <i class="fas fa-book-open text-muted" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                <h3>Không tìm thấy sách nào!</h3>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="d-flex justify-content-center mt-5">
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&laquo;</a>
+                </li>
+                {% endif %}
+                
+                {% for i in paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active"><span class="page-link" style="background-color: var(--pastel-gold); border-color: var(--pastel-gold); color: #000;">{{ i }}</span></li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">&raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter Dropdown logic
+        const filterBtn = document.getElementById('filter-dropdown-btn');
+        const filterMenu = document.getElementById('filter-dropdown-menu');
+        const searchInput = document.getElementById('search-input');
+
+        filterBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (filterMenu.style.display === 'block') {
+                filterMenu.style.display = 'none';
+            } else {
+                filterMenu.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+                filterMenu.style.display = 'none';
+            }
+        });
+
+        const filterOptions = document.querySelectorAll('.search-filter-option');
+        filterOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const searchType = this.getAttribute('data-type');
+                const placeholder = this.getAttribute('data-placeholder');
+                
+                searchInput.setAttribute('name', searchType);
+                searchInput.setAttribute('placeholder', placeholder);
+                
+                filterMenu.style.display = 'none';
+                searchInput.focus();
+            });
+        });
+
+        // Autocomplete logic
+        const autocompleteResults = document.getElementById('autocomplete-results');
+        let debounceTimer;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+
+            if (query.length >= 2) {
+                debounceTimer = setTimeout(() => {
+                    fetch(`/inventory/books/autocomplete/?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            autocompleteResults.innerHTML = '';
+                            if (data.results && data.results.length > 0) {
+                                data.results.forEach(item => {
+                                    const div = document.createElement('div');
+                                    div.className = 'autocomplete-item';
+                                    div.innerHTML = `
+                                        <div class="autocomplete-title">${item.title}</div>
+                                        <div class="autocomplete-author">${item.author || 'Chưa rõ tác giả'}</div>
+                                    `;
+                                    div.addEventListener('click', () => {
+                                        window.location.href = `/inventory/books/${item.id}/`;
+                                    });
+                                    autocompleteResults.appendChild(div);
+                                });
+                                autocompleteResults.style.display = 'block';
+                            } else {
+                                autocompleteResults.style.display = 'none';
+                            }
+                        });
+                }, 300);
+            } else {
+                autocompleteResults.style.display = 'none';
+            }
+        });
+
+        // Hide autocomplete when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !autocompleteResults.contains(e.target)) {
+                autocompleteResults.style.display = 'none';
+            }
+        });
+
+        // Category Accordion Toggle
+        const categoryToggles = document.querySelectorAll('[data-bs-toggle="collapse"]');
+        categoryToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('data-bs-target');
+                const target = document.querySelector(targetId);
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                
+                if (isExpanded) {
+                    this.setAttribute('aria-expanded', 'false');
+                    target.classList.remove('show');
+                } else {
+                    this.setAttribute('aria-expanded', 'true');
+                    target.classList.add('show');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

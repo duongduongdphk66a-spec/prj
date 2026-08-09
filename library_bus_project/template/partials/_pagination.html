@@ -1,0 +1,25 @@
+{% if is_paginated %}
+<div class="pagination-container" style="display: flex; justify-content: center; margin-top: 2rem;">
+    <ul class="pagination" style="display: flex; list-style: none; gap: 0.5rem; padding: 0;">
+        {% if page_obj.has_previous %}
+            <li><a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; border-radius: 5px;">&laquo; Trước</a></li>
+        {% else %}
+            <li><span class="btn btn-secondary disabled" style="padding: 0.5rem 1rem; opacity: 0.5; border-radius: 5px; cursor: not-allowed;">&laquo; Trước</span></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+                <li><span class="btn btn-primary active" style="padding: 0.5rem 1rem; border-radius: 5px;">{{ i }}</span></li>
+            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                <li><a href="?page={{ i }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; border-radius: 5px;">{{ i }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li><a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; border-radius: 5px;">Sau &raquo;</a></li>
+        {% else %}
+            <li><span class="btn btn-secondary disabled" style="padding: 0.5rem 1rem; opacity: 0.5; border-radius: 5px; cursor: not-allowed;">Sau &raquo;</span></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}

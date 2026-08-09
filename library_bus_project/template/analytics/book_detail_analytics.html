@@ -1,0 +1,167 @@
+<!-- analytics/templates/analytics/book_detail_analytics.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Chi tiết sách - {{ book_analytics.book.title }}{% endblock %}
+
+{% block analytics_heading %}Chi tiết: {{ book_analytics.book.title }}{% endblock %}
+
+{% block analytics_description %}bởi {{ book_analytics.book.author }}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'analytics:book_analytics' %}">Phân tích sách</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ book_analytics.book.title|truncatechars:30 }}</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.book-detail-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.book-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.book-stat-item { background: white; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid var(--analytics-primary); }
+.book-stat-value { font-size: 1.8rem; font-weight: 700; color: var(--analytics-dark); margin-bottom: 4px; }
+.book-stat-label { color: #6b7280; font-size: 0.875rem; }
+.chart-wrapper { background: white; padding: 24px; border-radius: 8px; margin-bottom: 24px; }
+.chart-header { display: flex; justify-content: between; align-items: center; margin-bottom: 16px; }
+.chart-title { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 0; }
+.activity-list { list-style: none; margin: 0; padding: 0; }
+.activity-item { padding: 12px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+.activity-item:last-child { border-bottom: none; }
+.activity-content { flex: 1; }
+.activity-user { font-weight: 600; color: #111827; }
+.activity-action { color: #6b7280; font-size: 0.875rem; }
+.activity-time { color: #9ca3af; font-size: 0.75rem; }
+.similar-books-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.similar-book-card { background: #f9fafb; padding: 16px; border-radius: 8px; text-align: center; }
+.similar-book-title { font-weight: 600; color: #111827; margin-bottom: 4px; }
+.similar-book-author { color: #6b7280; font-size: 0.875rem; margin-bottom: 12px; }
+@media (max-width: 768px) {
+    .book-stats { grid-template-columns: repeat(2, 1fr); }
+    .similar-books-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Book Statistics -->
+<div class="book-stats">
+    <div class="book-stat-item">
+        <div class="book-stat-value">{{ book_analytics.total_borrows }}</div>
+        <div class="book-stat-label">Tổng lượt mượn</div>
+    </div>
+    <div class="book-stat-item">
+        <div class="book-stat-value">{{ book_analytics.total_readers }}</div>
+        <div class="book-stat-label">Độc giả</div>
+    </div>
+    <div class="book-stat-item">
+        <div class="book-stat-value">{{ book_analytics.avg_rating|floatformat:1 }}</div>
+        <div class="book-stat-label">Đánh giá TB</div>
+    </div>
+    <div class="book-stat-item">
+        <div class="book-stat-value">{{ book_analytics.popularity_score|floatformat:0 }}%</div>
+        <div class="book-stat-label">Độ phổ biến</div>
+    </div>
+</div>
+
+<div class="book-detail-grid">
+    <!-- Borrow History Chart -->
+    <div class="chart-wrapper">
+        <div class="chart-header">
+            <h3 class="chart-title">Lịch sử mượn sách</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="borrowHistoryChart" height="300"></canvas>
+        </div>
+    </div>
+    
+    <!-- Content Grid -->
+    <div class="charts-grid">
+        <!-- Recent Activities -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Hoạt động gần đây</h3>
+            </div>
+            <div class="card-body">
+                <ul class="activity-list">
+                    {% for activity in recent_activities %}
+                    <li class="activity-item">
+                        <div class="activity-content">
+                            <div class="activity-user">{{ activity.user.username }}</div>
+                            <div class="activity-action">đã {{ activity.get_activity_type_display|lower }}</div>
+                        </div>
+                        <div class="activity-time">{{ activity.created_at|timesince }} trước</div>
+                    </li>
+                    {% empty %}
+                    <li class="activity-item">
+                        <div class="activity-content">Chưa có hoạt động nào.</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Similar Books -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Sách tương tự</h3>
+            </div>
+            <div class="card-body">
+                <div class="similar-books-grid">
+                    {% for book in similar_books %}
+                    <div class="similar-book-card">
+                        <div class="similar-book-title">{{ book.book.title|truncatechars:20 }}</div>
+                        <div class="similar-book-author">{{ book.book.author }}</div>
+                        <a href="{% url 'analytics:book_detail_analytics' book.book.id %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="similar-book-card">
+                        <div class="similar-book-title">Không tìm thấy sách tương tự</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+// Chart data for borrow history
+const borrowHistoryData = {
+    labels: [{% for data in borrow_history %}"{{ data.date|date:'d/m' }}",{% endfor %}],
+    datasets: [{
+        label: 'Lượt mượn',
+        data: [{% for data in borrow_history %}{{ data.borrows|default:0 }},{% endfor %}],
+        borderColor: 'var(--analytics-primary)',
+        backgroundColor: 'var(--analytics-light)',
+        fill: true,
+        tension: 0.4
+    }]
+};
+
+// Initialize chart when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('borrowHistoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: borrowHistoryData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Lịch sử mượn sách 30 ngày qua'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

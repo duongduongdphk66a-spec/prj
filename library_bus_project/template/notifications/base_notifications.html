@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% block notification_title %}Bảng điều khiển Thông báo{% endblock %} - Tủ Sách Lưu Động
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+    <style>
+        .notification-container { display: flex; gap: 20px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .notification-sidebar { width: 280px; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 24px; height: fit-content; position: sticky; top: 80px; }
+        .notification-main-content { flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); padding: 24px; }
+        .sidebar-header { margin-bottom: 24px; }
+        .sidebar-header h3 { color: #1e293b; font-size: 18px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
+        .sidebar-header i { color: #3b82f6; font-size: 20px; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { margin-bottom: 4px; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #64748b; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; font-size: 14px; font-weight: 500; }
+        .sidebar-nav a:hover { background: #f8fafc; color: #1e293b; transform: translateX(4px); }
+        .sidebar-nav a.active { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .sidebar-nav a.active:hover { transform: translateX(0); }
+        .sidebar-nav i { width: 16px; text-align: center; }
+        .nav-section-title { color: #94a3b8; font-size: 12px; font-weight: 600; text-transform: uppercase; margin: 20px 0 8px; padding: 0 16px; letter-spacing: 0.5px; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0; }
+        .content-header h1 { color: #1e293b; font-size: 24px; font-weight: 700; margin: 0; }
+        .header-actions { display: flex; gap: 12px; }
+        .content-body { color: #475569; line-height: 1.6; }
+        .messages { margin-bottom: 24px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .alert-success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .alert-warning { background: #fefce8; border: 1px solid #fef3c7; color: #92400e; }
+        .alert-info { background: #dbeafe; border: 1px solid #bfdbfe; color: #1e40af; }
+        .notification-badge { display: inline-block; background: #ef4444; color: white; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 10px; margin-left: 4px; }
+        .notification-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; text-align: center; }
+        .stat-card h3 { color: #1e293b; font-size: 20px; font-weight: 700; margin: 0 0 4px; }
+        .stat-card p { color: #64748b; font-size: 14px; margin: 0; }
+        .notification-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; transition: all 0.2s ease; }
+        .notification-item:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
+        .notification-item.unread { border-left: 4px solid #3b82f6; }
+        .notification-item.read { opacity: 0.8; }
+        .notification-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+        .notification-title { color: #1e293b; font-size: 16px; font-weight: 600; margin: 0; }
+        .notification-time { color: #94a3b8; font-size: 12px; }
+        .notification-message { color: #475569; font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+        .notification-actions { display: flex; gap: 8px; }
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer; transition: all 0.2s ease; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
+        .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; color: #374151; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        .form-control:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .pagination { display: flex; justify-content: center; gap: 4px; margin-top: 24px; }
+        .page-link { display: inline-flex; align-items: center; padding: 8px 12px; color: #6b7280; text-decoration: none; border: 1px solid #d1d5db; border-radius: 6px; transition: all 0.2s ease; }
+        .page-link:hover { background: #f9fafb; color: #374151; }
+        .page-link.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-toggle { display: flex; align-items: center; gap: 4px; }
+        .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 160px; z-index: 1000; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.2s ease; }
+        .dropdown.active .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropdown-item { display: block; padding: 8px 12px; color: #374151; text-decoration: none; font-size: 14px; }
+        .dropdown-item:hover { background: #f9fafb; }
+        .filter-form { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .filter-form .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .filter-form .form-group { flex: 1; min-width: 200px; margin-bottom: 0; }
+        .search-box { position: relative; margin-bottom: 16px; }
+        .search-box input { padding-left: 36px; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .empty-state { text-align: center; padding: 48px 24px; color: #6b7280; }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: #d1d5db; }
+        .empty-state h3 { color: #374151; font-size: 18px; margin-bottom: 8px; }
+        .loading { display: flex; justify-content: center; align-items: center; padding: 48px; color: #6b7280; }
+        .spinner { display: inline-block; width: 24px; height: 24px; border: 2px solid #e2e8f0; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 768px) { 
+            .notification-container { flex-direction: column; gap: 16px; padding: 16px; } 
+            .notification-sidebar { width: 100%; position: static; order: 2; } 
+            .notification-main-content { order: 1; } 
+            .content-header { flex-direction: column; gap: 16px; align-items: stretch; } 
+            .filter-form .form-row { flex-direction: column; gap: 12px; } 
+            .filter-form .form-group { min-width: unset; } 
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="notification-container">
+    <aside class="notification-sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-bell"></i> Quản lý Thông báo</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="{% url 'notifications:list' %}" class="{% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+                        <i class="fas fa-inbox"></i> Hộp thư của bạn
+                        {% if unread_count > 0 %}
+                            <span class="notification-badge">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="notification-main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="content-header">
+            <h1>{% block content_title %}Thông báo{% endblock %}</h1>
+            <div class="header-actions">
+                {% block header_actions %}
+                    <button class="btn btn-outline btn-sm" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Làm mới
+                    </button>
+                {% endblock %}
+            </div>
+        </div>
+        
+        <div class="content-body">
+            {% block notification_content %}
+                <div class="empty-state">
+                    <i class="fas fa-bell"></i>
+                    <h3>Chưa có nội dung</h3>
+                    <p>Nội dung sẽ được hiển thị ở đây.</p>
+                </div>
+            {% endblock %}
+        </div>
+    </main>
+</div>
+
+<script>
+// Dropdown functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        if (toggle) {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropdowns.forEach(d => d !== dropdown && d.classList.remove('active'));
+                dropdown.classList.toggle('active');
+            });
+        }
+    });
+    
+    document.addEventListener('click', function(e) {
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    });
+});
+
+// Auto-refresh unread count
+function updateUnreadCount() {
+    fetch('/notifications/api/get-notifications/')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.querySelector('.notification-badge');
+            if (data.unread_count > 0) {
+                if (badge) {
+                    badge.textContent = data.unread_count;
+                } else {
+                    const link = document.querySelector('a[href*="notifications:list"]');
+                    if (link) {
+                        link.innerHTML += `<span class="notification-badge">${data.unread_count}</span>`;
+                    }
+                }
+            } else if (badge) {
+                badge.remove();
+            }
+        })
+        .catch(error => console.error('Error updating unread count:', error));
+}
+
+// Update every 30 seconds
+setInterval(updateUnreadCount, 30000);
+</script>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}{% endblock %}

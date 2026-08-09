@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>Bình luận mới chờ phê duyệt</h2>
+    <p>Xin chào Admin,</p>
+    <p>Có một bình luận mới từ <strong>{{ comment.author.username }}</strong> trên bài viết "<strong>{{ comment.post.title }}</strong>" đang chờ bạn phê duyệt.</p>
+    
+    <div style="background-color: #f9f9f9; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; font-style: italic;">
+        {{ comment.content|linebreaks }}
+    </div>
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ moderation_url }}" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Xem và Phê duyệt
+        </a>
+    </p>
+    <p>Nếu nút trên không hoạt động, copy đường dẫn này: <br>{{ moderation_url }}</p>
+</body>
+</html>

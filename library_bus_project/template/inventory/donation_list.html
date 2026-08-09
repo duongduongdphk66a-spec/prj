@@ -1,0 +1,131 @@
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Quản lý Quyên góp - {{ block.super }}{% endblock %}
+
+{% block page_title %}Quản lý Quyên góp{% endblock %}
+
+{% block breadcrumb %}
+<div class="inventory-breadcrumb">
+    <a href="{% url 'inventory:dashboard' %}"><i class="fas fa-home"></i> Tổng quan</a>
+    <span class="separator">•</span>
+    <span class="current">Quyên góp sách</span>
+</div>
+{% endblock %}
+
+{% block header_icon %}<i class="fas fa-hand-holding-heart"></i>{% endblock %}
+{% block header_title %}Quản lý Quyên góp sách{% endblock %}
+{% block header_description %}Xem và phê duyệt các yêu cầu quyên góp sách từ người dùng{% endblock %}
+
+{% block quick_actions %}
+<div class="inventory-quick-actions">
+    <a href="{% url 'inventory:donation_list' %}" class="inventory-quick-action"><i class="fas fa-list"></i> Tất cả</a>
+    <a href="{% url 'inventory:donation_list' %}?status=pending" class="inventory-quick-action"><i class="fas fa-clock"></i> Chờ duyệt</a>
+    <a href="{% url 'inventory:donation_list' %}?status=approved" class="inventory-quick-action"><i class="fas fa-check-circle"></i> Đã duyệt</a>
+</div>
+{% endblock %}
+
+{% block filter_bar %}
+<div class="inventory-filter-bar">
+    <form method="get" action="{% url 'inventory:donation_list' %}" style="display: flex; gap: 10px; width: 100%;">
+        <select name="status" class="inventory-filter-select">
+            <option value="">Tất cả Trạng thái</option>
+            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Chờ phê duyệt</option>
+            <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Đã phê duyệt</option>
+            <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Từ chối</option>
+        </select>
+        <button type="submit" class="inventory-btn inventory-btn-primary"><i class="fas fa-filter"></i> Lọc</button>
+        <a href="{% url 'inventory:donation_list' %}" class="inventory-btn inventory-btn-secondary"><i class="fas fa-times"></i> Xóa lọc</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="inventory-card">
+    <div class="inventory-table-container">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i> Người dùng</th>
+                    <th><i class="fas fa-book"></i> Tên sách</th>
+                    <th><i class="fas fa-user-edit"></i> Tác giả</th>
+                    <th><i class="fas fa-calendar-alt"></i> Ngày gửi</th>
+                    <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                    <th class="text-center"><i class="fas fa-cogs"></i> Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for donation in donations %}
+                <tr>
+                    <td>
+                        <strong>{{ donation.user.username }}</strong><br>
+                        <small class="text-muted">{{ donation.user.email }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ donation.book_title }}</strong>
+                        {% if donation.description %}
+                        <br><small class="text-muted" title="{{ donation.description }}">{{ donation.description|truncatechars:50 }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ donation.author|default:"-" }}</td>
+                    <td>{{ donation.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if donation.status == 'pending' %}
+                        <span class="inventory-badge inventory-badge-warning">Chờ duyệt</span>
+                        {% elif donation.status == 'approved' %}
+                        <span class="inventory-badge inventory-badge-success">Đã duyệt</span>
+                        {% else %}
+                        <span class="inventory-badge inventory-badge-danger">Từ chối</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="inventory-action-buttons" style="justify-content: center;">
+                            {% if donation.status == 'pending' %}
+                            <form method="post" action="{% url 'inventory:donation_status_change' donation.id %}" style="display: inline-block; margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="approved">
+                                <button type="submit" class="inventory-action-btn" title="Phê duyệt" style="border: none; cursor: pointer; background: rgba(16, 185, 129, 0.1); color: #10b981; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px;">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'inventory:donation_status_change' donation.id %}" style="display: inline-block; margin: 0; margin-left: 5px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="rejected">
+                                <button type="submit" class="inventory-action-btn" title="Từ chối" style="border: none; cursor: pointer; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 6px;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center" style="padding: 30px;">
+                        <i class="fas fa-box-open" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>Không có dữ liệu đóng góp sách.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+    <div class="inventory-pagination" style="margin-top: 20px; text-align: center;">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="inventory-btn inventory-btn-secondary"><i class="fas fa-chevron-left"></i> Trước</a>
+        {% endif %}
+        
+        <span class="inventory-pagination-info" style="margin: 0 15px;">
+            Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="inventory-btn inventory-btn-secondary">Sau <i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

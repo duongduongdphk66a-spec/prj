@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    {% block user_title %}Bảng điều khiển{% endblock %} - Trang cá nhân
+{% endblock %}
+
+{% block content %}
+{# We override the main content block to insert our own layout #}
+
+<style>
+    /* ==============================================
+       CSS CẢI TIẾN CHO TRANG CÁ NHÂN
+    ============================================== */
+
+    :root {
+        --user-bg-color: #f8f9fa;
+        --sidebar-bg-color: #ffffff;
+        --card-bg-color: #ffffff;
+        --primary-accent-color: #c5a47e; /* Vàng đồng thanh lịch */
+        --primary-accent-light: #f5f1ea;
+        --text-dark-color: #212529;
+        --text-light-color: #6c757d;
+        --border-color: #dee2e6;
+        --sidebar-width: 260px;
+        --sidebar-width-collapsed: 80px;
+        --header-height: 75px; /* Giả định chiều cao header từ base.html */
+    }
+
+    [data-theme="dark"] {
+        --user-bg-color: #121212;
+        --sidebar-bg-color: #1e1e1e;
+        --card-bg-color: #1e1e1e;
+        --primary-accent-color: #c5a47e;
+        --primary-accent-light: #3a3227;
+        --text-dark-color: #e0e0e0;
+        --text-light-color: #a0a0a0;
+        --border-color: #333333;
+    }
+
+    /* --- BỐ CỤC CHÍNH --- */
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: var(--sidebar-width) 1fr;
+        min-height: calc(100vh - var(--header-height));
+        background-color: var(--user-bg-color);
+        transition: grid-template-columns 0.3s ease-in-out;
+    }
+
+    /* --- THANH ĐIỀU HƯỚNG DỌC (SIDEBAR) --- */
+    .dashboard-sidebar {
+        background-color: var(--sidebar-bg-color);
+        border-right: 1px solid var(--border-color);
+        padding: 1.5rem 0;
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100vh - var(--header-height));
+        transition: width 0.3s ease-in-out;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Thông tin người dùng trên sidebar */
+    .sidebar-profile {
+        text-align: center;
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--primary-accent-light);
+        margin-bottom: 1rem;
+        background-color: var(--primary-accent-color);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 600;
+    }
+
+    .sidebar-profile h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-dark-color);
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .sidebar-profile p {
+        font-size: 0.85rem;
+        color: var(--text-light-color);
+        margin-top: 0.25rem;
+        white-space: nowrap;
+    }
+
+    /* Menu điều hướng */
+    .sidebar-nav {
+        flex-grow: 1;
+    }
+
+    .sidebar-nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar-nav a, .sidebar-nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.9rem 1.5rem;
+        color: var(--text-dark-color);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+        border-left: 4px solid transparent;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav a:hover, .sidebar-nav-link:hover {
+        color: var(--primary-accent-color);
+    }
+
+    .sidebar-nav li.active > a {
+        color: var(--primary-accent-color);
+        border-left-color: var(--primary-accent-color);
+        font-weight: 600;
+    }
+
+    .sidebar-nav .nav-icon {
+        margin-right: 1rem;
+        width: 20px;
+        font-size: 1.1rem;
+        text-align: center;
+        transition: color 0.2s ease;
+    }
+
+    .sidebar-nav a:hover .nav-icon, .sidebar-nav-link:hover .nav-icon,
+    .sidebar-nav li.active a .nav-icon {
+        color: var(--primary-accent-color);
+    }
+
+    /* Nút đăng xuất */
+    .sidebar-logout {
+        padding: 1rem 1.5rem;
+        margin-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* --- KHU VỰC NỘI DUNG CHÍNH --- */
+    .dashboard-content {
+        padding: 2.5rem;
+        overflow-y: auto;
+    }
+
+    .content-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .content-header p {
+        color: var(--text-light-color);
+        margin-bottom: 2rem;
+    }
+
+    /* Card component */
+    .card {
+        background-color: var(--card-bg-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-color);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    /* --- RESPONSIVE DESIGN --- */
+    .mobile-sidebar-toggle {
+        display: none; /* Sẽ được hiển thị trên mobile */
+        position: fixed;
+        top: calc(var(--header-height) + 15px);
+        left: 15px;
+        z-index: 1010;
+        background-color: var(--sidebar-bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-overlay {
+        display: none;
+    }
+
+    @media (max-width: 992px) {
+        .dashboard-layout {
+            grid-template-columns: 1fr;
+        }
+        .dashboard-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            transform: translateX(-100%);
+            z-index: 1100;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease-in-out;
+            height: 100vh;
+        }
+        .dashboard-sidebar.show {
+            transform: translateX(0);
+        }
+        .mobile-sidebar-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dashboard-content {
+            padding: 2rem 1.5rem;
+        }
+        .content-header {
+            padding-top: 60px; /* Thêm khoảng trống cho nút toggle */
+        }
+        .sidebar-overlay {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1099;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-content {
+            padding: 1.5rem 1rem;
+        }
+        .card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<div class="dashboard-layout" id="dashboard-layout">
+    <!-- Nút bật/tắt sidebar trên mobile -->
+    <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Mở menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Thanh điều hướng dọc (Sidebar) -->
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
+        <div class="sidebar-profile">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="sidebar-avatar">
+            {% else %}
+                <div class="sidebar-avatar">
+                    {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
+                </div>
+            {% endif %}
+            <h4>{{ user.get_full_name|default:user.username }}</h4>
+            <p>{{ user.email }}</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'users:dashboard' %}">
+                        <i class="fas fa-tachometer-alt nav-icon"></i>
+                        <span>Bảng điều khiển</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    <a href="{% url 'users:profile' %}">
+                        <i class="fas fa-user-circle nav-icon"></i>
+                        <span>Trang cá nhân</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'profile_edit' %}active{% endif %}">
+                    <a href="{% url 'users:profile_edit' %}">
+                        <i class="fas fa-edit nav-icon"></i>
+                        <span>Chỉnh sửa hồ sơ</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                    <a href="{% url 'users:settings' %}">
+                        <i class="fas fa-cog nav-icon"></i>
+                        <span>Cài đặt</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'activity_history' %}active{% endif %}">
+                    <a href="{% url 'users:activity_history' %}">
+                        <i class="fas fa-history nav-icon"></i>
+                        <span>Lịch sử hoạt động</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'membership_upgrade' %}active{% endif %}">
+                    <a href="{% url 'users:membership_upgrade' %}">
+                        <i class="fas fa-star nav-icon"></i>
+                        <span>Nâng cấp tài khoản</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-logout">
+            <a href="#" onclick="event.preventDefault();document.getElementById('logout-form-sidebar').submit();" class="sidebar-nav-link">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span>Đăng xuất</span>
+            </a>
+            <form id="logout-form-sidebar" action="{% url 'users:logout' %}" method="post" style="display:none;">
+                {% csrf_token %}
+            </form>
+        </div>
+    </aside>
+
+    <!-- Nội dung chính -->
+    <main class="dashboard-content">
+        <div class="content-header">
+            <h1>{% block page_title %}Chào mừng trở lại, {{ user.first_name|default:user.username }}!{% endblock %}</h1>
+            <p>{% block page_subtitle %}Đây là không gian quản lý cá nhân của bạn.{% endblock %}</p>
+        </div>
+        
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block user_content %}
+            <!-- Nội dung cụ thể của từng trang con sẽ được chèn vào đây -->
+            <!-- Ví dụ: -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Thông tin mẫu</h3>
+                </div>
+                <p>Đây là khu vực nội dung chính. Bạn có thể đặt các thành phần như form, bảng biểu, hoặc các thẻ thông tin tại đây.</p>
+            </div>
+        {% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('dashboard-sidebar');
+    const toggleButton = document.getElementById('mobile-sidebar-toggle');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (toggleButton && sidebar && overlay) {
+        // Hàm để mở sidebar
+        const openSidebar = () => {
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+            toggleButton.innerHTML = '<i class="fas fa-times"></i>';
+        };
+
+        // Hàm để đóng sidebar
+        const closeSidebar = () => {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            toggleButton.innerHTML = '<i class="fas fa-bars"></i>';
+        };
+
+        // Bắt sự kiện click vào nút toggle
+        toggleButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (sidebar.classList.contains('show')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+
+        // Bắt sự kiện click vào overlay để đóng sidebar
+        overlay.addEventListener('click', closeSidebar);
+
+        // Đóng sidebar khi nhấn phím Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                closeSidebar();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Không tìm thấy trang{% endblock %}
+
+{% block content %}
+<div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+    <div style="text-align: center; max-width: 600px;">
+        <h1 style="font-size: 8rem; font-weight: 800; color: var(--gold); line-height: 1; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">404</h1>
+        <h2 style="font-size: 2rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 1rem;">Rất tiếc! Không tìm thấy trang</h2>
+        <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">
+            Có vẻ như trang bạn đang cố truy cập không tồn tại, đã bị xóa hoặc đường dẫn đã bị thay đổi.
+            Vui lòng kiểm tra lại URL hoặc trở về trang chủ.
+        </p>
+        <a href="{% url 'index' %}" style="display: inline-block; padding: 0.8rem 2rem; background: linear-gradient(135deg, var(--dark-brown), #3a2820); color: var(--gold); border-radius: 50px; font-weight: 600; text-decoration: none; transition: transform 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <i class="fas fa-home"></i> Trở về Trang chủ
+        </a>
+    </div>
+</div>
+{% endblock %}

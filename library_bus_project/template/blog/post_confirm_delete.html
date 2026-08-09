@@ -1,0 +1,30 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block title %}Xác nhận xóa | Thư Viện Lưu Động{% endblock %}
+{% block blog_title %}Xác Nhận Xóa{% endblock %}
+{% block blog_subtitle %}Hành động này không thể hoàn tác{% endblock %}
+
+{% block blog_content %}
+<div style="max-width: 600px; margin: 0 auto; background: var(--white); padding: 3rem; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); text-align: center;">
+    <div style="font-size: 4rem; color: #c62828; margin-bottom: 1rem;">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h2 style="font-size: 1.5rem; color: var(--dark-brown); margin-bottom: 1rem;">Xóa bài viết "{{ object.title }}"?</h2>
+    
+    <p style="color: #666; margin-bottom: 2rem; line-height: 1.6;">
+        Bạn có chắc chắn muốn xóa bài viết này không? Toàn bộ bình luận, lượt thích, và đánh giá liên quan sẽ bị xóa hoặc ẩn khỏi hệ thống.
+    </p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'blog:dashboard' %}" class="btn btn-secondary" style="padding: 0.8rem 2rem;">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary" style="background: #c62828; border-color: #c62828; padding: 0.8rem 2rem;">
+                Có, Xóa bài viết
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

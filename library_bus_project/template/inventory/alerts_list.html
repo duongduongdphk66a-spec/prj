@@ -1,0 +1,132 @@
+<!-- File: inventory/alerts_list.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Danh sách Cảnh báo - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.alert-severity { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.alert-severity.critical { background: linear-gradient(135deg, #ff4757, #ff3742); color: white; box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3); }
+.alert-severity.high { background: linear-gradient(135deg, #ff6b35, #ff5722); color: white; box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3); }
+.alert-severity.medium { background: linear-gradient(135deg, #ffa502, #ff9500); color: white; box-shadow: 0 2px 8px rgba(255, 165, 2, 0.3); }
+.alert-severity.low { background: linear-gradient(135deg, #3742fa, #2f3542); color: white; box-shadow: 0 2px 8px rgba(55, 66, 250, 0.3); }
+.alert-status { padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: 500; }
+.alert-status.resolved { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.alert-status.unresolved { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.alert-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.alert-table th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 600; padding: 16px; border: none; }
+.alert-table td { padding: 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+.alert-table tr:hover { background: #f8f9ff; transform: translateY(-1px); transition: all 0.3s ease; }
+.alert-table tr:last-child td { border-bottom: none; }
+.alert-filter { background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.alert-filter .form-select { border: 2px solid #e9ecef; border-radius: 8px; padding: 10px 16px; font-size: 14px; transition: all 0.3s ease; }
+.alert-filter .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+.alert-filter .btn { padding: 10px 20px; border-radius: 8px; font-weight: 500; transition: all 0.3s ease; }
+.alert-filter .btn-secondary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; color: white; }
+.alert-filter .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+.alert-action-btn { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; border: none; cursor: pointer; transition: all 0.3s ease; }
+.alert-action-btn.warning { background: linear-gradient(135deg, #ffa502, #ff9500); color: white; }
+.alert-action-btn.warning:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 165, 2, 0.4); }
+.alert-bus-name { font-weight: 600; color: #2c3e50; }
+.alert-time { color: #6c757d; font-size: 13px; }
+.alert-message { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alert-page-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.alert-page-header h1 { margin: 0; font-size: 28px; font-weight: 700; }
+.alert-empty { text-align: center; padding: 60px 20px; color: #6c757d; }
+.alert-empty i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.alert-empty h3 { margin: 0 0 8px 0; font-size: 18px; font-weight: 600; }
+.alert-empty p { margin: 0; font-size: 14px; }
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="alert-page-header">
+    <h1><i class="fas fa-exclamation-triangle"></i> Danh sách Cảnh báo</h1>
+</div>
+
+<div class="alert-filter">
+    <form method="get" class="row g-3 align-items-center">
+        <div class="col-auto">
+            <select name="status" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="unresolved" {% if current_status == 'unresolved' %}selected{% endif %}>Chưa xử lý</option>
+                <option value="resolved" {% if current_status == 'resolved' %}selected{% endif %}>Đã xử lý</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <select name="severity" class="form-select">
+                <option value="">Tất cả mức độ</option>
+                {% for value, display in severity_choices %}
+                <option value="{{ value }}" {% if current_severity == value %}selected{% endif %}>{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-filter"></i> Lọc
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="alert-table">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th><i class="fas fa-exclamation-circle"></i> Mức độ</th>
+                <th><i class="fas fa-bus"></i> Xe bus</th>
+                <th><i class="fas fa-tag"></i> Loại cảnh báo</th>
+                <th><i class="fas fa-comment"></i> Nội dung</th>
+                <th><i class="fas fa-clock"></i> Thời gian</th>
+                <th><i class="fas fa-check-circle"></i> Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>
+                    <span class="alert-severity {{ alert.severity|lower }}">
+                        {{ alert.get_severity_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="alert-bus-name">{{ alert.bus.name }}</div>
+                </td>
+                <td>{{ alert.get_alert_type_display }}</td>
+                <td>
+                    <div class="alert-message" title="{{ alert.message }}">
+                        {{ alert.message }}
+                    </div>
+                </td>
+                <td>
+                    <div class="alert-time">{{ alert.created_at|date:"d/m/Y H:i" }}</div>
+                </td>
+                <td>
+                    {% if alert.is_resolved %}
+                        <span class="alert-status resolved">
+                            <i class="fas fa-check"></i> Đã xử lý
+                        </span>
+                    {% else %}
+                        <form action="{% url 'inventory:alert_resolve' alert.pk %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="alert-action-btn warning">
+                                <i class="fas fa-wrench"></i> Xử lý
+                            </button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="alert-empty">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Không có cảnh báo nào</h3>
+                    <p>Hệ thống đang hoạt động bình thường</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

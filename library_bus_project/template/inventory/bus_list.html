@@ -1,0 +1,186 @@
+<!-- File: inventory/bus_list.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Danh sách Xe Bus - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Leaflet Map Styling */
+.map-container {
+    height: calc(100vh - 120px);
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+#bus-map {
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.map-search-overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    width: 350px;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    padding: 5px 15px;
+}
+
+.map-search-input {
+    border: none;
+    outline: none;
+    padding: 10px;
+    width: 100%;
+    font-size: 15px;
+    border-radius: 0;
+}
+
+.map-search-icon {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 0;
+}
+.leaflet-popup-content {
+    margin: 15px;
+}
+.bus-popup-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #1e293b;
+}
+.bus-popup-status {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 0;
+    background: #dcfce7;
+    color: #16a34a;
+}
+.bus-popup-btn {
+    display: block;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 0;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+.bus-popup-btn:hover {
+    box-shadow: 0 4px 10px rgba(102,126,234,0.4);
+}
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}
+
+{% block content %}
+<div class="map-container">
+    <!-- Nút tìm kiếm nổi trên map -->
+    <div class="map-search-overlay">
+        <i class="fas fa-search map-search-icon"></i>
+        <input type="text" id="bus-search-input" class="map-search-input" placeholder="Tìm kiếm xe theo tên...">
+    </div>
+    
+    <!-- Vùng hiển thị bản đồ -->
+    <div id="bus-map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const busesData = {{ buses_json|safe }};
+        
+        // Khởi tạo map, mặc định giữa Việt Nam (nếu không có xe nào)
+        let defaultLat = 21.028511; // Hanoi
+        let defaultLng = 105.804817;
+        
+        if (busesData && busesData.length > 0) {
+            defaultLat = busesData[0].lat;
+            defaultLng = busesData[0].lng;
+        }
+
+        const map = L.map('bus-map').setView([defaultLat, defaultLng], 12);
+
+        // Thêm tile layer từ OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Custom icon cho xe bus
+        const busIcon = L.divIcon({
+            html: '<i class="fas fa-bus" style="color: #4f46e5; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></i>',
+            className: 'custom-bus-icon',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+            popupAnchor: [0, -24]
+        });
+
+        // Array lưu các marker để thao tác tìm kiếm
+        const markers = [];
+
+        // Duyệt danh sách xe để vẽ marker
+        if (busesData) {
+            busesData.forEach(bus => {
+                const popupContent = `
+                    <div class="bus-popup-title">${bus.name}</div>
+                    <div class="bus-popup-status">${bus.status}</div>
+                    <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 5px;">
+                        <i class="fas fa-map-marker-alt"></i> ${bus.location_name || 'Đang cập nhật'}
+                    </div>
+                    <a href="${bus.detail_url}" class="bus-popup-btn">Xem chi tiết</a>
+                `;
+
+                const marker = L.marker([bus.lat, bus.lng], { icon: busIcon })
+                    .bindPopup(popupContent)
+                    .addTo(map);
+                    
+                markers.push({
+                    marker: marker,
+                    name: bus.name.toLowerCase(),
+                    lat: bus.lat,
+                    lng: bus.lng
+                });
+            });
+        }
+
+        // Tính năng tìm kiếm xe
+        const searchInput = document.getElementById('bus-search-input');
+        if(searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase();
+                let found = false;
+
+                markers.forEach(item => {
+                    if (item.name.includes(query) && query.length > 0) {
+                        if (!found) {
+                            // Di chuyển bản đồ đến xe đầu tiên tìm thấy và mở popup
+                            map.flyTo([item.lat, item.lng], 15);
+                            item.marker.openPopup();
+                            found = true;
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

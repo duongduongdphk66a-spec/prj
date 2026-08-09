@@ -1,0 +1,199 @@
+<!-- File: transactions/statistics.html -->
+{% extends "transactions/base_transactions.html" %}
+{% load static %}
+
+{% block title %}Thống kê & Phân tích - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .stats-container { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem 0; }
+    .stats-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
+    .stats-header h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text;background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
+    .stats-header p { color: #6c757d; font-size: 1.1rem; margin: 0.5rem 0 0 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+    .stat-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; border: 1px solid rgba(255, 255, 255, 0.2); position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+    .stat-card h5 { color: #2c3e50; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .stat-card h5 i { color: #667eea; font-size: 1.2rem; }
+    .trend-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .trend-card h5 { color: white; }
+    .trend-card .stats-info { opacity: 0.9; }
+    .stats-info { margin-bottom: 1rem; }
+    .stats-info strong { color: #667eea; }
+    .trend-card .stats-info strong { color: #fff; }
+    .chart-placeholder { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 3rem; text-align: center; color: #6c757d; position: relative; overflow: hidden; }
+    .chart-placeholder::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23e9ecef" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>'); opacity: 0.3; }
+    .chart-placeholder i { font-size: 3rem; margin-bottom: 1rem; color: #667eea; }
+    .chart-placeholder p { font-size: 1.1rem; margin: 0; position: relative; z-index: 1; }
+    .list-group-item { border: none; padding: 1rem 0; border-bottom: 1px solid #e9ecef; display: flex; justify-content: between; align-items: center; transition: all 0.3s ease; }
+    .list-group-item:hover { background: rgba(102, 126, 234, 0.05); padding-left: 1rem; }
+    .list-group-item:last-child { border-bottom: none; }
+    .badge { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+    .insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .insight-item { background: #f8f9fa; padding: 1rem; border-radius: 10px; border-left: 4px solid #667eea; transition: all 0.3s ease; }
+    .insight-item:hover { background: #e9ecef; transform: translateX(5px); }
+    .insight-item dt { color: #2c3e50; font-weight: 600; margin-bottom: 0.5rem; }
+    .insight-item dd { color: #6c757d; margin: 0; font-size: 1.1rem; }
+    .overdue-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .overdue-category { background: #fff3cd; padding: 1rem; border-radius: 10px; text-align: center; border: 2px solid #ffeaa7; transition: all 0.3s ease; }
+    .overdue-category:hover { background: #ffeaa7; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
+    .overdue-category .number { font-size: 1.5rem; font-weight: 700; color: #856404; }
+    .overdue-category .label { font-size: 0.9rem; color: #6c757d; margin-top: 0.5rem; }
+    .alert { border-radius: 15px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; border: none; animation: slideIn 0.5s ease-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .alert-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .alert-danger { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    .alert-warning { background: linear-gradient(135deg, #fff3cd, #ffeaa7); color: #856404; border-left: 4px solid #ffc107; }
+    .loading-animation { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 0.5rem; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .stats-header h1 { font-size: 2rem; } .insights-grid { grid-template-columns: 1fr; } .overdue-categories { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block transaction_content %}
+<div class="stats-container">
+    <div class="container">
+        <div class="stats-header">
+            <h1><i class="fas fa-chart-line"></i> Thống kê & Phân tích</h1>
+            <p>Phân tích sâu về hoạt động của thư viện với dữ liệu thời gian thực</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="stats-grid">
+            <!-- Borrowing Trends -->
+            <div class="stat-card trend-card">
+                <h5><i class="fas fa-chart-area"></i> Xu hướng mượn sách</h5>
+                <div class="stats-info">
+                    <p><strong>Thời gian phân tích:</strong> {{ borrowing_trends.period_days|default:30 }} ngày qua</p>
+                    <p><strong>Ngày cao điểm:</strong> {{ borrowing_trends.peak_day.day|date:"d/m/Y" }} với {{ borrowing_trends.peak_day.count }} lượt mượn</p>
+                    <p><strong>Trung bình mỗi ngày:</strong> {{ borrowing_trends.average_per_day|floatformat:2 }} lượt mượn</p>
+                </div>
+                <div class="chart-placeholder">
+                    <div class="loading-animation"></div>
+                    <i class="fas fa-chart-area"></i>
+                    <p>Biểu đồ xu hướng mượn sách đang được tải...</p>
+                </div>
+            </div>
+
+            <!-- Popular Books -->
+            <div class="stat-card">
+                <h5><i class="fas fa-trophy"></i> Top 10 sách được mượn nhiều nhất</h5>
+                <div class="list-group list-group-flush">
+                    {% for book in popular_books %}
+                    <div class="list-group-item">
+                        <span>{{ book.title }}</span>
+                        <span class="badge">{{ book.borrow_count }} lượt</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item">
+                        <span class="text-muted">Chưa có dữ liệu</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- User Insights -->
+            <div class="stat-card">
+                <h5><i class="fas fa-users"></i> Phân tích người dùng</h5>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <dt>Tỷ lệ mượn sách</dt>
+                        <dd>{{ user_insights.borrowing_rate|default:0 }}%</dd>
+                    </div>
+                    <div class="insight-item">
+                        <dt>Tỷ lệ gia hạn</dt>
+                        <dd>{{ user_insights.renewal_rate|default:0 }}%</dd>
+                    </div>
+                    <div class="insight-item">
+                        <dt>Sách TB/người</dt>
+                        <dd>{{ user_insights.average_books_per_user|default:0|floatformat:2 }}</dd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overdue Report -->
+            <div class="stat-card">
+                <h5><i class="fas fa-exclamation-triangle"></i> Báo cáo sách quá hạn</h5>
+                <div class="stats-info">
+                    <p><strong>Tổng số sách quá hạn:</strong> {{ overdue_report.total_overdue|default:0 }} cuốn</p>
+                    <p><strong>Tổng tiền phạt dự kiến:</strong> {{ overdue_report.total_fine_amount|default:0|floatformat:0 }}đ</p>
+                </div>
+                <div class="overdue-categories">
+                    <div class="overdue-category">
+                        <div class="number">{{ overdue_report.overdue_by_days.1_7_days|default:0 }}</div>
+                        <div class="label">1-7 ngày</div>
+                    </div>
+                    <div class="overdue-category">
+                        <div class="number">{{ overdue_report.overdue_by_days.8_30_days|default:0 }}</div>
+                        <div class="label">8-30 ngày</div>
+                    </div>
+                    <div class="overdue-category">
+                        <div class="number">{{ overdue_report.overdue_by_days.over_30_days|default:0 }}</div>
+                        <div class="label">Trên 30 ngày</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats cards on load
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Simulate chart loading
+    setTimeout(() => {
+        const chartPlaceholder = document.querySelector('.chart-placeholder');
+        const loadingAnimation = chartPlaceholder.querySelector('.loading-animation');
+        const chartText = chartPlaceholder.querySelector('p');
+        
+        loadingAnimation.style.display = 'none';
+        chartText.textContent = 'Biểu đồ xu hướng mượn sách sẽ được hiển thị ở đây';
+    }, 2000);
+    
+    // Add hover effects to insight items
+    const insightItems = document.querySelectorAll('.insight-item');
+    insightItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px) scale(1.02)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(5px) scale(1)';
+        });
+    });
+    
+    // Add click animation to overdue categories
+    const overdueCategories = document.querySelectorAll('.overdue-category');
+    overdueCategories.forEach(category => {
+        category.addEventListener('click', function() {
+            this.style.transform = 'translateY(-2px) scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-2px) scale(1)';
+            }, 150);
+        });
+    });
+});
+</script>
+{% endblock %}

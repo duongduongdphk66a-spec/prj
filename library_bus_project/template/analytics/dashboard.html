@@ -1,0 +1,213 @@
+<!-- analytics/templates/analytics/dashboard.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Dashboard - Analytics{% endblock %}
+
+{% block analytics_heading %}Dashboard{% endblock %}
+
+{% block analytics_description %}Chào mừng trở lại, {{ request.user.first_name|default:request.user.username }}! Đây là tổng quan nhanh về hoạt động của bạn trên Library Bus.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.dashboard-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; position: relative; overflow: hidden; }
+.dashboard-hero::before { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: translate(30px, -30px); }
+.dashboard-hero h2 { font-size: 1.8rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+.dashboard-hero p { opacity: 0.9; margin: 0; }
+.dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; transition: all 0.3s ease; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--analytics-primary); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+.stat-card-header { display: flex; justify-content: between; align-items: center; margin-bottom: 1rem; }
+.stat-card-header h4 { font-size: 0.9rem; font-weight: 600; color: #6b7280; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--analytics-light); display: flex; align-items: center; justify-content: center; color: var(--analytics-primary); font-size: 1.2rem; }
+.stat-card-value { font-size: 2.2rem; font-weight: 700; color: #1f2937; margin: 0.5rem 0; }
+.stat-card-footer { font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem; }
+.stat-card-footer i { color: var(--analytics-primary); }
+.content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+.grid-col-span-7 { grid-column: 1 / -1; }
+.grid-col-span-5 { grid-column: 1 / -1; }
+.content-card { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; overflow: hidden; }
+.content-card-header { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: between; align-items: center; }
+.content-card-header h3 { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 0; }
+.content-card-body { padding: 1.5rem; }
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table tbody tr { border-bottom: 1px solid #f0f0f0; transition: background-color 0.2s ease; }
+.custom-table tbody tr:hover { background: #f9fafb; }
+.custom-table td { padding: 1rem 0.5rem; vertical-align: middle; }
+.custom-table td:first-child { padding-left: 0; }
+.custom-table td:last-child { padding-right: 0; }
+.custom-table strong { color: #1f2937; font-weight: 600; }
+.custom-table small { color: #6b7280; font-size: 0.85rem; }
+.badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.badge.bg-light { background: #f3f4f6 !important; color: #4b5563 !important; }
+.progress-bar { width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress-bar-inner { height: 100%; background: var(--analytics-gradient); border-radius: 3px; transition: width 0.3s ease; }
+.list-group { list-style: none; padding: 0; margin: 0; }
+.list-group-item { padding: 1rem 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: between; align-items: center; }
+.list-group-item:last-child { border-bottom: none; }
+.list-group-item strong { color: #1f2937; font-weight: 600; }
+.list-group-item small { color: #6b7280; font-size: 0.85rem; }
+.btn-outline-primary { border: 1px solid var(--analytics-primary); color: var(--analytics-primary); background: transparent; padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease; }
+.btn-outline-primary:hover { background: var(--analytics-primary); color: white; }
+.quick-actions { display: flex; gap: 1rem; margin-bottom: 2rem; }
+.quick-action { background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 1px solid #f0f0f0; text-align: center; flex: 1; text-decoration: none; color: #1f2937; transition: all 0.3s ease; }
+.quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); color: var(--analytics-primary); }
+.quick-action i { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--analytics-primary); }
+.quick-action span { font-size: 0.9rem; font-weight: 500; }
+@media (max-width: 1024px) { 
+    .content-grid { grid-template-columns: 1fr; }
+    .grid-col-span-7, .grid-col-span-5 { grid-column: 1; }
+}
+@media (max-width: 768px) { 
+    .dashboard-stats { grid-template-columns: 1fr; }
+    .quick-actions { flex-direction: column; }
+    .dashboard-hero { padding: 1.5rem; }
+    .dashboard-hero h2 { font-size: 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Dashboard Hero -->
+<div class="dashboard-hero">
+    <h2>Chào mừng trở lại!</h2>
+    <p>Hôm nay là ngày tuyệt vời để khám phá những cuốn sách mới</p>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <a href="{% url 'inventory:book_list' %}" class="quick-action">
+        <i class="fas fa-search"></i>
+        <div><span>Tìm sách</span></div>
+    </a>
+    <a href="{% url 'inventory:bus_list' %}" class="quick-action">
+        <i class="fas fa-map-marker-alt"></i>
+        <div><span>Tìm xe bus</span></div>
+    </a>
+    <a href="{% url 'analytics:recommendations' %}" class="quick-action">
+        <i class="fas fa-magic"></i>
+        <div><span>Gợi ý sách</span></div>
+    </a>
+    <a href="{% url 'analytics:user_activities' %}" class="quick-action">
+        <i class="fas fa-history"></i>
+        <div><span>Lịch sử</span></div>
+    </a>
+</div>
+
+<!-- Stats Grid -->
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Hạng của bạn</h4>
+            <div class="stat-card-icon"><i class="fas fa-medal"></i></div>
+        </div>
+        <div class="stat-card-value">{{ user_stats.user_summary.level_distribution.0.member_level|capfirst }}</div>
+        <div class="stat-card-footer">
+            <i class="fas fa-star"></i> Điểm uy tín: {{ user_stats.user_summary.top_readers.0.reputation_score }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Sách đã mượn</h4>
+            <div class="stat-card-icon"><i class="fas fa-book-reader"></i></div>
+        </div>
+        <div class="stat-card-value">{{ user_stats.user_summary.top_readers.0.total_books_borrowed|default:0 }}</div>
+        <div class="stat-card-footer">
+            <i class="fas fa-check-circle"></i> Đã trả: {{ user_stats.user_summary.top_readers.0.total_books_returned|default:0 }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Chuỗi đọc</h4>
+            <div class="stat-card-icon"><i class="fas fa-fire"></i></div>
+        </div>
+        <div class="stat-card-value">{{ user_stats.user_summary.top_readers.0.reading_streak_days|default:0 }} ngày</div>
+        <div class="stat-card-footer">
+            <i class="fas fa-trophy"></i> Kỷ lục: {{ user_stats.user_summary.top_readers.0.max_reading_streak|default:0 }} ngày
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Hoạt động hôm nay</h4>
+            <div class="stat-card-icon"><i class="fas fa-calendar-day"></i></div>
+        </div>
+        <div class="stat-card-value">{{ daily_stats.0.total_borrows|default:0 }}</div>
+        <div class="stat-card-footer">
+            <i class="fas fa-arrow-up"></i> Lượt mượn mới
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <div class="grid-col-span-7">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3><i class="fas fa-magic"></i> Gợi ý dành cho bạn</h3>
+                        <a href="{% url 'inventory:bus_list' %}" class="btn btn-outline-success btn-sm">Tìm xe ngay</a>
+            </div>
+            <div class="content-card-body">
+                {% if user_recommendations %}
+                    <table class="custom-table">
+                        <tbody>
+                        {% for rec in user_recommendations %}
+                            <tr>
+                                <td>
+                                    <strong>{{ rec.book.title }}</strong><br>
+                                    <small>bởi {{ rec.book.author }}</small>
+                                </td>
+                                <td><span class="badge bg-light">{{ rec.get_algorithm_type_display }}</span></td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-bar-inner" style="width: {{ rec.score|floatformat:0 }}%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: #6b7280;">
+                        <i class="fas fa-lightbulb" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>Chúng tôi đang tạo gợi ý mới cho bạn. Vui lòng quay lại sau!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="grid-col-span-5">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3><i class="fas fa-clock"></i> Hoạt động gần đây</h3>
+                <a href="{% url 'analytics:user_activities' %}" class="btn-outline-primary">Xem tất cả</a>
+            </div>
+            <div class="content-card-body">
+                {% if user_activities %}
+                    <ul class="list-group">
+                    {% for activity in user_activities %}
+                        <li class="list-group-item">
+                            <div>
+                                <strong>{{ activity.get_activity_type_display }}</strong>
+                                {% if activity.book %}
+                                <small style="display: block;">{{ activity.book.title }}</small>
+                                {% endif %}
+                            </div>
+                            <small>{{ activity.created_at|timesince }} trước</small>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: #6b7280;">
+                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>Chưa có hoạt động nào được ghi nhận.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock analytics_content %}

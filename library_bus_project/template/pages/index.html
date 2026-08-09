@@ -1,0 +1,616 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trang chủ - Tủ Sách Lưu Động{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ========== Hero Section ========== */
+    .hero-premium {
+        position: relative;
+        min-height: 92vh;
+        display: flex; align-items: center; justify-content: center;
+        background: url('{% static "img/website.png" %}') center/cover no-repeat;
+        margin-top: -80px;
+        padding-top: 80px;
+        overflow: hidden;
+    }
+    .hero-premium::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to bottom, rgba(45, 31, 20, 0.5) 0%, rgba(45, 31, 20, 0.85) 100%);
+        z-index: 1;
+    }
+    /* Animated decorative shapes */
+    .hero-shape {
+        position: absolute; border-radius: 50%;
+        opacity: 0.04; z-index: 1; pointer-events: none;
+    }
+    .hero-shape-1 { width: 500px; height: 500px; background: var(--gold); top: -150px; right: -100px; animation: float 8s ease-in-out infinite; }
+    .hero-shape-2 { width: 300px; height: 300px; background: var(--amber-400); bottom: -100px; left: -80px; animation: float 10s ease-in-out infinite reverse; }
+    .hero-shape-3 { width: 200px; height: 200px; background: var(--white); top: 40%; left: 10%; animation: float 6s ease-in-out infinite 2s; }
+
+    .hero-content {
+        position: relative; z-index: 2;
+        text-align: center; max-width: 820px;
+        padding: 4rem 3.5rem;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 32px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 1s var(--ease-out) forwards;
+        opacity: 0;
+    }
+    .hero-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255, 215, 0, 0.15);
+        color: var(--gold);
+        padding: 6px 18px; border-radius: 50px;
+        font-size: 0.8rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 2px;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    .hero-content h1 {
+        font-size: 3.5rem; font-weight: 900;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, var(--gold) 0%, #FDE68A 40%, var(--dark-gold) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.15;
+    }
+    .hero-content p {
+        font-size: 1.15rem; margin-bottom: 2.5rem;
+        opacity: 0.9; line-height: 1.7;
+        color: #F5EBE0;
+    }
+    .hero-buttons { display: flex; gap: 1.25rem; justify-content: center; flex-wrap: wrap; }
+    .btn-hero {
+        padding: 1rem 2.5rem; font-size: 1.05rem;
+        border-radius: 50px; font-weight: 700;
+        transition: all 0.4s var(--ease-spring);
+        display: inline-flex; align-items: center; gap: 10px;
+        text-decoration: none; position: relative; overflow: hidden;
+        font-family: 'Inter', sans-serif; letter-spacing: 0.02em;
+    }
+    .btn-hero.primary {
+        background: var(--gradient-gold);
+        color: var(--dark-brown); border: none;
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    }
+    .btn-hero.primary:hover {
+        transform: translateY(-5px) scale(1.03);
+        box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+    }
+    .btn-hero.secondary {
+        background: transparent;
+        color: #F5EBE0; border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+    .btn-hero.secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--gold);
+        color: var(--gold);
+        transform: translateY(-4px);
+    }
+
+    /* ========== Stats Section ========== */
+    .stats-section {
+        position: relative; z-index: 10;
+        margin-top: -90px; padding-bottom: 4rem;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    .stat-card {
+        background: var(--white);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        border-radius: 20px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+        transition: all 0.4s var(--ease-spring);
+        opacity: 0; transform: translateY(30px);
+        position: relative; overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0;
+        height: 4px;
+        background: var(--gradient-gold);
+        transform: scaleX(0);
+        transition: transform 0.4s var(--ease-smooth);
+    }
+    .stat-card:hover::before { transform: scaleX(1); }
+    .stat-card.animate-in { opacity: 1; transform: translateY(0); }
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+    }
+    .stat-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        background: var(--amber-50);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem; color: var(--amber-600);
+        transition: all 0.3s var(--ease-spring);
+    }
+    .stat-card:hover .stat-icon {
+        background: var(--gradient-gold);
+        color: var(--dark-brown);
+        transform: scale(1.1) rotate(-5deg);
+    }
+    .stat-number {
+        font-size: 2.5rem; font-weight: 900;
+        color: var(--dark-brown); margin-bottom: 0.3rem;
+        display: inline-block;
+        font-family: 'Playfair Display', serif;
+    }
+    .stat-label {
+        font-size: 0.85rem; color: var(--warm-500);
+        font-weight: 600; text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    /* ========== Sections ========== */
+    .section-premium { padding: 6rem 0; }
+    .section-premium.bg-warm { background: var(--gradient-warm); }
+    .section-header {
+        text-align: center; margin-bottom: 4rem;
+    }
+    .section-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--amber-50);
+        color: var(--amber-700);
+        padding: 5px 14px; border-radius: 50px;
+        font-size: 0.75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1.5px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--amber-100);
+    }
+    .section-header h2 {
+        font-size: 2.5rem; font-weight: 900;
+        color: var(--dark-brown); margin-bottom: 1rem;
+        position: relative; display: inline-block;
+    }
+    .section-header h2::after {
+        content: ''; position: absolute;
+        bottom: -12px; left: 50%; transform: translateX(-50%);
+        width: 80px; height: 4px;
+        background: var(--gradient-gold);
+        border-radius: 2px;
+    }
+    .section-header p {
+        color: var(--warm-500); font-size: 1.1rem;
+        max-width: 600px; margin: 1.5rem auto 0;
+        line-height: 1.7;
+    }
+
+    /* ========== Book Cards ========== */
+    .book-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 2rem;
+    }
+    .book-card {
+        background: var(--white);
+        border-radius: 20px; overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s var(--ease-smooth);
+        position: relative;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .book-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+    }
+    .book-cover-wrap {
+        position: relative; padding-top: 130%;
+        overflow: hidden;
+    }
+    .book-cover {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.7s var(--ease-out);
+    }
+    .book-card:hover .book-cover { transform: scale(1.06); }
+    .book-badge {
+        position: absolute; top: 14px; right: 14px;
+        background: var(--gradient-gold);
+        color: var(--dark-brown);
+        padding: 4px 14px; border-radius: 50px;
+        font-size: 0.78rem; font-weight: 700;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 2; letter-spacing: 0.5px;
+    }
+    /* Hover overlay */
+    .book-overlay {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(to top, rgba(92, 64, 51, 0.8) 0%, transparent 60%);
+        opacity: 0; transition: opacity 0.4s;
+        display: flex; align-items: flex-end; justify-content: center;
+        padding: 1.5rem;
+    }
+    .book-card:hover .book-overlay { opacity: 1; }
+    .book-overlay-btn {
+        color: white; font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
+        transform: translateY(10px);
+        transition: transform 0.4s var(--ease-spring);
+        font-size: 0.95rem;
+    }
+    .book-card:hover .book-overlay-btn { transform: translateY(0); }
+
+    .book-info { padding: 1.5rem; }
+    .book-title {
+        font-size: 1.15rem; font-weight: 700;
+        color: var(--dark-brown); margin-bottom: 0.4rem;
+        line-height: 1.4;
+        display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .book-title a { color: inherit; text-decoration: none; }
+    .book-title a:hover { color: var(--amber-600); }
+    .book-author {
+        color: var(--amber-600); font-size: 0.9rem;
+        font-weight: 600; margin-bottom: 0.8rem;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .book-author i { font-size: 0.8rem; }
+    .book-desc {
+        color: var(--warm-500); font-size: 0.9rem;
+        margin-bottom: 1.2rem;
+        display: -webkit-box; -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical; overflow: hidden;
+        line-height: 1.6;
+    }
+    .book-action {
+        display: flex; justify-content: space-between; align-items: center;
+        border-top: 1px solid var(--warm-50);
+        padding-top: 1rem;
+    }
+    .book-category-badge {
+        background: var(--amber-50);
+        color: var(--amber-700);
+        padding: 4px 12px; border-radius: 50px;
+        font-size: 0.78rem; font-weight: 600;
+        border: 1px solid var(--amber-100);
+    }
+    .btn-read {
+        color: var(--dark-brown); font-weight: 700;
+        display: flex; align-items: center; gap: 6px;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+    .btn-read:hover { color: var(--amber-600); }
+    .btn-read i { transition: transform 0.3s; }
+    .btn-read:hover i { transform: translateX(5px); }
+
+    /* ========== Post Cards ========== */
+    .post-grid-home {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+    .post-card-home {
+        background: var(--white);
+        border-radius: 20px; overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s var(--ease-smooth);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .post-card-home:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+    }
+    .post-img-wrap { overflow: hidden; }
+    .post-img {
+        width: 100%; height: 240px;
+        object-fit: cover;
+        transition: transform 0.7s var(--ease-out);
+    }
+    .post-card-home:hover .post-img { transform: scale(1.05); }
+    .post-card-content { padding: 1.8rem; }
+    .post-card-meta {
+        font-size: 0.85rem; color: var(--warm-400);
+        margin-bottom: 0.8rem;
+        display: flex; gap: 1rem; align-items: center;
+        font-weight: 500;
+    }
+    .post-card-meta i { color: var(--amber-400); }
+    .post-card-title {
+        font-size: 1.35rem; font-weight: 800;
+        color: var(--dark-brown); margin-bottom: 0.8rem;
+        line-height: 1.4;
+    }
+    .post-card-title a { color: inherit; text-decoration: none; }
+    .post-card-title a:hover { color: var(--amber-600); }
+    .post-card-excerpt {
+        color: var(--warm-500); margin-bottom: 1.5rem;
+        line-height: 1.7; font-size: 0.95rem;
+    }
+
+    /* ========== CTA Section ========== */
+    .cta-section {
+        background: var(--gradient-hero);
+        padding: 5rem 0;
+        text-align: center;
+        position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+        content: '';
+        position: absolute; top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(circle at 30% 70%, rgba(255, 215, 0, 0.08), transparent 50%),
+                    radial-gradient(circle at 70% 30%, rgba(255, 215, 0, 0.05), transparent 50%);
+        animation: float 10s ease-in-out infinite;
+    }
+    .cta-content { position: relative; z-index: 2; max-width: 650px; margin: 0 auto; }
+    .cta-content h2 {
+        font-size: 2.5rem; font-weight: 900;
+        color: var(--gold); margin-bottom: 1rem;
+    }
+    .cta-content p { color: #F5EBE0; opacity: 0.85; font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.7; }
+
+    /* ========== Animations ========== */
+    @media (max-width: 768px) {
+        .hero-content h1 { font-size: 2.2rem; }
+        .hero-content { padding: 2.5rem 1.5rem; margin: 0 1rem; }
+        .stats-section { margin-top: 2rem; }
+        .btn-hero { width: 100%; justify-content: center; }
+        .hero-buttons { flex-direction: column; padding: 0 1rem; }
+        .section-header h2 { font-size: 2rem; }
+        .cta-content h2 { font-size: 1.8rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-premium">
+    <div class="hero-shape hero-shape-1"></div>
+    <div class="hero-shape hero-shape-2"></div>
+    <div class="hero-shape hero-shape-3"></div>
+    
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-book-reader"></i> Thư viện di động #1 Việt Nam
+        </div>
+        <h1>Khám phá Tri thức, <br>Mở lối Tương lai</h1>
+        <p>
+            Chào mừng đến với Tủ Sách Lưu Động. Nơi kết nối hàng ngàn độc giả với kho tàng tri thức vô tận, được mang đến tận nơi qua hệ thống xe bus hiện đại và vô cùng tiện lợi.
+        </p>
+        <div class="hero-buttons">
+            <a href="{% url 'inventory:book_list' %}" class="btn-hero primary">
+                <i class="fas fa-book-reader"></i> Khám phá sách ngay
+            </a>
+            <a href="{% url 'inventory:bus_list' %}" class="btn-hero secondary">
+                <i class="fas fa-bus"></i> Tìm xe gần bạn
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card" style="transition: all 0.6s var(--ease-out) 0.1s;">
+                <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                <div>
+                    <span class="stat-number count-up" data-target="{{ stats.total_books|default:'10250' }}">0</span>
+                    <span class="stat-number">+</span>
+                </div>
+                <div class="stat-label">Đầu sách</div>
+            </div>
+            <div class="stat-card" style="transition: all 0.6s var(--ease-out) 0.2s;">
+                <div class="stat-icon"><i class="fas fa-bus-alt"></i></div>
+                <div>
+                    <span class="stat-number count-up" data-target="{{ stats.active_buses|default:'12' }}">0</span>
+                </div>
+                <div class="stat-label">Xe Bus Hoạt Động</div>
+            </div>
+            <div class="stat-card" style="transition: all 0.6s var(--ease-out) 0.3s;">
+                <div class="stat-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                <div>
+                    <span class="stat-number count-up" data-target="{{ stats.total_borrows|default:'54300' }}">0</span>
+                    <span class="stat-number">+</span>
+                </div>
+                <div class="stat-label">Lượt mượn sách</div>
+            </div>
+            <div class="stat-card" style="transition: all 0.6s var(--ease-out) 0.4s;">
+                <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                <div>
+                    <span class="stat-number count-up" data-target="{{ stats.total_categories|default:'85' }}">0</span>
+                    <span class="stat-number">+</span>
+                </div>
+                <div class="stat-label">Lĩnh Vực</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Books Section -->
+<section class="section-premium bg-warm">
+    <div class="container">
+        <div class="section-header scroll-reveal">
+            <div class="section-badge"><i class="fas fa-sparkles"></i> Mới cập nhật</div>
+            <h2>Sách Mới Cập Nhật</h2>
+            <p>Những tác phẩm hấp dẫn vừa được đưa lên kệ sách lưu động. Đừng bỏ lỡ cơ hội trở thành người đầu tiên đọc chúng!</p>
+        </div>
+        
+        <div class="book-grid">
+            {% for book in recent_books %}
+            <div class="book-card scroll-reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <div class="book-cover-wrap">
+                    <div class="book-badge">Mới</div>
+                    <img src="{{ book.cover_image.url|default:'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop' }}" alt="{{ book.title }}" class="book-cover">
+                    <a href="{{ book.get_absolute_url }}" class="book-overlay">
+                        <span class="book-overlay-btn">Xem chi tiết <i class="fas fa-arrow-right"></i></span>
+                    </a>
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title"><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></h3>
+                    <div class="book-author"><i class="fas fa-pen-nib"></i> {{ book.author }}</div>
+                    <div class="book-desc">
+                        {{ book.description|truncatewords:20|default:"Chưa có mô tả chi tiết cho cuốn sách này. Hãy bấm vào để khám phá ngay nhé." }}
+                    </div>
+                    <div class="book-action">
+                        <span class="book-category-badge">{{ book.category.name|default:"Sách tổng hợp" }}</span>
+                        <a href="{{ book.get_absolute_url }}" class="btn-read">Chi tiết <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                {% for i in '1234'|make_list %}
+                <div class="book-card scroll-reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                    <div class="book-cover-wrap">
+                        <div class="book-badge">Đề xuất</div>
+                        <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop" alt="Demo Book" class="book-cover">
+                        <a href="#" class="book-overlay">
+                            <span class="book-overlay-btn">Xem chi tiết <i class="fas fa-arrow-right"></i></span>
+                        </a>
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">Đắc Nhân Tâm (Bản đặc biệt)</h3>
+                        <div class="book-author"><i class="fas fa-pen-nib"></i> Dale Carnegie</div>
+                        <div class="book-desc">Nghệ thuật thu phục lòng người - Cuốn sách gối đầu giường của mọi thế hệ độc giả trên toàn thế giới.</div>
+                        <div class="book-action">
+                            <span class="book-category-badge">Tâm lý</span>
+                            <a href="#" class="btn-read">Chi tiết <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 4rem; text-align: center;" class="scroll-reveal">
+            <a href="{% url 'inventory:book_list' %}" class="btn-hero secondary" style="color: var(--dark-brown); border-color: var(--dark-brown); display: inline-flex;">
+                Xem toàn bộ kho sách <i class="fas fa-long-arrow-alt-right" style="margin-left: 8px;"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Posts Section -->
+<section class="section-premium">
+    <div class="container">
+        <div class="section-header scroll-reveal">
+            <div class="section-badge"><i class="fas fa-newspaper"></i> Blog & Tin tức</div>
+            <h2>Góc Nhìn & Tin Tức</h2>
+            <p>Cập nhật những hoạt động của Library Bus, bài review sách hay và tin tức từ cộng đồng độc giả yêu sách.</p>
+        </div>
+        
+        <div class="post-grid-home">
+            {% for post in recent_posts %}
+            <div class="post-card-home scroll-reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <div class="post-img-wrap">
+                    <img src="{{ post.featured_image.url|default:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=800&auto=format&fit=crop' }}" alt="{{ post.title }}" class="post-img">
+                </div>
+                <div class="post-card-content">
+                    <div class="post-card-meta">
+                        <span><i class="fas fa-calendar-alt"></i> {{ post.created_on|date:"d/m/Y" }}</span>
+                        <span><i class="fas fa-user-edit"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
+                    </div>
+                    <h3 class="post-card-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+                    <div class="post-card-excerpt">
+                        {{ post.excerpt|truncatewords:22 }}
+                    </div>
+                    <a href="{{ post.get_absolute_url }}" class="btn-read">Đọc tiếp <i class="fas fa-long-arrow-alt-right"></i></a>
+                </div>
+            </div>
+            {% empty %}
+                {% for i in '123'|make_list %}
+                <div class="post-card-home scroll-reveal" style="transition-delay: {{ forloop.counter0|add:1 }}00ms;">
+                    <div class="post-img-wrap">
+                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=800&auto=format&fit=crop" alt="Demo Post" class="post-img">
+                    </div>
+                    <div class="post-card-content">
+                        <div class="post-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 04/08/2026</span>
+                            <span><i class="fas fa-user-edit"></i> Quản trị viên</span>
+                        </div>
+                        <h3 class="post-card-title">Hành trình mang 10.000 cuốn sách đến vùng cao</h3>
+                        <div class="post-card-excerpt">Cùng nhìn lại chuyến đi đầy ý nghĩa của Library Bus khi mang ánh sáng tri thức đến với các em nhỏ vùng sâu vùng xa trong chiến dịch hè 2026.</div>
+                        <a href="#" class="btn-read">Đọc tiếp <i class="fas fa-long-arrow-alt-right"></i></a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content scroll-reveal">
+            <h2>Sẵn sàng khám phá?</h2>
+            <p>Tham gia cộng đồng hơn 50.000 độc giả đang trải nghiệm dịch vụ thư viện lưu động hàng đầu Việt Nam.</p>
+            <div class="hero-buttons">
+                <a href="{% url 'users:register' %}" class="btn-hero primary">
+                    <i class="fas fa-user-plus"></i> Đăng ký miễn phí
+                </a>
+                <a href="{% url 'about' %}" class="btn-hero secondary">
+                    <i class="fas fa-info-circle"></i> Tìm hiểu thêm
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate Stats Cards
+        setTimeout(() => {
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.classList.add('animate-in');
+            });
+        }, 300);
+
+        // CountUp Animation
+        const countUpObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const rawTarget = el.getAttribute('data-target').replace(/\D/g, '');
+                    const target = parseInt(rawTarget) || 0;
+                    
+                    if (target > 0) {
+                        const duration = 2000;
+                        const steps = 60;
+                        const stepValue = target / (duration / (1000 / steps));
+                        let current = 0;
+                        
+                        const timer = setInterval(() => {
+                            current += stepValue;
+                            if (current >= target) {
+                                el.innerText = target.toLocaleString('vi-VN');
+                                clearInterval(timer);
+                            } else {
+                                el.innerText = Math.floor(current).toLocaleString('vi-VN');
+                            }
+                        }, 1000 / steps);
+                    } else {
+                        el.innerText = '0';
+                    }
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.count-up').forEach(el => {
+            countUpObserver.observe(el);
+        });
+    });
+</script>
+{% endblock %}

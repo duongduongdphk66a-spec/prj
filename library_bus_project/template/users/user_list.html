@@ -1,0 +1,216 @@
+<!-- templates/users/user_list.html -->
+{% extends "base.html" %}
+{% load static user_extras %}
+
+{% block title %}Danh sách thành viên{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .community-hero{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:4rem 0;color:#fff;text-align:center;position:relative;overflow:hidden;}
+    .community-hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');opacity:0.3;}
+    .community-hero h1{font-size:3rem;font-weight:800;margin-bottom:1rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3);position:relative;z-index:2;}
+    .community-hero p{font-size:1.2rem;opacity:0.9;margin-bottom:2rem;position:relative;z-index:2;}
+    .filter-section{background:#fff;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.1);padding:2rem;margin:-2rem auto 3rem auto;max-width:1200px;position:relative;z-index:10;border:2px solid #ffd700;}
+    .filter-section h3{color:#333;margin-bottom:1.5rem;font-weight:600;text-align:center;}
+    .form-control,.form-select{border:2px solid #e0e0e0;border-radius:12px;padding:0.75rem 1rem;font-size:1rem;transition:all 0.3s ease;background:#fff;}
+    .form-control:focus,.form-select:focus{border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,0.1);outline:none;}
+    .btn-primary{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);border:none;border-radius:12px;padding:0.75rem 2rem;font-weight:600;color:#333;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(255,215,0,0.3);}
+    .btn-primary:hover{background:linear-gradient(135deg,#ffed4e 0%,#ffd700 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,0.4);color:#333;}
+    .user-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:2rem;margin-top:2rem;}
+    .user-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 25px rgba(0,0,0,0.1);transition:all 0.3s ease;border:2px solid transparent;position:relative;}
+    .user-card:hover{transform:translateY(-10px);box-shadow:0 15px 40px rgba(0,0,0,0.15);border-color:#ffd700;}
+    .user-card-header{background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);padding:2rem;text-align:center;position:relative;}
+    .user-card-header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,rgba(255,215,0,0.1) 0%,rgba(255,237,78,0.1) 100%);opacity:0;transition:opacity 0.3s ease;}
+    .user-card:hover .user-card-header::before{opacity:1;}
+    .user-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 4px 15px rgba(0,0,0,0.2);transition:all 0.3s ease;position:relative;z-index:2;}
+    .user-card:hover .user-avatar{border-color:#ffd700;transform:scale(1.05);}
+    .user-card-body{padding:1.5rem;}
+    .user-name{font-size:1.25rem;font-weight:600;margin-bottom:0.5rem;color:#333;}
+    .user-name a{text-decoration:none;color:inherit;transition:color 0.3s ease;}
+    .user-name a:hover{color:#ffd700;}
+    .user-city{color:#666;font-size:0.9rem;margin-bottom:1rem;}
+    .membership-badge{display:inline-block;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:1rem;}
+    .membership-badge.basic{background:linear-gradient(135deg,#6c757d 0%,#5a6268 100%);color:#fff;}
+    .membership-badge.premium{background:linear-gradient(135deg,#17a2b8 0%,#138496 100%);color:#fff;}
+    .membership-badge.vip{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#333;}
+    .btn-outline-primary{border:2px solid #ffd700;color:#ffd700;border-radius:12px;padding:0.5rem 1.5rem;font-weight:600;transition:all 0.3s ease;text-decoration:none;display:inline-block;}
+    .btn-outline-primary:hover{background:#ffd700;color:#333;transform:translateY(-2px);box-shadow:0 4px 15px rgba(255,215,0,0.3);}
+    .pagination{justify-content:center;margin-top:3rem;}
+    .page-link{border:2px solid #e0e0e0;color:#333;padding:0.75rem 1rem;margin:0 0.25rem;border-radius:12px;transition:all 0.3s ease;text-decoration:none;}
+    .page-link:hover{background:#ffd700;border-color:#ffd700;color:#333;}
+    .page-item.disabled .page-link{background:#f8f9fa;border-color:#e0e0e0;color:#6c757d;}
+    .empty-state{text-align:center;padding:4rem 2rem;color:#666;}
+    .empty-state i{font-size:4rem;color:#ffd700;margin-bottom:1rem;}
+    .empty-state h3{color:#333;margin-bottom:1rem;}
+    .stats-bar{background:#fff;border-radius:15px;padding:1.5rem;margin-bottom:2rem;box-shadow:0 4px 15px rgba(0,0,0,0.1);border:2px solid #ffd700;}
+    .stats-item{display:inline-block;text-align:center;margin:0 2rem;}
+    .stats-number{font-size:2rem;font-weight:700;color:#ffd700;display:block;}
+    .stats-label{color:#666;font-size:0.9rem;font-weight:500;}
+    @media (max-width: 768px) {
+        .community-hero h1{font-size:2rem;}
+        .filter-section{margin:-1rem 1rem 2rem 1rem;padding:1.5rem;}
+        .user-grid{grid-template-columns:1fr;gap:1rem;}
+        .user-card-header{padding:1.5rem;}
+        .user-avatar{width:60px;height:60px;}
+        .stats-item{margin:0 1rem;}
+        .stats-number{font-size:1.5rem;}
+    }
+    .user-card{animation:fadeInUp 0.5s ease-out;}
+    @keyframes fadeInUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="community-hero">
+    <div class="container">
+        <h1>Khám phá cộng đồng</h1>
+        <p>Kết nối với những người yêu sách và chia sẻ đam mê đọc sách cùng nhau</p>
+    </div>
+</section>
+
+<div class="container">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="text-center">
+            <div class="stats-item">
+                <span class="stats-number">{{ users|length }}</span>
+                <span class="stats-label">Thành viên</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">{{ cities|length }}</span>
+                <span class="stats-label">Thành phố</span>
+            </div>
+            <div class="stats-item">
+                <span class="stats-number">1,234</span>
+                <span class="stats-label">Hoạt động</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <h3><i class="fas fa-filter"></i> Tìm kiếm và lọc thành viên</h3>
+        <form method="get">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <i class="fas fa-search position-absolute" style="top:50%;left:1rem;transform:translateY(-50%);color:#666;"></i>
+                        <input type="text" name="search" class="form-control" placeholder="Tìm kiếm theo tên, email, thành phố..." value="{{ search }}" style="padding-left:2.5rem;">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="city" class="form-select">
+                        <option value="">Tất cả thành phố</option>
+                        {% for c in cities %}
+                        <option value="{{ c }}" {% if c == city %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="membership" class="form-select">
+                        <option value="">Mọi hạng TV</option>
+                        <option value="basic" {% if membership == 'basic' %}selected{% endif %}>Basic</option>
+                        <option value="premium" {% if membership == 'premium' %}selected{% endif %}>Premium</option>
+                        <option value="vip" {% if membership == 'vip' %}selected{% endif %}>VIP</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="username" {% if sort == 'username' %}selected{% endif %}>Sắp xếp theo tên</option>
+                        <option value="join_date" {% if sort == 'join_date' %}selected{% endif %}>Thành viên mới</option>
+                        <option value="activity" {% if sort == 'activity' %}selected{% endif %}>Hoạt động gần đây</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Lọc
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- User Grid -->
+    <div class="user-grid">
+        {% for u in users %}
+        <div class="user-card" style="animation-delay:{{ forloop.counter|add:'-1'|floatformat:1|mul:0.1 }}s;">
+            <div class="user-card-header">
+                <a href="{% url 'users:profile_detail' u.username %}">
+                    <img src="{{ u.profile.avatar.url }}" alt="Avatar của {{ u.username }}" class="user-avatar">
+                </a>
+            </div>
+            <div class="user-card-body">
+                <h5 class="user-name">
+                    <a href="{% url 'users:profile_detail' u.username %}">{{ u.get_full_name|default:u.username }}</a>
+                </h5>
+                <p class="user-city">
+                    <i class="fas fa-map-marker-alt"></i> {{ u.profile.city|default:"Chưa rõ" }}
+                </p>
+                <div class="membership-badge {{ u.profile.membership_level }}">
+                    <i class="fas fa-star"></i> {{ u.profile.get_membership_level_display }}
+                </div>
+                <div class="text-center">
+                    <a href="{% url 'users:profile_detail' u.username %}" class="btn-outline-primary">
+                        <i class="fas fa-eye"></i> Xem hồ sơ
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>Không tìm thấy thành viên nào</h3>
+                <p>Hãy thử thay đổi tiêu chí tìm kiếm của bạn</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-5">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">
+                    <i class="fas fa-chevron-left"></i> Trước
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="page-item disabled">
+                <span class="page-link">Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">
+                    Sau <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userCards = document.querySelectorAll('.user-card');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    userCards.forEach(card => {
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

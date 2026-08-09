@@ -1,0 +1,188 @@
+<!-- File: inventory/dashboard.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Bảng điều khiển - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.dashboard-container { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+.page-header { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); display: flex; justify-content: space-between; align-items: center; }
+.page-header h1 { margin: 0; color: #2d3748; font-size: 2.5rem; font-weight: 700; background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+.stat-card { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
+.stat-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.stat-card .icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 28px; }
+.stat-card .icon.bus { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.stat-card .icon.book { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+.stat-card .icon.category { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+.stat-card .icon.alert-icon { background: linear-gradient(135deg, #fa709a, #fee140); color: white; }
+.stat-card .info h4 { font-size: 3rem; font-weight: 800; margin: 0 0 10px 0; background: linear-gradient(45deg, #2d3748, #4a5568); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.stat-card .info p { color: #718096; font-size: 1.1rem; margin: 0; font-weight: 500; }
+.card { background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); margin-bottom: 30px; overflow: hidden; transition: all 0.3s ease; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0,0,0,0.15); }
+.card-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 25px 30px; border-bottom: none; }
+.card-header h3 { margin: 0; font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.card-header h3 i { font-size: 1.2rem; }
+.card-body { padding: 30px; }
+.table { background: transparent; border-collapse: separate; border-spacing: 0; }
+.table thead th { background: linear-gradient(135deg, #f7fafc, #edf2f7); color: #2d3748; font-weight: 600; padding: 20px; border: none; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.table tbody td { padding: 18px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease; }
+.table tbody tr:hover { background: rgba(102,126,234,0.05); transform: scale(1.01); }
+.table tbody tr:hover td { color: #667eea; }
+.table a { color: #667eea; text-decoration: none; font-weight: 500; transition: all 0.3s ease; }
+.table a:hover { color: #764ba2; text-decoration: underline; }
+.progress { height: 12px; background: rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; margin: 8px 0; }
+.progress-bar { background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.6s ease; border-radius: 6px; position: relative; }
+.progress-bar::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent); }
+.badge { padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge.bg-primary { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white; }
+.list-group-item { padding: 18px 25px; border: none; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease; }
+.list-group-item:hover { background: rgba(102,126,234,0.05); transform: translateX(5px); }
+.btn { padding: 12px 25px; border-radius: 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn-secondary { background: linear-gradient(135deg, #718096, #4a5568); color: white; }
+.btn-secondary:hover { background: linear-gradient(135deg, #4a5568, #2d3748); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #764ba2, #667eea); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,234,0.4); }
+.row { margin-bottom: 30px; }
+.text-center { text-align: center; color: #718096; font-style: italic; }
+.float-end { float: right; }
+@media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .page-header { flex-direction: column; gap: 20px; text-align: center; } .page-header h1 { font-size: 2rem; } .card-body { padding: 20px; } .table { font-size: 0.9rem; } .stat-card { padding: 20px; } }
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h1>Bảng điều khiển tổng quan</h1>
+        <a href="{% url 'inventory:clear_cache' %}" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Xóa Cache</a>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon bus"><i class="fas fa-bus"></i></div>
+            <div class="info">
+                <h4>{{ total_buses }}</h4>
+                <p>Tổng số xe bus</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="icon book"><i class="fas fa-book-open"></i></div>
+            <div class="info">
+                <h4>{{ total_books }}</h4>
+                <p>Tổng số đầu sách</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="icon category"><i class="fas fa-tags"></i></div>
+            <div class="info">
+                <h4>{{ total_categories }}</h4>
+                <p>Lĩnh vực</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="icon alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="info">
+                <h4>{{ alerts.count }}</h4>
+                <p>Cảnh báo chưa xử lý</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row mt-4">
+        <!-- Recent Books -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-history"></i> Sách mới thêm gần đây</h3></div>
+                <div class="card-body p-0">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tên sách</th>
+                                <th>Tác giả</th>
+                                <th>Lĩnh vực</th>
+                                <th>Vị trí</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in recent_books %}
+                            <tr>
+                                <td><a href="{% url 'inventory:book_detail' book.pk %}">{{ book.title }}</a></td>
+                                <td>{{ book.author }}</td>
+                                <td>{{ book.category.name|default:"N/A" }}</td>
+                                <td>{{ book.location.name|default:"N/A" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center">Chưa có sách nào được thêm.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Books -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-fire"></i> Sách nổi bật</h3></div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for book in popular_books %}
+                        <li class="list-group-item">{{ book.title }} <span class="badge bg-primary float-end">{{ book.popularity_score|floatformat:1 }}</span></li>
+                        {% empty %}
+                        <li class="list-group-item">Chưa có dữ liệu.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Bus Capacity -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-tachometer-alt"></i> Tình trạng sức chứa xe bus</h3></div>
+                <div class="card-body">
+                    {% for stat in capacity_stats %}
+                    <div>
+                        <strong>{{ stat.name }}</strong> ({{ stat.count }} sách)
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ stat.usage }}%;" aria-valuenow="{{ stat.usage }}" aria-valuemin="0" aria-valuemax="100">{{ stat.usage|floatformat:1 }}%</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>Không có xe bus nào đang hoạt động.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Unresolved Alerts -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-bell"></i> Cảnh báo gần đây</h3></div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <tbody>
+                            {% for alert in alerts %}
+                            <tr>
+                                <td><span class="badge" style="background-color:{{ alert.get_severity_display|lower }};">{{ alert.get_severity_display }}</span></td>
+                                <td>{{ alert.bus.name }}</td>
+                                <td>{{ alert.message|truncatechars:50 }}</td>
+                                <td>{{ alert.created_at|timesince }} trước</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td class="text-center">Không có cảnh báo nào.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

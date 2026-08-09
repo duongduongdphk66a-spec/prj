@@ -1,0 +1,839 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block title %}{{ post.seo_title|default:post.title }} | Thư Viện Lưu Động{% endblock %}
+
+{% block blog_title %}{{ post.title }}{% endblock %}
+{% block blog_subtitle %}{{ post.excerpt|default:"" }}{% endblock %}
+
+{% block blog_breadcrumb %}
+<span class="separator"><i class="fas fa-chevron-right"></i></span>
+<span class="current">{{ post.title|truncatechars:40 }}</span>
+{% endblock %}
+
+{% block blog_content %}
+<style>
+
+/* ========== Article Layout ========== */
+.article-wrapper { display: grid; grid-template-columns: 1fr 340px; gap: 2.5rem; margin-bottom: 4rem; }
+@media (max-width: 992px) { .article-wrapper { grid-template-columns: 1fr; } }
+
+.article-main {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    animation: fadeInUp 0.6s var(--ease-out) forwards;
+}
+.article-sidebar {
+    position: sticky; top: 100px; align-self: start;
+    display: flex; flex-direction: column; gap: 1.5rem;
+    animation: fadeInUp 0.6s var(--ease-out) 0.2s both;
+}
+
+/* ========== Featured Image ========== */
+.article-featured-image {
+    margin: -2.5rem -2.5rem 2rem -2.5rem;
+    border-radius: 20px 20px 0 0;
+    overflow: hidden;
+    height: 420px;
+    position: relative;
+}
+.article-featured-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s var(--ease-out); }
+.article-featured-image:hover img { transform: scale(1.03); }
+.article-featured-image::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 120px;
+    background: linear-gradient(to top, var(--white), transparent);
+    pointer-events: none;
+}
+
+/* ========== Article Header Meta ========== */
+.article-meta-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--warm-100);
+    margin-bottom: 2rem;
+}
+.author-profile { display: flex; align-items: center; gap: 1rem; }
+.author-avatar-large {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--gradient-brown);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; font-weight: bold;
+    box-shadow: 0 3px 12px rgba(92, 64, 51, 0.2);
+    border: 3px solid rgba(255, 215, 0, 0.3);
+}
+.author-details { display: flex; flex-direction: column; }
+.author-details .name { font-size: 1.1rem; font-weight: 700; color: var(--dark-brown); font-family: 'Inter', sans-serif; }
+.author-details .date { font-size: 0.88rem; color: var(--warm-400); display: flex; align-items: center; gap: 8px; }
+.author-details .date i { font-size: 0.75rem; }
+
+/* ========== Article Content ========== */
+.article-content { font-size: 1.1rem; line-height: 1.9; color: var(--text); }
+.article-content h2, .article-content h3, .article-content h4 {
+    margin-top: 2.5rem; margin-bottom: 1rem;
+    color: var(--dark-brown);
+    font-family: 'Playfair Display', serif;
+    position: relative;
+}
+.article-content h2 { font-size: 1.8rem; }
+.article-content h3 { font-size: 1.4rem; }
+.article-content p { margin-bottom: 1.5rem; }
+.article-content img { max-width: 100%; border-radius: 12px; margin: 2rem 0; box-shadow: var(--shadow-sm); }
+.article-content blockquote {
+    border-left: 4px solid var(--amber-400);
+    padding: 1.5rem 1.5rem 1.5rem 2rem;
+    font-style: italic; color: var(--warm-600);
+    background: var(--amber-50);
+    border-radius: 0 12px 12px 0;
+    margin: 2rem 0;
+    position: relative;
+}
+.article-content blockquote::before {
+    content: '\201C';
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem; color: var(--amber-200);
+    position: absolute; top: -10px; left: 12px;
+    line-height: 1;
+}
+.article-content a { color: var(--amber-600); font-weight: 600; text-decoration: underline; text-decoration-color: var(--amber-200); text-underline-offset: 3px; }
+.article-content a:hover { color: var(--dark-brown); text-decoration-color: var(--amber-400); }
+.article-content ul, .article-content ol { padding-left: 1.5rem; margin-bottom: 1.5rem; }
+.article-content li { margin-bottom: 0.5rem; }
+.article-content code { background: var(--warm-50); padding: 2px 8px; border-radius: 4px; font-size: 0.95rem; color: var(--amber-700); }
+
+/* ========== Tags and Actions ========== */
+.article-footer {
+    margin-top: 3rem; padding-top: 2rem;
+    border-top: 1px solid var(--warm-100);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1.5rem;
+}
+.article-tags { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.tag-item {
+    padding: 0.4rem 1rem;
+    background: var(--warm-50);
+    color: var(--warm-600);
+    border-radius: 50px;
+    font-size: 0.85rem; font-weight: 600;
+    transition: all 0.3s var(--ease-smooth);
+    border: 1px solid var(--warm-100);
+}
+.tag-item:hover {
+    background: var(--gradient-gold);
+    color: var(--dark-brown);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.25);
+}
+.article-actions { display: flex; gap: 0.75rem; }
+.action-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.3rem;
+    border-radius: 50px;
+    border: 2px solid var(--warm-200);
+    background: var(--white);
+    cursor: pointer;
+    font-weight: 600; font-size: 0.9rem;
+    transition: all 0.3s var(--ease-smooth);
+    color: var(--warm-500);
+    font-family: 'Inter', sans-serif;
+}
+.action-btn:hover {
+    border-color: var(--amber-400);
+    color: var(--amber-600);
+    background: var(--amber-50);
+}
+.action-btn.active {
+    background: var(--gradient-brown);
+    color: var(--gold);
+    border-color: var(--dark-brown);
+    box-shadow: 0 4px 12px rgba(92, 64, 51, 0.2);
+}
+/* Heart beat animation when liked */
+.action-btn.like-animating i {
+    animation: heartBeat 0.6s var(--ease-spring);
+}
+/* Like particles */
+.like-particles {
+    position: absolute; top: 50%; left: 50%;
+    pointer-events: none; z-index: 100;
+}
+.like-particle {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    animation: likeParticle 0.6s var(--ease-out) forwards;
+    opacity: 0;
+}
+@keyframes likeParticle {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Share Dropdown */
+.share-dropdown { position: relative; }
+.share-menu {
+    position: absolute; bottom: calc(100% + 8px); right: 0;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    padding: 0.5rem;
+    min-width: 180px;
+    opacity: 0; visibility: hidden;
+    transform: translateY(5px) scale(0.95);
+    transition: all 0.2s var(--ease-spring);
+    z-index: 100;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.share-dropdown.active .share-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.share-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0.6rem 0.8rem; border-radius: 8px;
+    font-size: 0.9rem; font-weight: 500;
+    color: var(--text); cursor: pointer;
+    transition: all 0.2s;
+    border: none; background: none; width: 100%; text-align: left;
+}
+.share-item:hover { background: var(--warm-50); color: var(--amber-600); }
+.share-item i { width: 20px; text-align: center; }
+
+/* ========== Comments Section ========== */
+.comments-section { margin-top: 3rem; }
+.comments-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 2rem;
+}
+.comments-title {
+    font-size: 1.5rem; font-weight: 800;
+    color: var(--dark-brown);
+    display: flex; align-items: center; gap: 10px;
+}
+.comments-count {
+    background: var(--amber-50);
+    color: var(--amber-600);
+    padding: 2px 12px; border-radius: 50px;
+    font-size: 0.85rem; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Comment Form */
+.comment-box {
+    background: var(--warm-50);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    border: 1px solid var(--warm-100);
+}
+.comment-form { position: relative; }
+.comment-form textarea {
+    width: 100%; padding: 1rem 1.2rem;
+    border: 2px solid var(--warm-200);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    resize: vertical; outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; line-height: 1.6;
+    transition: all 0.3s;
+    background: var(--white);
+    min-height: 100px;
+}
+.comment-form textarea:focus {
+    border-color: var(--amber-400);
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.12);
+}
+.comment-form-footer {
+    display: flex; justify-content: space-between; align-items: center;
+}
+.char-counter {
+    font-size: 0.8rem; color: var(--warm-400); font-weight: 500;
+    transition: color 0.3s;
+}
+.char-counter.warning { color: var(--warning); }
+.char-counter.danger { color: var(--danger); }
+.comment-submit-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0.6rem 1.5rem;
+    background: var(--gradient-brown);
+    color: var(--gold); border: none;
+    border-radius: 50px;
+    font-weight: 600; font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+    font-family: 'Inter', sans-serif;
+}
+.comment-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(92, 64, 51, 0.25);
+}
+.comment-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.comment-submit-btn .spinner { border-top-color: var(--gold); width: 16px; height: 16px; }
+
+/* Comment Items */
+.comment-item {
+    display: flex; gap: 1rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--warm-50);
+    animation: fadeInUp 0.4s var(--ease-out) forwards;
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-item.new-comment {
+    animation: fadeInUp 0.5s var(--ease-spring) forwards;
+    background: var(--amber-50);
+    margin: 0 -1rem;
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+    border-bottom: none;
+}
+.comment-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--gradient-warm);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem;
+    color: var(--warm-600);
+    border: 2px solid var(--warm-200);
+}
+.comment-content { flex-grow: 1; }
+.comment-header { display: flex; justify-content: space-between; margin-bottom: 0.4rem; align-items: center; }
+.comment-author { font-weight: 700; color: var(--dark-brown); font-size: 0.95rem; }
+.comment-date { font-size: 0.8rem; color: var(--warm-400); }
+.comment-text { line-height: 1.7; color: var(--text); font-size: 0.95rem; }
+
+.comments-empty {
+    text-align: center; padding: 3rem 2rem;
+    color: var(--warm-400);
+}
+.comments-empty i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--warm-200); display: block; }
+
+/* ========== Sidebar Widgets ========== */
+.widget {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.3s var(--ease-smooth);
+}
+.widget:hover { box-shadow: var(--shadow-md); }
+.widget-title {
+    font-size: 1.15rem; font-weight: 700;
+    margin-bottom: 1.2rem;
+    color: var(--dark-brown);
+    position: relative; padding-bottom: 0.75rem;
+    font-family: 'Playfair Display', serif;
+}
+.widget-title::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0;
+    width: 40px; height: 3px;
+    background: var(--gradient-gold);
+    border-radius: 2px;
+}
+
+/* Floating Actions Widget */
+.floating-actions-widget {
+    background: var(--white);
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    display: flex; flex-direction: column; gap: 0.5rem;
+}
+.floating-action-item {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 0.7rem;
+    border-radius: 12px; border: none;
+    cursor: pointer; font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s var(--ease-smooth);
+    font-family: 'Inter', sans-serif;
+    background: var(--warm-50);
+    color: var(--warm-600);
+    text-decoration: none;
+}
+.floating-action-item:hover {
+    background: var(--amber-50);
+    color: var(--amber-600);
+    transform: translateY(-2px);
+}
+.floating-action-item.liked {
+    background: var(--gradient-brown);
+    color: var(--gold);
+}
+
+/* Related Posts */
+.related-list { display: flex; flex-direction: column; gap: 1rem; }
+.related-item {
+    display: flex; gap: 1rem; align-items: center;
+    padding: 0.5rem; border-radius: 10px;
+    transition: all 0.3s var(--ease-smooth);
+}
+.related-item:hover { background: var(--warm-50); }
+.related-image {
+    width: 70px; height: 70px;
+    border-radius: 10px; object-fit: cover;
+    background: var(--warm-50); flex-shrink: 0;
+}
+.related-title { font-size: 0.92rem; font-weight: 600; line-height: 1.4; color: var(--text); }
+.related-title:hover { color: var(--amber-600); }
+
+/* Categories Widget */
+.category-list { list-style: none; padding: 0; }
+.category-list li {
+    margin-bottom: 0; padding: 0;
+}
+.category-list li a {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.65rem 0.75rem; border-radius: 8px;
+    transition: all 0.2s; font-weight: 500;
+    color: var(--text);
+}
+.category-list li a:hover { background: var(--warm-50); color: var(--amber-600); }
+.category-list li a i { font-size: 0.7rem; color: var(--warm-300); transition: transform 0.2s; }
+.category-list li a:hover i { transform: translateX(3px); color: var(--amber-400); }
+
+@media (max-width: 768px) {
+    .article-main { padding: 1.5rem; }
+    .article-featured-image { margin: -1.5rem -1.5rem 1.5rem -1.5rem; height: 260px; border-radius: 16px 16px 0 0; }
+    .article-actions { flex-wrap: wrap; }
+    .article-meta-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+}
+</style>
+
+<!-- Reading Progress Bar -->
+<div class="reading-progress" id="reading-progress">
+    <div class="reading-progress-bar" id="reading-progress-bar"></div>
+</div>
+
+<div class="article-wrapper">
+    <main class="article-main">
+        {% if post.featured_image %}
+        <div class="article-featured-image">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+        </div>
+        {% endif %}
+
+        <div class="article-meta-header">
+            <div class="author-profile">
+                <div class="author-avatar-large">
+                    {{ post.author.first_name|slice:":1"|default:post.author.username|slice:":1" }}
+                </div>
+                <div class="author-details">
+                    <span class="name">{{ post.author.first_name|default:post.author.username }}</span>
+                    <span class="date">
+                        <i class="far fa-calendar-alt"></i> {{ post.publish_date|date:"d/m/Y H:i" }}
+                        &bull;
+                        <i class="far fa-clock"></i> {{ post.content|wordcount|divisibleby:200|default:"3" }} phút đọc
+                    </span>
+                </div>
+            </div>
+            
+            {% if user.is_authenticated and user == post.author %}
+            <a href="{% url 'blog:post_update' post.slug %}" class="btn btn-secondary" style="font-size: 0.9rem;">
+                <i class="fas fa-edit"></i> Chỉnh sửa
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="article-content">
+            {{ post.content|safe }}
+        </div>
+
+        <div class="article-footer">
+            <div class="article-tags">
+                {% for tag in post.tags.all %}
+                <a href="{% url 'blog:tag_detail' tag.slug %}" class="tag-item"><i class="fas fa-hashtag" style="font-size:0.75rem;"></i> {{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            
+            <div class="article-actions">
+                <!-- Like Button -->
+                <form action="{% url 'blog:toggle_like' post.id %}" method="POST" style="display:inline;" id="like-form">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn {% if user_liked %}active{% endif %}" id="like-btn" style="position:relative;">
+                        <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                        <span id="like-count">{{ post.like_count }}</span> Thích
+                    </button>
+                </form>
+
+                <!-- Comment Scroll -->
+                <button class="action-btn" onclick="document.getElementById('comments').scrollIntoView({behavior:'smooth'})" id="comment-scroll-btn">
+                    <i class="far fa-comment"></i> <span id="comment-count-btn">{{ post.comment_count }}</span> Bình luận
+                </button>
+
+                <!-- Share -->
+                <div class="share-dropdown" id="share-dropdown">
+                    <button class="action-btn" onclick="document.getElementById('share-dropdown').classList.toggle('active')">
+                        <i class="fas fa-share-alt"></i> Chia sẻ
+                    </button>
+                    <div class="share-menu">
+                        <button class="share-item" onclick="copyPostLink()">
+                            <i class="fas fa-link"></i> Sao chép liên kết
+                        </button>
+                        <a class="share-item" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                        <a class="share-item" href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ post.title }}" target="_blank" rel="noopener">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div id="comments" class="comments-section">
+            <div class="comments-header">
+                <h3 class="comments-title">
+                    <i class="far fa-comments" style="color: var(--amber-400);"></i>
+                    Bình luận
+                    <span class="comments-count" id="comments-count">{{ post.comment_count }}</span>
+                </h3>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="comment-box">
+                <form method="POST" action="{% url 'blog:add_comment' post.id %}" class="comment-form" id="comment-form">
+                    {% csrf_token %}
+                    <textarea name="content" rows="4" placeholder="Chia sẻ suy nghĩ của bạn về bài viết này..." required maxlength="2000" id="comment-textarea"></textarea>
+                    <div class="comment-form-footer">
+                        <span class="char-counter" id="char-counter">0 / 2000</span>
+                        <button type="submit" class="comment-submit-btn" id="comment-submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span class="btn-text">Gửi bình luận</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="comment-box" style="text-align: center; padding: 2rem;">
+                <i class="far fa-comment-dots" style="font-size: 2rem; color: var(--warm-300); margin-bottom: 0.75rem; display: block;"></i>
+                <p>Vui lòng <a href="{% url 'users:login' %}?next={{ request.path }}" style="color:var(--amber-500);font-weight:700;">đăng nhập</a> để tham gia bình luận.</p>
+            </div>
+            {% endif %}
+
+            <div class="comments-list" id="comments-list">
+                {% for comment in comments %}
+                <div class="comment-item">
+                    <div class="comment-avatar">
+                        {{ comment.author.first_name|slice:":1"|default:comment.author.username|slice:":1" }}
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <span class="comment-author">{{ comment.author.first_name|default:comment.author.username }}</span>
+                            <span class="comment-date">{{ comment.created_at|timesince }} trước</span>
+                        </div>
+                        <div class="comment-text">
+                            {{ comment.content|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="comments-empty" id="comments-empty">
+                    <i class="far fa-comment-dots"></i>
+                    <p>Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <aside class="article-sidebar">
+        <!-- Floating Actions -->
+        <div class="floating-actions-widget">
+            <button class="floating-action-item {% if user_liked %}liked{% endif %}" id="sidebar-like-btn" title="Thích">
+                <i class="{% if user_liked %}fas{% else %}far{% endif %} fa-heart"></i>
+                <span id="sidebar-like-count">{{ post.like_count }}</span>
+            </button>
+            <button class="floating-action-item" onclick="document.getElementById('comments').scrollIntoView({behavior:'smooth'})" title="Bình luận">
+                <i class="far fa-comment"></i>
+                <span id="sidebar-comment-count">{{ post.comment_count }}</span>
+            </button>
+            <button class="floating-action-item" onclick="copyPostLink()" title="Chia sẻ">
+                <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+
+        <!-- Categories Widget -->
+        <div class="widget">
+            <h4 class="widget-title">Chuyên mục</h4>
+            <ul class="category-list">
+                {% for cat in post.categories.all %}
+                <li>
+                    <a href="{% url 'blog:category_detail' cat.slug %}">
+                        <span>{{ cat.name }}</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Related Posts Widget -->
+        {% if related_posts %}
+        <div class="widget">
+            <h4 class="widget-title">Bài viết liên quan</h4>
+            <div class="related-list">
+                {% for rel in related_posts %}
+                <div class="related-item">
+                    {% if rel.featured_image %}
+                    <img src="{{ rel.featured_image.url }}" class="related-image" alt="">
+                    {% else %}
+                    <div class="related-image" style="display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-book-open" style="color:var(--warm-300);"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'blog:post_detail' rel.slug %}" class="related-title">{{ rel.title }}</a>
+                        <div style="font-size: 0.78rem; color: var(--warm-400); margin-top: 0.3rem;">
+                            <i class="far fa-calendar-alt"></i> {{ rel.publish_date|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrftoken = window.getCSRFToken();
+
+    // ========== READING PROGRESS BAR ==========
+    const progressBar = document.getElementById('reading-progress-bar');
+    const articleContent = document.querySelector('.article-content');
+    if (progressBar && articleContent) {
+        window.addEventListener('scroll', function() {
+            const articleTop = articleContent.offsetTop;
+            const articleHeight = articleContent.offsetHeight;
+            const scrollTop = window.pageYOffset;
+            const windowHeight = window.innerHeight;
+            const progress = Math.min(100, Math.max(0, ((scrollTop - articleTop + windowHeight * 0.3) / articleHeight) * 100));
+            progressBar.style.width = progress + '%';
+        });
+    }
+
+    // ========== LIKE BUTTON — AJAX with Heart Animation ==========
+    function createLikeParticles(btn) {
+        const rect = btn.getBoundingClientRect();
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'like-particle';
+            const angle = (Math.PI * 2 * i) / 8;
+            const distance = 20 + Math.random() * 20;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+            particle.style.cssText = `
+                position: fixed;
+                top: ${rect.top + rect.height/2}px;
+                left: ${rect.left + rect.width/2}px;
+                width: ${4 + Math.random()*4}px;
+                height: ${4 + Math.random()*4}px;
+                border-radius: 50%;
+                background: ${['var(--gold)', 'var(--amber-400)', 'var(--dark-gold)', '#FF6B6B'][Math.floor(Math.random()*4)]};
+                pointer-events: none;
+                z-index: 10000;
+                animation: none;
+            `;
+            document.body.appendChild(particle);
+            particle.animate([
+                { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                { transform: `translate(${x}px, ${y}px) scale(0)`, opacity: 0 }
+            ], { duration: 500, easing: 'cubic-bezier(0, 0.9, 0.57, 1)' });
+            setTimeout(() => particle.remove(), 500);
+        }
+    }
+
+    function handleLike(e) {
+        e.preventDefault();
+        const likeForm = document.getElementById('like-form');
+        if (!likeForm) return;
+
+        const btn = document.getElementById('like-btn');
+        const sidebarBtn = document.getElementById('sidebar-like-btn');
+        const formData = new FormData(likeForm);
+
+        // Optimistic UI update
+        const isCurrentlyLiked = btn.classList.contains('active');
+        const currentCount = parseInt(document.getElementById('like-count').textContent) || 0;
+        const newCount = isCurrentlyLiked ? currentCount - 1 : currentCount + 1;
+        const newLiked = !isCurrentlyLiked;
+
+        // Instant visual feedback
+        updateLikeUI(newLiked, newCount, btn, sidebarBtn);
+        if (newLiked) {
+            createLikeParticles(btn);
+            btn.classList.add('like-animating');
+            setTimeout(() => btn.classList.remove('like-animating'), 600);
+        }
+
+        fetch(likeForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrftoken },
+            credentials: 'same-origin'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.liked !== undefined) {
+                updateLikeUI(data.liked, data.like_count, btn, sidebarBtn);
+            }
+        })
+        .catch(err => {
+            // Revert on error
+            updateLikeUI(isCurrentlyLiked, currentCount, btn, sidebarBtn);
+            showToast('error', 'Lỗi', 'Không thể thực hiện. Vui lòng thử lại.');
+        });
+    }
+
+    function updateLikeUI(liked, count, btn, sidebarBtn) {
+        btn.classList.toggle('active', liked);
+        btn.querySelector('i').className = liked ? 'fas fa-heart' : 'far fa-heart';
+        document.getElementById('like-count').textContent = count;
+
+        if (sidebarBtn) {
+            sidebarBtn.classList.toggle('liked', liked);
+            sidebarBtn.querySelector('i').className = liked ? 'fas fa-heart' : 'far fa-heart';
+            document.getElementById('sidebar-like-count').textContent = count;
+        }
+    }
+
+    // Bind like to both form and sidebar button
+    const likeForm = document.getElementById('like-form');
+    if (likeForm) likeForm.addEventListener('submit', handleLike);
+    
+    const sidebarLikeBtn = document.getElementById('sidebar-like-btn');
+    if (sidebarLikeBtn) {
+        sidebarLikeBtn.addEventListener('click', function() {
+            if (likeForm) likeForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        });
+    }
+
+    // ========== COMMENT FORM — AJAX with Instant Display ==========
+    const commentForm = document.getElementById('comment-form');
+    const commentTextarea = document.getElementById('comment-textarea');
+    const charCounter = document.getElementById('char-counter');
+
+    // Character counter
+    if (commentTextarea && charCounter) {
+        commentTextarea.addEventListener('input', function() {
+            const len = this.value.length;
+            charCounter.textContent = `${len} / 2000`;
+            charCounter.classList.toggle('warning', len > 1500);
+            charCounter.classList.toggle('danger', len > 1900);
+        });
+    }
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const content = formData.get('content').trim();
+            if (!content) return;
+
+            const submitBtn = document.getElementById('comment-submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const originalText = btnText.textContent;
+
+            // Loading state
+            submitBtn.disabled = true;
+            btnText.textContent = 'Đang gửi...';
+            submitBtn.querySelector('i').className = 'spinner';
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrftoken },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                btnText.textContent = originalText;
+                submitBtn.querySelector('.spinner, i').className = 'fas fa-paper-plane';
+
+                if (data.success) {
+                    // Remove empty state
+                    const emptyState = document.getElementById('comments-empty');
+                    if (emptyState) emptyState.remove();
+
+                    // Insert new comment with animation
+                    const commentsList = document.getElementById('comments-list');
+                    if (commentsList) {
+                        if (data.comment_html) {
+                            const wrapper = document.createElement('div');
+                            wrapper.innerHTML = data.comment_html;
+                            const newComment = wrapper.firstElementChild;
+                            newComment.classList.add('new-comment');
+                            commentsList.insertBefore(newComment, commentsList.firstChild);
+                        }
+                    }
+
+                    // Reset form
+                    commentForm.reset();
+                    if (charCounter) charCounter.textContent = '0 / 2000';
+
+                    // Update comment counts
+                    updateCommentCount(1);
+
+                    // Toast notification
+                    showToast('success', 'Thành công!', 'Bình luận của bạn đã được đăng.');
+                } else {
+                    showToast('error', 'Lỗi', data.error || 'Có lỗi xảy ra khi bình luận.');
+                }
+            })
+            .catch(error => {
+                submitBtn.disabled = false;
+                btnText.textContent = originalText;
+                submitBtn.querySelector('.spinner, i').className = 'fas fa-paper-plane';
+                showToast('error', 'Lỗi kết nối', 'Không thể gửi bình luận. Vui lòng thử lại.');
+            });
+        });
+    }
+
+    function updateCommentCount(delta) {
+        ['comments-count', 'comment-count-btn', 'sidebar-comment-count'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                const current = parseInt(el.textContent) || 0;
+                el.textContent = current + delta;
+            }
+        });
+    }
+
+    // ========== SHARE — Copy Link ==========
+    window.copyPostLink = function() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            showToast('success', 'Đã sao chép!', 'Liên kết bài viết đã được sao chép vào clipboard.');
+        }).catch(() => {
+            // Fallback
+            const input = document.createElement('input');
+            input.value = window.location.href;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            input.remove();
+            showToast('success', 'Đã sao chép!', 'Liên kết bài viết đã được sao chép.');
+        });
+        // Close share dropdown
+        const sd = document.getElementById('share-dropdown');
+        if (sd) sd.classList.remove('active');
+    };
+
+    // Close share dropdown on outside click
+    document.addEventListener('click', function(e) {
+        const sd = document.getElementById('share-dropdown');
+        if (sd && !sd.contains(e.target)) sd.classList.remove('active');
+    });
+});
+</script>
+{% endblock %}

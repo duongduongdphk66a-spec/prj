@@ -1,0 +1,298 @@
+<!-- File: inventory/route_form.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}{% if form.instance.pk %}Cập nhật Lộ trình{% else %}Tạo Lộ trình mới{% endif %} - {{ block.super }}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Cập nhật Lộ trình{% else %}Tạo Lộ trình mới{% endif %}{% endblock %}
+{% block header_icon %}<i class="fas fa-route"></i>{% endblock %}
+{% block header_description %}Quản lý thông tin, các điểm dừng và lịch trình hoạt động của xe bus.{% endblock %}
+
+{% block action_buttons %}
+<a href="{% url 'inventory:route_list' %}" class="inventory-btn inventory-btn-secondary">
+    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+</a>
+{% endblock %}
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+#map-picker { height: 350px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px; z-index: 1; }
+.route-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.route-basic-info h3, .route-stops-section h3 { margin: 0 0 16px 0; color: var(--primary-color); font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.stops-editor-container { background: var(--bg-secondary); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); }
+.stops-toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.inventory-btn-sm { padding: 6px 12px; font-size: 12px; }
+.stops-preview { background: var(--bg-primary); border-radius: 6px; padding: 12px; margin-bottom: 16px; border: 1px solid var(--border-color); }
+.stops-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+.stops-list { min-height: 60px; }
+.stop-item { background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--border-color); cursor: move; transition: all 0.3s ease; }
+.stop-item:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.stop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.stop-name { font-weight: 600; color: var(--text-primary); }
+.stop-actions { display: flex; gap: 4px; }
+.stop-btn { padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.3s ease; }
+.stop-btn-edit { background: var(--warning-color); color: white; }
+.stop-btn-delete { background: var(--danger-color); color: white; }
+.stop-btn:hover { opacity: 0.8; }
+.stop-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.form-error { color: var(--danger-color); font-size: 12px; margin-top: 4px; }
+.form-help { color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block; }
+.form-check-wrapper { display: flex; align-items: center; gap: 8px; }
+.form-check-label { margin: 0; cursor: pointer; }
+.form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 20px; border-top: 1px solid var(--border-color); }
+.stops-empty { text-align: center; padding: 20px; color: var(--text-secondary); font-style: italic; }
+@media (max-width: 768px) {
+    .route-form-grid { grid-template-columns: 1fr; }
+    .stops-toolbar { flex-direction: column; }
+    .stop-details { grid-template-columns: 1fr; }
+    .form-actions { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<form method="post" id="route-form">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="inventory-alert inventory-alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="inventory-card mb-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Thông tin cơ bản</h3>
+                </div>
+                <div class="card-body">
+                    <div class="inventory-form-group">
+                        <label for="{{ form.route_name.id_for_label }}" class="inventory-form-label">Tên lộ trình *</label>
+                        {{ form.route_name }}
+                        {% if form.route_name.errors %}<div class="form-error">{{ form.route_name.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="inventory-form-group">
+                        <label for="{{ form.bus.id_for_label }}" class="inventory-form-label">Xe bus phụ trách *</label>
+                        {{ form.bus }}
+                        {% if form.bus.errors %}<div class="form-error">{{ form.bus.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="inventory-form-group">
+                        <div class="form-check-wrapper">
+                            {{ form.is_active }}
+                            <label for="{{ form.is_active.id_for_label }}" class="form-check-label">Kích hoạt lộ trình này</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inventory-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Lịch trình hoạt động (JSON)</h3>
+                </div>
+                <div class="card-body">
+                    <div class="inventory-form-group">
+                        <label for="{{ form.schedule_json.id_for_label }}" class="inventory-form-label">Dữ liệu lịch trình</label>
+                        {{ form.schedule_json }}
+                        <small class="form-help">
+                            Nhập dưới dạng JSON. Ví dụ: <code>{"monday": ["08:00", "14:00"], "tuesday": ["09:00"]}</code>
+                        </small>
+                        {% if form.schedule_json.errors %}<div class="form-error">{{ form.schedule_json.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        <div class="col-lg-7">
+            <div class="inventory-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-map-marker-alt"></i> Quản lý Điểm dừng</h3>
+                </div>
+                <div class="card-body">
+                    <div class="stops-toolbar">
+                        <button type="button" class="inventory-btn inventory-btn-primary" onclick="addStopManual()"><i class="fas fa-plus"></i> Thêm thủ công</button>
+                        <span class="text-muted ml-2" style="font-size: 13px;"><i class="fas fa-info-circle"></i> Click trên bản đồ để thêm nhanh</span>
+                    </div>
+
+                    <div id="map-picker"></div>
+
+                    <div class="stops-list-container mt-3" id="stops-list">
+                        </div>
+
+                    {{ form.stops_json }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions mt-4">
+        <button type="submit" class="inventory-btn inventory-btn-primary btn-lg">
+            <i class="fas fa-save"></i> {% if form.instance.pk %}Cập nhật Lộ trình{% else %}Lưu Lộ trình{% endif %}
+        </button>
+        <a href="{% url 'inventory:route_list' %}" class="inventory-btn inventory-btn-secondary btn-lg">
+            <i class="fas fa-times"></i> Hủy
+        </a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+let stopsData = [];
+let map;
+let mapMarkers = [];
+
+// Khởi tạo dữ liệu ban đầu và bản đồ
+document.addEventListener('DOMContentLoaded', function() {
+    const stopsJsonInput = document.getElementById('{{ form.stops_json.id_for_label }}');
+    try {
+        stopsData = JSON.parse(stopsJsonInput.value || '[]');
+    } catch (e) {
+        console.error('Lỗi phân tích JSON điểm dừng:', e);
+        stopsData = [];
+    }
+    
+    // Khởi tạo bản đồ
+    map = L.map('map-picker').setView([21.028511, 105.804817], 12); // Mặc định Hà Nội
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    // Sự kiện click trên bản đồ
+    map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        
+        const name = prompt(`Bạn đã chọn tọa độ: ${lat}, ${lng}\nNhập tên điểm dừng mới:`, "Điểm dừng " + (stopsData.length + 1));
+        if (!name) return;
+        
+        const duration = prompt("Thời gian dừng (phút):", "15");
+        if (duration === null) return;
+
+        stopsData.push({
+            name: name,
+            lat: parseFloat(lat),
+            lng: parseFloat(lng),
+            duration: parseInt(duration) || 0
+        });
+        
+        renderStops();
+    });
+
+    renderStops();
+});
+
+// Hàm render danh sách điểm dừng và vẽ lại marker
+function renderStops() {
+    const stopsList = document.getElementById('stops-list');
+    stopsList.innerHTML = ''; // Xóa danh sách cũ
+
+    // Xóa markers cũ trên bản đồ
+    mapMarkers.forEach(marker => map.removeLayer(marker));
+    mapMarkers = [];
+
+    if (stopsData.length === 0) {
+        stopsList.innerHTML = '<div class="stops-empty">Chưa có điểm dừng nào.</div>';
+        updateHiddenInput();
+        return;
+    }
+
+    var bounds = L.latLngBounds();
+
+    stopsData.forEach((stop, index) => {
+        // Thêm vào danh sách HTML
+        const stopItem = document.createElement('div');
+        stopItem.className = 'stop-item';
+        stopItem.setAttribute('data-index', index);
+        stopItem.innerHTML = `
+            <div class="stop-item-info">
+                <div class="stop-name">${index + 1}. ${stop.name || 'Chưa đặt tên'}</div>
+                <div class="stop-details">
+                    Lat: ${stop.lat || 'N/A'}, Lng: ${stop.lng || 'N/A'}, Dừng: ${stop.duration || 0} phút
+                </div>
+            </div>
+            <div class="stop-item-actions">
+                <button type="button" class="inventory-btn inventory-btn-secondary btn-sm" onclick="editStop(${index})"><i class="fas fa-edit"></i></button>
+                <button type="button" class="inventory-btn inventory-btn-danger btn-sm" onclick="deleteStop(${index})"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        stopsList.appendChild(stopItem);
+
+        // Thêm vào bản đồ
+        if (stop.lat && stop.lng) {
+            var marker = L.marker([stop.lat, stop.lng]).addTo(map);
+            marker.bindPopup(`<b>${index + 1}. ${stop.name}</b>`);
+            mapMarkers.push(marker);
+            bounds.extend([stop.lat, stop.lng]);
+        }
+    });
+    
+    // Zoom map cho vừa
+    if (mapMarkers.length > 0) {
+        map.fitBounds(bounds, {padding: [30, 30]});
+    }
+
+    updateHiddenInput();
+}
+
+// Cập nhật input ẩn với dữ liệu JSON mới nhất
+function updateHiddenInput() {
+    document.getElementById('{{ form.stops_json.id_for_label }}').value = JSON.stringify(stopsData, null, 2);
+}
+
+// Thêm điểm dừng thủ công
+function addStopManual() {
+    const name = prompt("Tên điểm dừng mới:", "Điểm dừng " + (stopsData.length + 1));
+    if (name === null) return;
+    const lat = prompt("Vĩ độ (Latitude):", "21.0285");
+    if (lat === null) return;
+    const lng = prompt("Kinh độ (Longitude):", "105.8542");
+    if (lng === null) return;
+    const duration = prompt("Thời gian dừng (phút):", "15");
+    if (duration === null) return;
+
+    stopsData.push({
+        name: name,
+        lat: parseFloat(lat) || 0,
+        lng: parseFloat(lng) || 0,
+        duration: parseInt(duration) || 0
+    });
+    renderStops();
+}
+
+// Sửa điểm dừng
+function editStop(index) {
+    const stop = stopsData[index];
+    const name = prompt("Cập nhật tên điểm dừng:", stop.name);
+    if (name === null) return;
+    const lat = prompt("Cập nhật vĩ độ:", stop.lat);
+    if (lat === null) return;
+    const lng = prompt("Cập nhật kinh độ:", stop.lng);
+    if (lng === null) return;
+    const duration = prompt("Cập nhật thời gian dừng (phút):", stop.duration);
+    if (duration === null) return;
+
+    stopsData[index] = {
+        name: name,
+        lat: parseFloat(lat) || 0,
+        lng: parseFloat(lng) || 0,
+        duration: parseInt(duration) || 0
+    };
+    renderStops();
+}
+
+// Xóa điểm dừng
+function deleteStop(index) {
+    if (confirm(`Bạn có chắc muốn xóa điểm dừng "${stopsData[index].name}"?`)) {
+        stopsData.splice(index, 1);
+        renderStops();
+    }
+}
+</script>
+{% endblock %}
+

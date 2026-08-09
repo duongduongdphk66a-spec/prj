@@ -1,0 +1,337 @@
+<!-- analytics/templates/analytics/reports.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Báo cáo & Thống kê{% endblock %}
+
+{% block analytics_heading %}Báo cáo & Thống kê{% endblock %}
+
+{% block analytics_description %}Tạo báo cáo tùy chỉnh về hoạt động của hệ thống.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Báo cáo</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.report-filters { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+.filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
+.filter-group { display: flex; flex-direction: column; gap: 6px; }
+.filter-label { font-size: 0.9rem; font-weight: 500; color: #374151; }
+.filter-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; transition: border-color 0.3s ease; }
+.filter-input:focus { outline: none; border-color: var(--analytics-primary); }
+.filter-btn { background: var(--analytics-primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
+.filter-btn:hover { background: var(--analytics-accent); }
+.chart-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+.chart-header { display: flex; justify-content: between; align-items: center; margin-bottom: 20px; }
+.chart-title { font-size: 1.2rem; font-weight: 600; color: #111827; margin: 0; }
+.export-buttons { display: flex; gap: 8px; }
+.export-btn { background: transparent; border: 1px solid var(--analytics-primary); color: var(--analytics-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s ease; }
+.export-btn:hover { background: var(--analytics-primary); color: white; }
+.chart-container { position: relative; height: 400px; }
+.stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px; }
+.summary-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; border-left: 4px solid var(--analytics-primary); }
+.summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.summary-title { font-size: 0.9rem; font-weight: 500; color: #6b7280; margin: 0; }
+.summary-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--analytics-light); display: flex; align-items: center; justify-content: center; color: var(--analytics-dark); }
+.summary-value { font-size: 2rem; font-weight: 700; color: #111827; margin: 0 0 8px 0; }
+.summary-change { font-size: 0.8rem; font-weight: 500; }
+.summary-change.positive { color: #059669; }
+.summary-change.negative { color: #dc2626; }
+.reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; }
+.report-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+.table-header { padding: 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+.table-title { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 0; }
+.table-body { padding: 0; }
+.custom-table { width: 100%; border-collapse: collapse; }
+.custom-table th, .custom-table td { padding: 12px 20px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.custom-table th { background: #f9fafb; font-weight: 600; color: #374151; font-size: 0.9rem; }
+.custom-table tbody tr:hover { background: #f9fafb; }
+.progress-indicator { width: 100px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--analytics-gradient); transition: width 0.3s ease; }
+.user-info { display: flex; flex-direction: column; gap: 2px; }
+.user-name { font-weight: 500; color: #111827; }
+.user-email { font-size: 0.8rem; color: #6b7280; }
+.points-badge { background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+@media (max-width: 768px) {
+.filter-row { grid-template-columns: 1fr; }
+.chart-header { flex-direction: column; gap: 12px; }
+.stats-summary { grid-template-columns: 1fr; }
+.reports-grid { grid-template-columns: 1fr; }
+.custom-table th, .custom-table td { padding: 8px 12px; font-size: 0.8rem; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Report Filters -->
+<div class="report-filters">
+    <form method="get" class="filter-row">
+        <div class="filter-group">
+            <label class="filter-label">Từ ngày:</label>
+            <input type="date" class="filter-input" name="start_date" value="{{ request.GET.start_date }}">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Đến ngày:</label>
+            <input type="date" class="filter-input" name="end_date" value="{{ request.GET.end_date }}">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Loại báo cáo:</label>
+            <select class="filter-input" name="report_type">
+                <option value="all">Tất cả</option>
+                <option value="books">Sách</option>
+                <option value="users">Người dùng</option>
+                <option value="buses">Xe bus</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <button type="submit" class="filter-btn">
+                <i class="fas fa-search"></i> Tạo báo cáo
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Main Chart -->
+<div class="chart-card">
+    <div class="chart-header">
+        <h3 class="chart-title">Báo cáo trong {{ days }} ngày qua</h3>
+        <div class="export-buttons">
+            <button class="export-btn" onclick="exportReport('pdf')">
+                <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button class="export-btn" onclick="exportReport('excel')">
+                <i class="fas fa-file-excel"></i> Excel
+            </button>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="reportsChart"></canvas>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="stats-summary">
+    <div class="summary-card">
+        <div class="summary-header">
+            <h4 class="summary-title">Tổng lượt mượn</h4>
+            <div class="summary-icon">
+                <i class="fas fa-book-reader"></i>
+            </div>
+        </div>
+        <div class="summary-value">{{ total_borrows_period }}</div>
+        <div class="summary-change {% if borrow_change >= 0 %}positive{% else %}negative{% endif %}">
+            <i class="fas fa-arrow-{% if borrow_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ borrow_change|floatformat:1 }}% so với kỳ trước
+        </div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-header">
+            <h4 class="summary-title">Người dùng mới</h4>
+            <div class="summary-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+        </div>
+        <div class="summary-value">{{ new_users_period }}</div>
+        <div class="summary-change {% if user_change >= 0 %}positive{% else %}negative{% endif %}">
+            <i class="fas fa-arrow-{% if user_change >= 0 %}up{% else %}down{% endif %}"></i>
+            {{ user_change|floatformat:1 }}% so với kỳ trước
+        </div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-header">
+            <h4 class="summary-title">Xe bus hoạt động</h4>
+            <div class="summary-icon">
+                <i class="fas fa-bus"></i>
+            </div>
+        </div>
+        <div class="summary-value">{{ active_buses_period }}</div>
+        <div class="summary-change">
+            Trên tổng số {{ total_buses }} xe
+        </div>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-header">
+            <h4 class="summary-title">Tỷ lệ hoàn thành</h4>
+            <div class="summary-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        <div class="summary-value">{{ completion_rate|floatformat:1 }}%</div>
+        <div class="summary-change">
+            Sách được trả đúng hạn
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Reports -->
+<div class="reports-grid">
+    <div class="report-table">
+        <div class="table-header">
+            <h3 class="table-title">Sách được mượn nhiều nhất</h3>
+        </div>
+        <div class="table-body">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Sách</th>
+                        <th>Lượt mượn</th>
+                        <th>Tỷ lệ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for book in top_books_period %}
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <span class="user-name">{{ book.book__title }}</span>
+                                <span class="user-email">{{ book.book__author }}</span>
+                            </div>
+                        </td>
+                        <td>{{ book.borrow_count }}</td>
+                        <td>
+                            <div class="progress-indicator">
+                                <div class="progress-fill" style="width: {{ book.percentage }}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center" style="padding: 40px;">Chưa có dữ liệu</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="report-table">
+        <div class="table-header">
+            <h3 class="table-title">Người dùng tích cực nhất</h3>
+        </div>
+        <div class="table-body">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Người dùng</th>
+                        <th>Lượt mượn</th>
+                        <th>Điểm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user_stat in top_users_period %}
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <span class="user-name">{{ user_stat.user__username }}</span>
+                                <span class="user-email">{{ user_stat.user__email }}</span>
+                            </div>
+                        </td>
+                        <td>{{ user_stat.borrow_count }}</td>
+                        <td>
+                            <span class="points-badge">{{ user_stat.total_points }}</span>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center" style="padding: 40px;">Chưa có dữ liệu</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+// Reports chart data
+const reportsData = {
+    labels: [{% for data in chart_data %}"{{ data.date|date:'d/m' }}",{% endfor %}],
+    datasets: [
+        {
+            label: 'Lượt mượn',
+            data: [{% for data in chart_data %}{{ data.borrows }},{% endfor %}],
+            borderColor: 'rgba(245, 158, 11, 1)',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            fill: true,
+            tension: 0.4
+        },
+        {
+            label: 'Lượt trả',
+            data: [{% for data in chart_data %}{{ data.returns }},{% endfor %}],
+            borderColor: 'rgba(16, 185, 129, 1)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4
+        },
+        {
+            label: 'Người dùng mới',
+            data: [{% for data in chart_data %}{{ data.new_users }},{% endfor %}],
+            borderColor: 'rgba(217, 119, 6, 1)',
+            backgroundColor: 'rgba(217, 119, 6, 0.1)',
+            fill: true,
+            tension: 0.4
+        }
+    ]
+};
+
+// Initialize chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('reportsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: reportsData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Thống kê hoạt động theo thời gian',
+                    font: { size: 16, weight: 'bold' }
+                },
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 12 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.1)' },
+                    ticks: { font: { size: 12 } }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+    
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+});
+
+function exportReport(format) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', format);
+    window.open('?' + params.toString(), '_blank');
+}
+</script>
+{% endblock %}

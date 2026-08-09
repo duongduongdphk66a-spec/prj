@@ -1,0 +1,210 @@
+<!-- File: inventory/bulk_pdf_upload.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}{% if form.instance.pk %}Cập nhật Lộ trình{% else %}Tạo Lộ trình mới{% endif %} - {{ block.super }}{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Cập nhật Lộ trình{% else %}Tạo Lộ trình mới{% endif %}{% endblock %}
+{% block header_icon %}<i class="fas fa-route"></i>{% endblock %}
+{% block header_description %}Quản lý thông tin, các điểm dừng và lịch trình hoạt động của xe bus.{% endblock %}
+
+{% block action_buttons %}
+<a href="{% url 'inventory:route_list' %}" class="inventory-btn inventory-btn-secondary">
+    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+</a>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.upload-stats { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 24px; }
+.upload-stats h3 { margin: 0 0 8px 0; font-size: 18px; font-weight: 600; }
+.upload-stats p { margin: 0; opacity: 0.9; }
+.upload-stats .stat-number { font-size: 24px; font-weight: 700; margin-right: 8px; }
+.upload-guide { background: #f8f9ff; border: 1px solid #e1e5f7; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+.upload-guide h3 { color: #4f46e5; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.upload-guide ul { margin: 0; padding-left: 20px; }
+.upload-guide li { margin-bottom: 8px; color: #374151; }
+.upload-guide code { background: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+.upload-form { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+.file-upload-area { border: 2px dashed #d1d5db; border-radius: 8px; padding: 40px; text-align: center; transition: all 0.3s ease; cursor: pointer; }
+.file-upload-area:hover { border-color: #4f46e5; background: #f8f9ff; }
+.file-upload-area.dragover { border-color: #4f46e5; background: #f0f4ff; }
+.file-upload-icon { font-size: 48px; color: #9ca3af; margin-bottom: 16px; }
+.file-upload-text { color: #374151; font-size: 16px; margin-bottom: 8px; }
+.file-upload-hint { color: #6b7280; font-size: 14px; }
+.file-list { margin-top: 16px; }
+.file-item { display: flex; align-items: center; justify-content: between; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; }
+.file-item-info { flex: 1; }
+.file-item-name { font-weight: 500; color: #374151; }
+.file-item-size { font-size: 12px; color: #6b7280; }
+.file-item-remove { background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+.submit-btn { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease; }
+.submit-btn:hover { transform: translateY(-2px); }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.progress-bar { width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin-top: 16px; display: none; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); width: 0%; transition: width 0.3s ease; }
+@media (max-width: 768px) {
+    .upload-form { padding: 16px; }
+    .file-upload-area { padding: 24px; }
+    .upload-guide { padding: 16px; }
+}
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="inventory-card">
+            <div class="card-header">
+                <h3><i class="fas fa-upload"></i> Chọn Files để Tải lên</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="file-upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="file-upload-text">Kéo thả file PDF của bạn vào đây hoặc <strong>click để chọn</strong></div>
+                        <div class="file-upload-hint">Hỗ trợ tải lên nhiều file cùng lúc. Tên file nên khớp với tiêu đề sách.</div>
+                        <input type="file" name="pdf_files" id="pdfFilesInput" multiple accept=".pdf" style="display: none;" required>
+                    </div>
+                    
+                    <div class="file-list-container mt-3" id="fileListContainer" style="display: none;">
+                        <h4>Các file đã chọn:</h4>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <div class="progress-bar-container mt-3" id="progressBarContainer" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="progressFill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="inventory-btn inventory-btn-primary" id="submitBtn" disabled>
+                            <i class="fas fa-link"></i> Bắt đầu Upload và Liên kết
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="inventory-card mb-4">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-line"></i> Thống kê</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ books_without_pdf }}</strong> sách chưa có file PDF.</p>
+                <p><strong>{{ books_with_pdf }}</strong> sách đã có file PDF.</p>
+            </div>
+        </div>
+        <div class="inventory-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Hướng dẫn</h3>
+            </div>
+            <div class="card-body">
+                <ul>
+                    <li>Hệ thống sẽ tự động khớp tên file (bỏ qua `.pdf`) với tiêu đề sách. Ví dụ: `Dac-Nhan-Tam.pdf` sẽ được khớp với sách có tiêu đề "Đắc Nhân Tâm".</li>
+                    <li>Chức năng này sẽ bỏ qua những sách đã có file PDF.</li>
+                    <li>Kích thước tối đa cho mỗi file được khuyến nghị là 50MB.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('pdfFilesInput');
+    const fileListDiv = document.getElementById('fileList');
+    const fileListContainer = document.getElementById('fileListContainer');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const progressBar = document.getElementById('progressBarContainer');
+    const progressFill = document.getElementById('progressFill');
+
+    // Mở cửa sổ chọn file khi click vào vùng upload
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    // Xử lý sự kiện kéo-thả
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    uploadArea.addEventListener('dragover', () => uploadArea.classList.add('dragover'));
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+        uploadArea.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // Xử lý khi người dùng chọn file
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        fileInput.files = files; // Gán lại danh sách file vào input để form có thể submit
+        fileListContainer.style.display = 'block';
+        fileListDiv.innerHTML = '';
+        Array.from(files).forEach(file => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            fileListDiv.appendChild(fileItem);
+        });
+        submitBtn.disabled = files.length === 0;
+    }
+
+    // Xử lý khi submit form
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Ngăn submit mặc định để xử lý bằng AJAX
+
+        const formData = new FormData(uploadForm);
+        const xhr = new XMLHttpRequest();
+
+        xhr.open('POST', uploadForm.action, true);
+        
+        // Theo dõi tiến trình upload
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.display = 'block';
+                progressFill.style.width = percentComplete + '%';
+                progressFill.textContent = Math.round(percentComplete) + '%';
+            }
+        });
+
+        xhr.onloadstart = function() {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải lên...';
+        };
+
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Giả lập xử lý phía server trước khi redirect
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Hoàn tất!';
+                setTimeout(() => window.location.href = "{% url 'inventory:book_list' %}", 1000);
+            } else {
+                alert('Có lỗi xảy ra trong quá trình upload.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-link"></i> Bắt đầu Upload và Liên kết';
+            }
+        };
+        
+        // Gửi form
+        xhr.send(formData);
+    });
+});
+</script>
+{% endblock %}
+

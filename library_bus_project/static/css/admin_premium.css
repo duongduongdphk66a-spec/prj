@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #5C4033; /* Dark brown for text/buttons to match theme */
+    --primary-bg: #FDE68A; /* Pastel gold */
+    --primary-hover: #FCD34D;
+    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --radius-md: 12px;
+}
+
+body {
+    font-family: 'Inter', sans-serif !important;
+    background: var(--bg-gradient) !important;
+    color: #0f172a !important;
+}
+
+.content-wrapper {
+    background: transparent !important;
+}
+
+/* Sidebar styling - Force Pastel Gold */
+aside.main-sidebar, .sidebar {
+    background-color: var(--primary-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.brand-link {
+    background: var(--primary-bg) !important;
+    color: #000 !important;
+    border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+}
+.brand-link .brand-text {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+/* Sidebar links */
+.nav-sidebar .nav-item {
+    margin: 4px 12px !important;
+}
+.nav-sidebar .nav-link {
+    border-radius: var(--radius-md) !important;
+    color: #333 !important;
+    transition: all 0.3s ease !important;
+    display: flex;
+    align-items: center;
+}
+.nav-sidebar .nav-link p, .nav-sidebar .nav-link i {
+    color: #333 !important;
+    font-weight: 500 !important;
+}
+
+.nav-sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: #000 !important;
+    transform: scale(1.05);
+}
+.nav-sidebar .nav-link:hover p, .nav-sidebar .nav-link:hover i {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+.nav-sidebar .nav-item.menu-open > .nav-link,
+.nav-sidebar .nav-link.active {
+    background: white !important;
+    color: #000 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+.nav-sidebar .nav-link.active p, .nav-sidebar .nav-link.active i {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+/* Header Navbar */
+.main-header {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+}
+
+/* Cards */
+.card {
+    border-radius: var(--radius-md) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+.card-header {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+    background: transparent !important;
+}
+
+/* Buttons */
+.btn-primary, .btn-info, input[type="submit"] {
+    background: var(--primary-bg) !important;
+    color: #000 !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
+    transition: all 0.3s ease !important;
+}
+.btn-primary:hover, .btn-info:hover, input[type="submit"]:hover {
+    transform: translateY(-2px);
+    background: var(--primary-hover) !important;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2) !important;
+}
+.btn {
+    border-radius: var(--radius-md) !important;
+}
+
+/* Inputs */
+.form-control, .select2-container--default .select2-selection--single, .select2-selection--multiple {
+    border-radius: var(--radius-md) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+    padding: 10px 12px;
+    height: auto !important;
+}
+.form-control:focus, .select2-container--focus .select2-selection--multiple {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 4px rgba(253, 230, 138, 0.5) !important;
+}
+
+/* Overriding Dark Mode Artifacts aggressively */
+.dark-mode .card,
+.dark-mode .main-header,
+.dark-mode .table,
+.dark-mode .info-box,
+.dark-mode body {
+    background: rgba(255,255,255,0.95) !important;
+    color: #0f172a !important;
+    border-color: rgba(226, 232, 240, 0.8) !important;
+}
+.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,0.02) !important;
+}
+.dark-mode a { color: var(--primary-color) !important; }
+.dark-mode aside.main-sidebar, .dark-mode .sidebar {
+    background-color: var(--primary-bg) !important;
+}
+
+/* =========================================
+   PREMIUM TABLES & CHANGELIST
+   ========================================= */
+.table {
+    background: transparent !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+.table th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.05em !important;
+    padding: 1rem 1.5rem !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    border-top: none !important;
+}
+.table td {
+    padding: 1rem 1.5rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #1e293b !important;
+    font-size: 0.875rem !important;
+}
+.table tbody tr {
+    transition: all 0.2s ease !important;
+}
+.table tbody tr:hover {
+    background: #f8fafc !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Pagination */
+.pagination .page-item .page-link {
+    border-radius: 8px !important;
+    margin: 0 4px !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+}
+.pagination .page-item.active .page-link {
+    background: var(--primary-bg) !important;
+    border-color: var(--primary-bg) !important;
+    color: #000 !important;
+    font-weight: bold;
+}
+
+/* =========================================
+   PREMIUM FILTERS & FORMS
+   ========================================= */
+#changelist-filter, .changelist-filter {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+}
+#changelist-filter h3 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #1e293b !important;
+    margin-bottom: 1rem !important;
+    text-transform: uppercase;
+}
+.filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.filter-options .form-group {
+    margin-bottom: 0 !important;
+    flex: 1 1 200px;
+}
+
+/* Fix weird inline filters in Jazzmin */
+.form-inline .form-group {
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+}
+.form-control, .select2-container .select2-selection--single {
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.5rem 1rem !important;
+    height: 42px !important;
+    font-size: 0.875rem !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease !important;
+}
+.form-control:focus, .select2-container--focus .select2-selection--single {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(92, 64, 51, 0.1) !important;
+}
+
+/* Badges */
+.badge {
+    padding: 0.35em 0.65em !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+}
+.badge-success { background: #dcfce7 !important; color: #166534 !important; }
+.badge-danger { background: #fee2e2 !important; color: #991b1b !important; }
+.badge-warning { background: #fef9c3 !important; color: #854d0e !important; }
+.badge-info { background: #dbeafe !important; color: #1e40af !important; }

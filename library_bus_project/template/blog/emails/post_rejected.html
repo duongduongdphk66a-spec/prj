@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>Bài viết cần chỉnh sửa</h2>
+    <p>Xin chào {{ author.get_full_name|default:author.username }},</p>
+    <p>Bài viết "<strong>{{ post.title }}</strong>" của bạn chưa được duyệt và cần chỉnh sửa thêm.</p>
+    
+    {% if moderation_note %}
+    <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0;">
+        <strong>Lý do từ quản trị viên:</strong>
+        <p>{{ moderation_note }}</p>
+    </div>
+    {% endif %}
+
+    <p>Vui lòng chỉnh sửa bài viết và gửi lại để duyệt.</p>
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ edit_url }}" style="background-color: #d4af37; color: #2c1810; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Chỉnh sửa bài viết
+        </a>
+    </p>
+    <p>Nếu nút trên không hoạt động, copy đường dẫn này: <br>{{ edit_url }}</p>
+    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+    <p style="font-size: 0.85rem; color: #999;">Bạn nhận được email này vì bạn là tác giả bài viết trên {{ site_url }}.</p>
+</body>
+</html>

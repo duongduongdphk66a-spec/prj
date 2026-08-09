@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ book.title }} - Chi tiết sách{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --pastel-gold: #FDE68A;
+        --pastel-gold-hover: #FCD34D;
+        --gold-bg: #FDE68A;
+    }
+    
+    body {
+        background-color: #ffffff;
+    }
+    
+    .book-detail-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 50px;
+    }
+    
+    /* LEFT COLUMN */
+    .left-col {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .book-cover {
+        background-color: var(--gold-bg);
+        border-radius: 0;
+        height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .book-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.9;
+        mix-blend-mode: multiply;
+    }
+    
+    .book-cover-placeholder {
+        font-size: 24px;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .book-title {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        color: #000;
+    }
+    
+    .book-meta {
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .book-meta-label {
+        font-weight: 700;
+        color: #000;
+        display: block;
+    }
+    .book-meta-value {
+        font-weight: 400;
+        color: #555;
+    }
+
+    /* RIGHT COLUMN */
+    .right-col {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .description-box {
+        background-color: var(--gold-bg);
+        border-radius: 0;
+        padding: 40px;
+        min-height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 18px;
+        color: #000;
+        margin-bottom: 30px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 50px;
+    }
+    
+    .btn-action {
+        background-color: var(--gold-bg);
+        border: none;
+        border-radius: 0;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: 500;
+        color: #000;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.2s;
+        text-align: center;
+    }
+    
+    .btn-action:hover {
+        background-color: var(--pastel-gold-hover);
+        color: #000;
+    }
+    
+    .related-section {
+        margin-top: 20px;
+    }
+    
+    .related-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #000;
+    }
+    
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 20px;
+    }
+    
+    .related-book {
+        background-color: var(--gold-bg);
+        border-radius: 0;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #000;
+        text-align: center;
+        padding: 15px;
+        overflow: hidden;
+        position: relative;
+        transition: transform 0.2s;
+    }
+    
+    .related-book:hover {
+        transform: translateY(-5px);
+    }
+    
+    .related-book img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.9;
+        mix-blend-mode: multiply;
+        z-index: 1;
+    }
+    
+    .related-book span {
+        position: relative;
+        z-index: 2;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+        .book-detail-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* Star Rating CSS */
+    .rating-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #f59e0b;
+        font-size: 20px;
+    }
+    .rating-display .fa-star {
+        color: #e5e7eb;
+    }
+    .rating-display .fa-star.active {
+        color: #f59e0b;
+    }
+    .rating-text {
+        font-size: 16px;
+        color: #555;
+        font-weight: 500;
+    }
+    
+    .rating-form {
+        display: inline-flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    .rating-form input {
+        display: none;
+    }
+    .rating-form label {
+        color: #e5e7eb;
+        font-size: 24px;
+        padding: 0 2px;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .rating-form label:hover,
+    .rating-form label:hover ~ label,
+    .rating-form input:checked ~ label {
+        color: #f59e0b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="book-detail-container">
+    <!-- Cột trái -->
+    <div class="left-col">
+        <div class="book-cover">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+            {% else %}
+                <span class="book-cover-placeholder">Bìa sách</span>
+            {% endif %}
+        </div>
+        
+        <h1 class="book-title">{{ book.title }}</h1>
+        
+        <!-- Hiển thị Rating -->
+        <div class="rating-container">
+            <div class="rating-display" title="Đánh giá trung bình: {{ average_rating|floatformat:1 }} sao">
+                <i class="fas fa-star {% if average_rating >= 1 %}active{% endif %}"></i>
+                <i class="fas fa-star {% if average_rating >= 2 %}active{% endif %}"></i>
+                <i class="fas fa-star {% if average_rating >= 3 %}active{% endif %}"></i>
+                <i class="fas fa-star {% if average_rating >= 4 %}active{% endif %}"></i>
+                <i class="fas fa-star {% if average_rating >= 5 %}active{% endif %}"></i>
+            </div>
+            <span class="rating-text">{{ average_rating|floatformat:1 }} ({{ rating_count }} đánh giá)</span>
+            
+            {% if user.is_authenticated %}
+            <form action="{% url 'inventory:book_rate' book.pk %}" method="POST" class="rating-form" style="margin-left: 20px;">
+                {% csrf_token %}
+                <button type="submit" style="display: none;" id="submit-rating"></button>
+                <input type="radio" id="star5" name="rating" value="5" {% if user_rating.rating == 5 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
+                <label for="star5" title="5 sao"><i class="fas fa-star"></i></label>
+                <input type="radio" id="star4" name="rating" value="4" {% if user_rating.rating == 4 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
+                <label for="star4" title="4 sao"><i class="fas fa-star"></i></label>
+                <input type="radio" id="star3" name="rating" value="3" {% if user_rating.rating == 3 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
+                <label for="star3" title="3 sao"><i class="fas fa-star"></i></label>
+                <input type="radio" id="star2" name="rating" value="2" {% if user_rating.rating == 2 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
+                <label for="star2" title="2 sao"><i class="fas fa-star"></i></label>
+                <input type="radio" id="star1" name="rating" value="1" {% if user_rating.rating == 1 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
+                <label for="star1" title="1 sao"><i class="fas fa-star"></i></label>
+            </form>
+            <span class="rating-text" style="font-size:14px; margin-left: 5px;">
+                {% if user_rating %}Bạn đã đánh giá{% else %}Đánh giá sách{% endif %}
+            </span>
+            {% else %}
+            <span class="rating-text" style="font-size:14px; margin-left: 20px;">
+                <a href="{% url 'users:login' %}?next={{ request.path }}">Đăng nhập để đánh giá</a>
+            </span>
+            {% endif %}
+        </div>
+        
+        <div class="book-meta">
+            {% if book.author %}
+                <span class="book-meta-label">Tác giả: <span class="book-meta-value">{{ book.author }}</span></span>
+            {% endif %}
+            {% if book.category %}
+                <span class="book-meta-label">Thể loại: <span class="book-meta-value">{{ book.category.name }}</span></span>
+            {% endif %}
+            {% if book.publisher %}
+                <span class="book-meta-label">Nhà xuất bản: <span class="book-meta-value">{{ book.publisher }}</span></span>
+            {% endif %}
+            {% if book.publication_year %}
+                <span class="book-meta-label">Năm xuất bản: <span class="book-meta-value">{{ book.publication_year }}</span></span>
+            {% endif %}
+            {% if book.isbn %}
+                <span class="book-meta-label">ISBN: <span class="book-meta-value">{{ book.isbn }}</span></span>
+            {% endif %}
+            {% if book.page_count %}
+                <span class="book-meta-label">Số trang: <span class="book-meta-value">{{ book.page_count }}</span></span>
+            {% endif %}
+            {% if book.language %}
+                <span class="book-meta-label">Ngôn ngữ: <span class="book-meta-value">{{ book.language }}</span></span>
+            {% endif %}
+            {% if book.location %}
+                <span class="book-meta-label">Vị trí hiện tại: <span class="book-meta-value">{{ book.location.name }}</span></span>
+            {% endif %}
+            <span class="book-meta-label">Tình trạng sách: <span class="book-meta-value">{{ book.get_condition_display }}</span></span>
+            <span class="book-meta-label">Trạng thái: <span class="book-meta-value">{{ book.get_status_display }}</span></span>
+            {% if book.is_digital_only %}
+                <span class="book-meta-label">Định dạng: <span class="book-meta-value">Chỉ có bản điện tử</span></span>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Cột phải -->
+    <div class="right-col">
+        <div class="description-box">
+            {% if book.description %}
+                {{ book.description|linebreaks }}
+            {% else %}
+                Ô này là mô tả và tóm tắt nội dung sách
+            {% endif %}
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'transactions:reservation_create' book.id %}" class="btn-action">Mượn sách</a>
+            {% if file_info.pdf_url %}
+            <a href="{% url 'inventory:book_pdf_viewer' book.pk %}" class="btn-action">Nút tải</a>
+            {% else %}
+            <a href="#" class="btn-action" style="opacity:0.5; cursor:not-allowed;" title="Chưa có bản PDF">Nút tải</a>
+            {% endif %}
+        </div>
+        
+        <div class="related-section">
+            <h3 class="related-title">Nội dung liên quan</h3>
+            <div class="related-grid">
+                {% for rb in related_books %}
+                    <a href="{% url 'inventory:book_detail' rb.pk %}" class="related-book">
+                        {% if rb.cover_image %}
+                            <img src="{{ rb.cover_image.url }}" alt="{{ rb.title }}">
+                        {% else %}
+                            <span>Bìa sách</span>
+                        {% endif %}
+                    </a>
+                {% empty %}
+                    <div class="related-book"><span>Bìa sách</span></div>
+                    <div class="related-book"><span>Bìa sách</span></div>
+                    <div class="related-book"><span>Bìa sách</span></div>
+                    <div class="related-book"><span>Bìa sách</span></div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

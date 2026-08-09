@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tin tức & Sự kiện{% endblock %}
+
+{% block content %}
+<style>
+/* ========== Blog Module — Premium Header ========== */
+.blog-hero {
+    position: relative;
+    background: var(--gradient-hero);
+    color: #F5EBE0;
+    padding: 5rem 0 4rem;
+    text-align: center;
+    overflow: hidden;
+}
+.blog-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 60%);
+    animation: float 8s ease-in-out infinite;
+    pointer-events: none;
+}
+.blog-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: linear-gradient(to top, var(--white) 0%, transparent 100%);
+    pointer-events: none;
+}
+/* Decorative shapes */
+.blog-hero-decor {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.06;
+    pointer-events: none;
+}
+.blog-hero-decor-1 {
+    width: 300px; height: 300px;
+    background: var(--gold);
+    top: -100px; right: -50px;
+    animation: float 6s ease-in-out infinite;
+}
+.blog-hero-decor-2 {
+    width: 200px; height: 200px;
+    background: var(--amber-400);
+    bottom: -50px; left: -30px;
+    animation: float 8s ease-in-out infinite reverse;
+}
+.blog-hero-decor-3 {
+    width: 120px; height: 120px;
+    background: var(--white);
+    top: 30%; left: 15%;
+    animation: float 5s ease-in-out infinite 1s;
+}
+
+.blog-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+    margin: 0 auto;
+    animation: fadeInUp 0.8s var(--ease-out) forwards;
+}
+.blog-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 215, 0, 0.15);
+    color: var(--gold);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    backdrop-filter: blur(4px);
+}
+.blog-hero-badge i { font-size: 0.7rem; }
+.blog-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--gold) 0%, #FDE68A 50%, var(--dark-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+.blog-subtitle {
+    font-size: 1.15rem;
+    opacity: 0.85;
+    max-width: 550px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+/* ========== Breadcrumb ========== */
+.blog-breadcrumb {
+    position: relative;
+    z-index: 3;
+    margin-top: -2rem;
+    margin-bottom: 2rem;
+}
+.breadcrumb-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9rem;
+    width: fit-content;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.breadcrumb-inner a {
+    color: var(--warm-500);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.breadcrumb-inner a:hover { color: var(--amber-600); }
+.breadcrumb-inner .separator { color: var(--warm-300); font-size: 0.7rem; }
+.breadcrumb-inner .current { color: var(--dark-brown); font-weight: 600; }
+
+/* Blog Container */
+.blog-container {
+    padding: 0 1rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .blog-title { font-size: 2rem; }
+    .blog-hero { padding: 3.5rem 0 3rem; }
+    .blog-subtitle { font-size: 1rem; }
+}
+/* ========== Post Grid ========== */
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+/* ========== Regular Post Card ========== */
+.post-card {
+    background: var(--white);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.4s var(--ease-smooth);
+    display: flex; flex-direction: column;
+    height: 100%;
+    border: 1px solid rgba(0,0,0,0.04);
+    opacity: 0;
+    animation: fadeInUp 0.5s var(--ease-out) forwards;
+}
+.post-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Card Image */
+.post-image-container {
+    position: relative; width: 100%;
+    padding-top: 58%;
+    overflow: hidden; background: var(--warm-50);
+}
+.post-image {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s var(--ease-out);
+}
+.post-card:hover .post-image { transform: scale(1.06); }
+
+/* Image Overlay on Hover */
+.post-image-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(92, 64, 51, 0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-smooth);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 1.5rem;
+}
+.post-card:hover .post-image-overlay { opacity: 1; }
+.overlay-read-btn {
+    color: white; font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+    transform: translateY(10px);
+    transition: transform 0.4s var(--ease-spring);
+    font-size: 0.95rem;
+}
+.post-card:hover .overlay-read-btn { transform: translateY(0); }
+
+/* Categories & Badges */
+.post-categories {
+    position: absolute; top: 1rem; left: 1rem;
+    display: flex; gap: 0.5rem; flex-wrap: wrap; z-index: 2;
+}
+.category-badge {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    color: var(--dark-brown);
+    padding: 4px 12px; border-radius: 50px;
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Card Content */
+.post-content {
+    padding: 1.5rem;
+    display: flex; flex-direction: column;
+    flex-grow: 1;
+}
+.post-meta {
+    font-size: 0.83rem; color: var(--warm-400);
+    margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 1rem;
+    font-weight: 500;
+}
+.post-meta i { color: var(--amber-400); font-size: 0.75rem; }
+.post-title {
+    font-size: 1.2rem; font-weight: 700;
+    margin-bottom: 0.8rem; line-height: 1.4;
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+}
+.post-title a {
+    color: inherit; text-decoration: none;
+    background-image: linear-gradient(var(--amber-400), var(--amber-400));
+    background-size: 0% 2px;
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    transition: background-size 0.4s var(--ease-smooth);
+}
+.post-card:hover .post-title a { background-size: 100% 2px; }
+.post-excerpt {
+    font-size: 0.93rem; color: var(--warm-500);
+    margin-bottom: 1.5rem; line-height: 1.6;
+    display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden;
+    flex-grow: 1;
+}
+
+/* Card Footer */
+.post-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--warm-50);
+    margin-top: auto;
+}
+.author-info { display: flex; align-items: center; gap: 0.6rem; }
+.author-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--gradient-brown);
+    color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: bold;
+    box-shadow: 0 2px 6px rgba(92, 64, 51, 0.15);
+}
+.author-name { font-size: 0.85rem; font-weight: 600; color: var(--dark-brown); }
+.post-stats { display: flex; gap: 0.8rem; font-size: 0.83rem; color: var(--warm-400); }
+.post-stats span { display: flex; align-items: center; gap: 4px; }
+.post-stats .like-action {
+    cursor: pointer; transition: all 0.2s;
+    padding: 2px 6px; border-radius: 20px;
+    border: none; background: none;
+    font-family: inherit; font-size: inherit; color: inherit;
+    display: flex; align-items: center; gap: 4px;
+}
+.post-stats .like-action:hover { color: var(--danger); background: rgba(239, 68, 68, 0.06); }
+.post-stats .like-action.liked { color: var(--danger); }
+.post-stats .like-action.liked i { font-weight: 900; }
+
+</style>
+
+<div class="blog-hero">
+    <!-- Decorative shapes -->
+    <div class="blog-hero-decor blog-hero-decor-1"></div>
+    <div class="blog-hero-decor blog-hero-decor-2"></div>
+    <div class="blog-hero-decor blog-hero-decor-3"></div>
+    
+    <div class="container">
+        <div class="blog-hero-content">
+            <div class="blog-hero-badge">
+                <i class="fas fa-newspaper"></i>
+                Blog & Tin tức
+            </div>
+            <h1 class="blog-title">{% block blog_title %}Tin tức & Sự kiện{% endblock %}</h1>
+            <p class="blog-subtitle">{% block blog_subtitle %}Cập nhật những thông tin mới nhất từ Thư Viện Lưu Động{% endblock %}</p>
+        </div>
+    </div>
+</div>
+
+<div class="blog-container">
+    <!-- Breadcrumb -->
+    <div class="blog-breadcrumb">
+        <div class="breadcrumb-inner">
+            <a href="{% url 'index' %}"><i class="fas fa-home"></i> Trang chủ</a>
+            <span class="separator"><i class="fas fa-chevron-right"></i></span>
+            <a href="{% url 'blog:post_list' %}">Blog</a>
+            {% block blog_breadcrumb %}{% endblock %}
+        </div>
+    </div>
+
+    {% block blog_content %}{% endblock %}
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Danh sách Xe Bus (Admin) - {{ block.super }}{% endblock %}
+
+{% block page_title %}Danh sách Xe Bus{% endblock %}
+
+{% block breadcrumb %}
+<div class="inventory-breadcrumb">
+    <a href="{% url 'inventory:dashboard' %}"><i class="fas fa-home"></i> Tổng quan</a>
+    <span class="separator">•</span>
+    <span class="current">Xe Bus</span>
+</div>
+{% endblock %}
+
+{% block header_icon %}<i class="fas fa-bus"></i>{% endblock %}
+{% block header_title %}Quản lý Xe Bus{% endblock %}
+{% block header_description %}Quản lý và theo dõi thông tin, tình trạng hoạt động của các xe bus thư viện lưu động{% endblock %}
+
+{% block action_buttons %}
+<a href="{% url 'inventory:bus_create' %}" class="inventory-btn inventory-btn-primary"><i class="fas fa-plus"></i> Thêm xe bus mới</a>
+{% endblock %}
+
+{% block quick_actions %}
+<div class="inventory-quick-actions">
+    <a href="{% url 'inventory:admin_bus_list' %}" class="inventory-quick-action"><i class="fas fa-list"></i> Tất cả xe bus</a>
+    <a href="{% url 'inventory:admin_bus_list' %}?status=active" class="inventory-quick-action"><i class="fas fa-check-circle"></i> Đang hoạt động</a>
+    <a href="{% url 'inventory:admin_bus_list' %}?status=maintenance" class="inventory-quick-action"><i class="fas fa-wrench"></i> Đang bảo trì</a>
+</div>
+{% endblock %}
+
+{% block filter_bar %}
+<div class="inventory-filter-bar">
+    <form method="get" action="{% url 'inventory:admin_bus_list' %}" style="display: flex; gap: 10px; width: 100%;">
+        <div class="inventory-search" style="flex: 1;">
+            <input type="text" name="query" class="inventory-search-input" placeholder="Tìm kiếm tên xe, biển số..." value="{{ request.GET.query }}">
+            <i class="fas fa-search inventory-search-icon"></i>
+        </div>
+        <select name="status" class="inventory-filter-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Đang hoạt động</option>
+            <option value="maintenance" {% if request.GET.status == 'maintenance' %}selected{% endif %}>Bảo trì</option>
+            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Ngưng hoạt động</option>
+        </select>
+        <button type="submit" class="inventory-btn inventory-btn-primary"><i class="fas fa-filter"></i> Lọc</button>
+        <a href="{% url 'inventory:admin_bus_list' %}" class="inventory-btn inventory-btn-secondary"><i class="fas fa-times"></i> Xóa lọc</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="inventory-stats">
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ total_buses|default:0 }}</div>
+        <div class="inventory-stat-label">Tổng số xe bus</div>
+    </div>
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ active_buses|default:0 }}</div>
+        <div class="inventory-stat-label">Đang hoạt động</div>
+    </div>
+</div>
+
+<div class="inventory-card">
+    <div class="inventory-table-container">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-bus"></i> Xe Bus</th>
+                    <th><i class="fas fa-map-marker-alt"></i> Vị trí hiện tại</th>
+                    <th><i class="fas fa-book"></i> Số lượng sách</th>
+                    <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                    <th class="text-center"><i class="fas fa-cogs"></i> Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bus in buses %}
+                <tr>
+                    <td>
+                        <strong>{{ bus.name }}</strong>
+                        {% if bus.license_plate %}
+                        <br><small class="text-muted">Biển số: {{ bus.license_plate }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ bus.location_name|default:"Chưa xác định" }}</td>
+                    <td>{{ bus.total_books|default:0 }} cuốn</td>
+                    <td>
+                        {% if bus.operating_status == 'active' %}
+                        <span class="inventory-badge inventory-badge-success">Đang hoạt động</span>
+                        {% elif bus.operating_status == 'maintenance' %}
+                        <span class="inventory-badge inventory-badge-warning">Bảo trì</span>
+                        {% else %}
+                        <span class="inventory-badge inventory-badge-danger">Ngưng hoạt động</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="inventory-action-buttons" style="justify-content: center;">
+                            <a href="{% url 'inventory:bus_detail' bus.id %}" class="inventory-action-btn inventory-action-view" title="Chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'inventory:bus_update' bus.id %}" class="inventory-action-btn inventory-action-edit" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center" style="padding: 30px;">
+                        <i class="fas fa-bus" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p>Không tìm thấy xe bus nào.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+    <div class="inventory-pagination" style="margin-top: 20px; text-align: center;">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="inventory-btn inventory-btn-secondary"><i class="fas fa-chevron-left"></i> Trước</a>
+        {% endif %}
+        
+        <span class="inventory-pagination-info" style="margin: 0 15px;">
+            Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="inventory-btn inventory-btn-secondary">Sau <i class="fas fa-chevron-right"></i></a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

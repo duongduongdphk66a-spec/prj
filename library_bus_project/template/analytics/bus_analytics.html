@@ -1,0 +1,186 @@
+<!-- analytics/templates/analytics/bus_analytics.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Phân tích xe bus{% endblock %}
+
+{% block analytics_heading %}Phân tích xe bus{% endblock %}
+
+{% block analytics_description %}Đánh giá hiệu suất hoạt động của các xe bus thư viện.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Phân tích xe bus</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.bus-filters { display: flex; gap: 8px; margin-bottom: 20px; }
+.bus-filter-btn { padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 6px; background: white; cursor: pointer; transition: all 0.3s ease; }
+.bus-filter-btn.active { background: var(--analytics-primary); color: white; border-color: var(--analytics-primary); }
+.bus-filter-btn:hover { border-color: var(--analytics-primary); }
+.bus-table { width: 100%; border-collapse: collapse; }
+.bus-table th, .bus-table td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.bus-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+.bus-table tbody tr:hover { background: #f9fafb; }
+.bus-name { font-weight: 600; color: #111827; }
+.bus-license { color: #6b7280; font-size: 0.875rem; }
+.bus-status { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+.bus-status.active { background: #d1fae5; color: #065f46; }
+.bus-status.inactive { background: #f3f4f6; color: #6b7280; }
+.efficiency-bar { width: 100px; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+.efficiency-fill { height: 100%; background: var(--analytics-gradient); transition: width 0.3s ease; }
+.efficiency-text { font-size: 0.875rem; color: #6b7280; margin-top: 4px; }
+.performance-chart { background: white; padding: 24px; border-radius: 8px; margin-top: 24px; }
+@media (max-width: 768px) {
+    .bus-filters { flex-wrap: wrap; }
+    .bus-table { font-size: 0.875rem; }
+    .bus-table th, .bus-table td { padding: 8px; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Bus Performance Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-bus"></i> Hiệu suất theo từng xe
+        </h3>
+        <div class="bus-filters">
+            <button class="bus-filter-btn active" data-filter="all">Tất cả</button>
+            <button class="bus-filter-btn" data-filter="active">Hoạt động</button>
+            <button class="bus-filter-btn" data-filter="inactive">Tạm dừng</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table class="bus-table">
+                <thead>
+                    <tr>
+                        <th>Tên xe bus</th>
+                        <th>Tuyến đường</th>
+                        <th>Trạng thái</th>
+                        <th>Điểm hiệu suất</th>
+                        <th>Tổng lượt ghé</th>
+                        <th>Tổng lượt mượn</th>
+                        <th>Tỷ lệ chuyển đổi</th>
+                    </tr>
+                </thead>
+                <tbody id="busTableBody">
+                    {% for bus_stat in bus_analytics %}
+                    <tr data-status="{% if bus_stat.bus.is_active %}active{% else %}inactive{% endif %}">
+                        <td>
+                            <div class="bus-name">{{ bus_stat.bus.name }}</div>
+                            <div class="bus-license">{{ bus_stat.bus.license_plate }}</div>
+                        </td>
+                        <td>{{ bus_stat.bus.route }}</td>
+                        <td>
+                            <span class="bus-status {% if bus_stat.bus.is_active %}active{% else %}inactive{% endif %}">
+                                {% if bus_stat.bus.is_active %}Hoạt động{% else %}Tạm dừng{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="efficiency-bar">
+                                <div class="efficiency-fill" style="width: {{ bus_stat.efficiency_score|floatformat:0 }}%;"></div>
+                            </div>
+                            <div class="efficiency-text">{{ bus_stat.efficiency_score|floatformat:1 }}%</div>
+                        </td>
+                        <td><strong>{{ bus_stat.total_visits }}</strong></td>
+                        <td><strong>{{ bus_stat.total_borrows }}</strong></td>
+                        <td>
+                            {% if bus_stat.total_visits > 0 %}
+                                {% widthratio bus_stat.total_borrows bus_stat.total_visits 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-bus"></i>
+                            <h3>Chưa có dữ liệu xe bus</h3>
+                            <p>Dữ liệu sẽ hiển thị khi có xe bus hoạt động.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Chart -->
+<div class="performance-chart">
+    <div class="chart-header">
+        <h3 class="chart-title">Biểu đồ hiệu suất xe bus</h3>
+    </div>
+    <div class="chart-container">
+        <canvas id="busPerformanceChart" height="300"></canvas>
+    </div>
+</div>
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+// Bus performance chart data
+const busPerformanceData = {
+    labels: [{% for bus_stat in bus_analytics %}"{{ bus_stat.bus.name }}",{% endfor %}],
+    datasets: [{
+        label: 'Điểm hiệu suất',
+        data: [{% for bus_stat in bus_analytics %}{{ bus_stat.efficiency_score|floatformat:1 }},{% endfor %}],
+        backgroundColor: 'var(--analytics-light)',
+        borderColor: 'var(--analytics-primary)',
+        borderWidth: 2
+    }]
+};
+
+// Initialize chart and filters
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize chart
+    const ctx = document.getElementById('busPerformanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: busPerformanceData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.bus-filter-btn');
+    const tableRows = document.querySelectorAll('#busTableBody tr');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter table rows
+            tableRows.forEach(row => {
+                const status = row.dataset.status;
+                if (filter === 'all' || filter === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

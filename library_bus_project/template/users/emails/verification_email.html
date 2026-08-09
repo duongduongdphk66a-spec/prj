@@ -1,0 +1,14 @@
+<!-- users/verification_email.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xác thực tài khoản</title>
+</head>
+<body>
+    <p>Chào {{ user.get_full_name|default:user.username }},</p>
+    <p>Cảm ơn bạn đã đăng ký tại {{ site_name }}. Vui lòng nhấp vào liên kết bên dưới để kích hoạt tài khoản của bạn:</p>
+    <p><a href="{{ verify_url }}">{{ verify_url }}</a></p>
+    <p>Trân trọng,<br>Đội ngũ {{ site_name }}</p>
+</body>
+</html>
+

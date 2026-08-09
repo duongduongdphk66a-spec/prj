@@ -1,0 +1,43 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block blog_title %}Đăng ký Newsletter{% endblock %}
+{% block blog_subtitle %}Nhận thông tin mới nhất từ thư viện qua email{% endblock %}
+
+{% block blog_content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="background: var(--white); border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📬</div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 0.75rem;">
+            Đăng ký nhận bản tin
+        </h2>
+        <p style="color: #666; margin-bottom: 2rem;">
+            Nhận thông báo về sách mới, sự kiện, và các bài viết hay nhất mỗi tuần.
+        </p>
+
+        <form method="post" action="{% url 'blog:newsletter_subscribe' %}">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div style="margin-bottom: 1.25rem; text-align: left;">
+                <label for="{{ field.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333;">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" style="width: 100%; padding: 0.875rem; background: linear-gradient(135deg, var(--dark-brown), #3a2820); color: var(--gold); border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity 0.3s;">
+                <i class="fas fa-paper-plane"></i> Đăng ký ngay
+            </button>
+        </form>
+
+        <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #999;">
+            Bạn có thể hủy đăng ký bất cứ lúc nào.
+        </p>
+    </div>
+</div>
+{% endblock %}

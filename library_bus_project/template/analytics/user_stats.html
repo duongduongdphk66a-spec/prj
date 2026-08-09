@@ -1,0 +1,254 @@
+<!-- analytics/templates/analytics/user_stats.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Thống kê cá nhân - Analytics{% endblock %}
+
+{% block analytics_heading %}Thống kê của tôi{% endblock %}
+
+{% block analytics_description %}Theo dõi tiến trình đọc sách và các thành tích của bạn.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Thống kê của tôi</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.profile-header { background: var(--analytics-gradient); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+.profile-avatar { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 20px; border: 4px solid rgba(255,255,255,0.2); object-fit: cover; }
+.profile-name { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; }
+.profile-level { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; display: inline-block; }
+.profile-badges { display: flex; gap: 12px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+.profile-badge { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }
+.stats-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.stat-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 700; color: var(--analytics-primary); margin: 0 0 8px 0; }
+.stat-label { color: #6b7280; font-size: 14px; margin: 0; }
+.progress-section { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+.progress-item { margin-bottom: 24px; }
+.progress-item:last-child { margin-bottom: 0; }
+.progress-header { display: flex; justify-content: between; align-items: center; margin-bottom: 8px; }
+.progress-label { font-weight: 500; color: #374151; }
+.progress-percentage { font-size: 14px; color: var(--analytics-primary); font-weight: 600; }
+.progress-bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--analytics-gradient); transition: width 0.8s ease; }
+.achievement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.achievement-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.achievement-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--analytics-light); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.achievement-icon i { font-size: 24px; color: var(--analytics-primary); }
+.achievement-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 8px 0; color: #374151; }
+.achievement-description { color: #6b7280; font-size: 14px; margin: 0; }
+.recent-activities { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.activity-item { padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; }
+.activity-icon.borrow { background: #dbeafe; color: #1e40af; }
+.activity-icon.return { background: #d1fae5; color: #065f46; }
+.activity-icon.review { background: #fef3c7; color: #92400e; }
+.activity-content { flex: 1; }
+.activity-title { font-weight: 500; color: #374151; margin: 0 0 4px 0; }
+.activity-description { color: #6b7280; font-size: 14px; margin: 0; }
+.activity-meta { text-align: right; }
+.activity-points { background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.activity-time { color: #6b7280; font-size: 12px; margin-top: 4px; }
+@media (max-width: 768px) {
+.profile-badges { flex-direction: column; align-items: center; }
+.stats-overview { grid-template-columns: repeat(2, 1fr); }
+.achievement-grid { grid-template-columns: 1fr; }
+.activity-item { flex-direction: column; align-items: flex-start; text-align: left; }
+.activity-meta { text-align: left; margin-top: 8px; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Profile Header -->
+<div class="profile-header">
+    <img src="{{ request.user.profile.avatar.url|default:'https://placehold.co/120x120/f59e0b/ffffff?text='|add:request.user.username.0|upper }}" 
+         class="profile-avatar" 
+         alt="Avatar của {{ request.user.get_full_name|default:request.user.username }}">
+    <h2 class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div class="profile-level">{{ user_stats.get_member_level_display }}</div>
+    <div class="profile-badges">
+        <div class="profile-badge">
+            <i class="fas fa-medal"></i> Điểm uy tín: {{ user_stats.reputation_score }}
+        </div>
+        <div class="profile-badge">
+            <i class="fas fa-trophy"></i> Hạng: #{{ user_rank }}
+        </div>
+        <div class="profile-badge">
+            <i class="fas fa-calendar"></i> Tham gia: {{ request.user.date_joined|date:"m/Y" }}
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-overview">
+    <div class="stat-item">
+        <div class="stat-value">{{ user_stats.total_books_read }}</div>
+        <div class="stat-label">Sách đã đọc</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value">{{ user_stats.current_streak }}</div>
+        <div class="stat-label">Chuỗi đọc hiện tại</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value">{{ user_stats.total_points }}</div>
+        <div class="stat-label">Tổng điểm</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-value">{{ user_stats.total_reviews }}</div>
+        <div class="stat-label">Đánh giá đã viết</div>
+    </div>
+</div>
+
+<!-- Progress Section -->
+<div class="progress-section">
+    <h3 class="card-title">
+        <i class="fas fa-chart-line"></i> Tiến trình thành tích
+    </h3>
+    
+    <div class="progress-item">
+        <div class="progress-header">
+            <span class="progress-label">Cấp độ tiếp theo</span>
+            <span class="progress-percentage">{{ achievement_progress.next_level.progress|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ achievement_progress.next_level.progress }}%;"></div>
+        </div>
+    </div>
+    
+    <div class="progress-item">
+        <div class="progress-header">
+            <span class="progress-label">Mục tiêu chuỗi đọc ({{ achievement_progress.streak_milestone.target }} ngày)</span>
+            <span class="progress-percentage">{{ achievement_progress.streak_milestone.progress|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ achievement_progress.streak_milestone.progress }}%;"></div>
+        </div>
+    </div>
+    
+    <div class="progress-item">
+        <div class="progress-header">
+            <span class="progress-label">Mục tiêu đọc sách ({{ achievement_progress.reading_milestone.target }} cuốn)</span>
+            <span class="progress-percentage">{{ achievement_progress.reading_milestone.progress|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ achievement_progress.reading_milestone.progress }}%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Achievements -->
+<div class="achievement-grid">
+    <div class="achievement-card">
+        <div class="achievement-icon">
+            <i class="fas fa-book-reader"></i>
+        </div>
+        <h4 class="achievement-title">Độc giả tận tâm</h4>
+        <p class="achievement-description">Đọc sách liên tục trong {{ user_stats.current_streak }} ngày</p>
+    </div>
+    
+    <div class="achievement-card">
+        <div class="achievement-icon">
+            <i class="fas fa-star"></i>
+        </div>
+        <h4 class="achievement-title">Người đánh giá</h4>
+        <p class="achievement-description">Đã viết {{ user_stats.total_reviews }} đánh giá</p>
+    </div>
+    
+    <div class="achievement-card">
+        <div class="achievement-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <h4 class="achievement-title">Thành viên cộng đồng</h4>
+        <p class="achievement-description">Tham gia cộng đồng từ {{ request.user.date_joined|date:"m/Y" }}</p>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="recent-activities">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-history"></i> Hoạt động gần đây
+        </h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        {% if recent_activities %}
+            {% for activity in recent_activities %}
+            <div class="activity-item">
+                <div class="activity-icon {{ activity.activity_type }}">
+                    {% if activity.activity_type == 'borrow' %}
+                        <i class="fas fa-book"></i>
+                    {% elif activity.activity_type == 'return' %}
+                        <i class="fas fa-undo"></i>
+                    {% elif activity.activity_type == 'review' %}
+                        <i class="fas fa-star"></i>
+                    {% else %}
+                        <i class="fas fa-activity"></i>
+                    {% endif %}
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">{{ activity.get_activity_type_display }}</div>
+                    <div class="activity-description">{{ activity.description|truncatechars:50 }}</div>
+                </div>
+                <div class="activity-meta">
+                    <div class="activity-points">+{{ activity.points }} điểm</div>
+                    <div class="activity-time">{{ activity.created_at|timesince }} trước</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="activity-item">
+                <div class="activity-content" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-clock" style="font-size: 48px; color: #d1d5db; margin-bottom: 16px;"></i>
+                    <h4>Chưa có hoạt động nào</h4>
+                    <p style="color: #6b7280;">Hãy bắt đầu bằng việc mượn sách đầu tiên!</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="card-footer" style="text-align: center; padding: 16px;">
+        <a href="{% url 'analytics:user_activities' %}" class="btn btn-outline">
+            <i class="fas fa-list"></i> Xem tất cả hoạt động
+        </a>
+    </div>
+</div>
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('.progress-fill');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+    
+    // Animate stat values
+    const statValues = document.querySelectorAll('.stat-value');
+    statValues.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        if (!isNaN(finalValue)) {
+            animateCounter(stat, 0, finalValue, 1000);
+        }
+    });
+});
+
+function animateCounter(element, start, end, duration) {
+    const startTime = performance.now();
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        element.textContent = current.toLocaleString();
+        if (progress < 1) requestAnimationFrame(update);
+    }
+    requestAnimationFrame(update);
+}
+</script>
+{% endblock %}

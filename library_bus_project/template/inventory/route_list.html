@@ -1,0 +1,339 @@
+<!-- File: inventory/route_list.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Danh sách Lộ trình - {{ block.super }}{% endblock %}
+
+{% block page_title %}Lộ trình{% endblock %}
+
+{% block breadcrumb %}
+<div class="inventory-breadcrumb">
+    <a href="{% url 'inventory:dashboard' %}"><i class="fas fa-home"></i> Tổng quan</a>
+    <span class="separator">•</span>
+    <span class="current">Lộ trình</span>
+</div>
+{% endblock %}
+
+{% block header_icon %}<i class="fas fa-route"></i>{% endblock %}
+{% block header_title %}Quản lý Lộ trình{% endblock %}
+{% block header_description %}Quản lý và theo dõi các lộ trình của xe bus trong hệ thống{% endblock %}
+
+{% block action_buttons %}
+<a href="{% url 'inventory:route_create' %}" class="inventory-btn inventory-btn-primary"><i class="fas fa-plus"></i> Tạo lộ trình mới</a>
+<a href="#" class="inventory-btn inventory-btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> In danh sách</a>
+{% endblock %}
+
+{% block quick_actions %}
+<div class="inventory-quick-actions">
+    <a href="{% url 'inventory:route_list' %}" class="inventory-quick-action"><i class="fas fa-list"></i> Tất cả lộ trình</a>
+    <a href="{% url 'inventory:route_list' %}?status=active" class="inventory-quick-action"><i class="fas fa-check-circle"></i> Hoạt động</a>
+    <a href="{% url 'inventory:route_list' %}?status=inactive" class="inventory-quick-action"><i class="fas fa-pause-circle"></i> Tạm ngưng</a>
+    <a href="{% url 'inventory:route_list' %}?sort=newest" class="inventory-quick-action"><i class="fas fa-clock"></i> Mới nhất</a>
+</div>
+{% endblock %}
+
+{% block filter_bar %}
+<div class="inventory-filter-bar">
+    <div class="inventory-search">
+        <input type="text" class="inventory-search-input" placeholder="Tìm kiếm lộ trình..." id="route-search">
+        <i class="fas fa-search inventory-search-icon"></i>
+    </div>
+    <select class="inventory-filter-select" id="status-filter">
+        <option value="">Tất cả trạng thái</option>
+        <option value="active">Hoạt động</option>
+        <option value="inactive">Tạm ngưng</option>
+    </select>
+    <select class="inventory-filter-select" id="bus-filter">
+        <option value="">Tất cả xe bus</option>
+        {% for bus in available_buses %}
+        <option value="{{ bus.id }}">{{ bus.name }}</option>
+        {% endfor %}
+    </select>
+    <button class="inventory-btn inventory-btn-secondary" onclick="clearFilters()"><i class="fas fa-times"></i> Xóa bộ lọc</button>
+</div>
+{% endblock %}
+
+{% block inventory_content %}
+{% if routes %}
+<div class="inventory-stats">
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ routes|length }}</div>
+        <div class="inventory-stat-label">Tổng lộ trình</div>
+    </div>
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ active_routes_count|default:0 }}</div>
+        <div class="inventory-stat-label">Đang hoạt động</div>
+    </div>
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ total_stops|default:0 }}</div>
+        <div class="inventory-stat-label">Tổng điểm dừng</div>
+    </div>
+    <div class="inventory-stat-card">
+        <div class="inventory-stat-value">{{ average_stops|default:0 }}</div>
+        <div class="inventory-stat-label">Trung bình/lộ trình</div>
+    </div>
+</div>
+
+<div class="inventory-card">
+    <div class="inventory-table-container">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-route"></i> Tên lộ trình</th>
+                    <th><i class="fas fa-bus"></i> Xe bus phụ trách</th>
+                    <th><i class="fas fa-map-marker-alt"></i> Số điểm dừng</th>
+                    <th><i class="fas fa-clock"></i> Thời gian hoạt động</th>
+                    <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                    <th class="text-center"><i class="fas fa-cogs"></i> Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for route in routes %}
+                <tr>
+                    <td>
+                        <div class="route-info">
+                            <strong>{{ route.route_name }}</strong>
+                            {% if route.description %}
+                            <div class="route-description">{{ route.description|truncatechars:50 }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="bus-info">
+                            <span class="inventory-badge inventory-badge-primary">{{ route.bus.name }}</span>
+                            {% if route.bus.license_plate %}
+                            <div class="bus-license">{{ route.bus.license_plate }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="stops-info">
+                            <span class="stops-count">{{ route.stops|length }} điểm</span>
+                            {% if route.stops %}
+                            <div class="stops-preview">
+                                {% for stop in route.stops|slice:":2" %}
+                                <small>{{ stop.name }}</small>{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                                {% if route.stops|length > 2 %}
+                                <small>...</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="time-info">
+                            {% if route.start_time and route.end_time %}
+                            <div class="time-range">{{ route.start_time }} - {{ route.end_time }}</div>
+                            {% else %}
+                            <span class="text-muted">Chưa thiết lập</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if route.is_active %}
+                        <span class="inventory-badge inventory-badge-success"><i class="fas fa-check-circle"></i> Hoạt động</span>
+                        {% else %}
+                        <span class="inventory-badge inventory-badge-warning"><i class="fas fa-pause-circle"></i> Tạm ngưng</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="action-buttons">
+                            <div class="inventory-tooltip">
+                                <a href="{% url 'inventory:route_detail' route.pk %}" class="inventory-btn inventory-btn-secondary btn-sm"><i class="fas fa-eye"></i></a>
+                                <span class="tooltip-text">Xem chi tiết</span>
+                            </div>
+                            <div class="inventory-tooltip">
+                                <a href="{% url 'inventory:route_update' route.pk %}" class="inventory-btn inventory-btn-primary btn-sm"><i class="fas fa-edit"></i></a>
+                                <span class="tooltip-text">Chỉnh sửa</span>
+                            </div>
+                            <div class="inventory-tooltip">
+                                <button class="inventory-btn inventory-btn-warning btn-sm" onclick="toggleRouteStatus('{{ route.pk }}', {{ route.is_active|yesno:'false,true' }})">
+                                    <i class="fas fa-{% if route.is_active %}pause{% else %}play{% endif %}"></i>
+                                </button>
+                                <span class="tooltip-text">{% if route.is_active %}Tạm ngưng{% else %}Kích hoạt{% endif %}</span>
+                            </div>
+                            <div class="inventory-tooltip">
+                                <button class="inventory-btn inventory-btn-danger btn-sm" onclick="deleteRoute('{{ route.pk }}', '{{ route.route_name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <span class="tooltip-text">Xóa</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<div class="inventory-pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page=1" class="inventory-page-link"><i class="fas fa-angle-double-left"></i></a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="inventory-page-link"><i class="fas fa-angle-left"></i></a>
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <span class="inventory-page-link active">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+    <a href="?page={{ num }}" class="inventory-page-link">{{ num }}</a>
+    {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="inventory-page-link"><i class="fas fa-angle-right"></i></a>
+    <a href="?page={{ page_obj.paginator.num_pages }}" class="inventory-page-link"><i class="fas fa-angle-double-right"></i></a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+{% block empty_state %}
+<div class="inventory-empty-state">
+    <i class="fas fa-route"></i>
+    <h3>Chưa có lộ trình nào</h3>
+    <p>Bắt đầu bằng cách tạo lộ trình đầu tiên cho hệ thống</p>
+    <a href="{% url 'inventory:route_create' %}" class="inventory-btn inventory-btn-primary"><i class="fas fa-plus"></i> Tạo lộ trình mới</a>
+</div>
+{% endblock %}
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.route-info { line-height: 1.4; }
+.route-description { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.bus-info { line-height: 1.4; }
+.bus-license { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.stops-info { line-height: 1.4; }
+.stops-count { font-weight: 600; color: var(--primary-color); }
+.stops-preview { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.time-info { line-height: 1.4; }
+.time-range { font-size: 13px; color: var(--text-primary); }
+.action-buttons { display: flex; gap: 4px; justify-content: center; }
+.btn-sm { padding: 6px 8px; font-size: 12px; }
+.text-center { text-align: center; }
+.text-muted { color: var(--text-secondary); }
+.inventory-table-container { overflow-x: auto; }
+@media (max-width: 768px) {
+    .inventory-table th:nth-child(4), .inventory-table td:nth-child(4) { display: none; }
+    .inventory-table th:nth-child(3), .inventory-table td:nth-child(3) { display: none; }
+    .action-buttons { flex-direction: column; gap: 2px; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+function toggleRouteStatus(routeId, newStatus) {
+    if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái lộ trình này?')) {
+        InventoryUtils.showLoading();
+        fetch(`/inventory/route/${routeId}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({is_active: newStatus})
+        })
+        .then(response => response.json())
+        .then(data => {
+            InventoryUtils.hideLoading();
+            if (data.success) {
+                InventoryUtils.showNotification('Cập nhật trạng thái thành công!', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                InventoryUtils.showNotification('Có lỗi xảy ra: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            InventoryUtils.hideLoading();
+            InventoryUtils.showNotification('Có lỗi xảy ra khi cập nhật', 'error');
+        });
+    }
+}
+
+function deleteRoute(routeId, routeName) {
+    if (confirm(`Bạn có chắc chắn muốn xóa lộ trình "${routeName}"? Hành động này không thể hoàn tác.`)) {
+        InventoryUtils.showLoading();
+        fetch(`/inventory/route/${routeId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            InventoryUtils.hideLoading();
+            if (data.success) {
+                InventoryUtils.showNotification('Xóa lộ trình thành công!', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                InventoryUtils.showNotification('Có lỗi xảy ra: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            InventoryUtils.hideLoading();
+            InventoryUtils.showNotification('Có lỗi xảy ra khi xóa', 'error');
+        });
+    }
+}
+
+function clearFilters() {
+    document.getElementById('route-search').value = '';
+    document.getElementById('status-filter').value = '';
+    document.getElementById('bus-filter').value = '';
+    window.location.href = '{% url "inventory:route_list" %}';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('route-search');
+    const statusFilter = document.getElementById('status-filter');
+    const busFilter = document.getElementById('bus-filter');
+    
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            filterRoutes();
+        }, 500);
+    });
+    
+    statusFilter.addEventListener('change', filterRoutes);
+    busFilter.addEventListener('change', filterRoutes);
+    
+    function filterRoutes() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        const busValue = busFilter.value;
+        const rows = document.querySelectorAll('.inventory-table tbody tr');
+        
+        rows.forEach(row => {
+            const routeName = row.querySelector('td:first-child').textContent.toLowerCase();
+            const routeStatus = row.querySelector('.inventory-badge').textContent.includes('Hoạt động') ? 'active' : 'inactive';
+            const busName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            
+            let show = true;
+            
+            if (searchTerm && !routeName.includes(searchTerm)) {
+                show = false;
+            }
+            
+            if (statusValue && routeStatus !== statusValue) {
+                show = false;
+            }
+            
+            if (busValue && !busName.includes(busValue.toLowerCase())) {
+                show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+    }
+});
+</script>
+{% endblock %}

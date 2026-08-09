@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Về chúng tôi - Tủ Sách Lưu Động{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dùng chung một số biến với trang chủ */
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        --primary-gradient: linear-gradient(135deg, var(--gold) 0%, var(--dark-gold) 100%);
+    }
+
+    /* ----- About Hero ----- */
+    .about-hero {
+        position: relative;
+        padding: 8rem 0 6rem;
+        background: linear-gradient(180deg, rgba(255,248,220,1) 0%, var(--white) 100%);
+        text-align: center;
+        overflow: hidden;
+    }
+    .about-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 50%);
+        z-index: 0;
+        animation: pulse 10s infinite alternate;
+    }
+    .about-hero .container {
+        position: relative;
+        z-index: 2;
+    }
+    .about-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--dark-brown);
+        margin-bottom: 1.5rem;
+    }
+    .about-subtitle {
+        font-size: 1.25rem;
+        color: #555;
+        max-width: 750px;
+        margin: 0 auto 2rem;
+        line-height: 1.6;
+    }
+    .about-badge {
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        background: var(--primary-gradient);
+        color: var(--dark-brown);
+        font-weight: 700;
+        border-radius: 50px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    /* ----- The Problem (Survey) ----- */
+    .problem-section {
+        padding: 5rem 0;
+        background: var(--white);
+    }
+    .quote-box {
+        background: var(--glass-bg);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-left: 5px solid var(--dark-gold);
+        border-radius: 12px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        margin-bottom: 2rem;
+        position: relative;
+        transition: transform 0.3s ease;
+    }
+    .quote-box:hover {
+        transform: translateY(-5px);
+    }
+    .quote-box::before {
+        content: '\201C';
+        position: absolute;
+        top: 10px;
+        left: 20px;
+        font-size: 5rem;
+        color: rgba(255, 215, 0, 0.15);
+        font-family: serif;
+        line-height: 1;
+    }
+    .quote-text {
+        font-size: 1.15rem;
+        font-style: italic;
+        color: #444;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    .quote-author {
+        font-weight: 700;
+        color: var(--dark-brown);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .quote-author::before {
+        content: '';
+        display: inline-block;
+        width: 30px;
+        height: 2px;
+        background: var(--gold);
+    }
+
+    /* ----- Goals Section ----- */
+    .goals-section {
+        padding: 6rem 0;
+        background: #fdfbf7;
+    }
+    .goals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2.5rem;
+        margin-top: 3rem;
+    }
+    .goal-card {
+        background: var(--white);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.02);
+        transition: all 0.4s ease;
+    }
+    .goal-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 45px rgba(92, 64, 51, 0.1);
+        border-color: rgba(255, 215, 0, 0.3);
+    }
+    .goal-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        color: var(--dark-brown);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+    }
+    .goal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--dark-brown);
+        margin-bottom: 1rem;
+    }
+    .goal-desc {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    /* ----- Core Values / Features ----- */
+    .features-section {
+        padding: 5rem 0 7rem;
+    }
+    .features-container {
+        display: flex;
+        align-items: center;
+        gap: 4rem;
+    }
+    .features-img {
+        flex: 1;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    }
+    .features-img img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.5s;
+    }
+    .features-img:hover img {
+        transform: scale(1.05);
+    }
+    .features-content {
+        flex: 1;
+    }
+    .feature-item {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .feature-icon {
+        font-size: 1.5rem;
+        color: var(--dark-gold);
+        background: rgba(255, 215, 0, 0.1);
+        width: 50px; height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .feature-text h4 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--dark-brown);
+    }
+    .feature-text p {
+        color: #666;
+        line-height: 1.5;
+    }
+
+    /* ----- Animations ----- */
+    .scroll-reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.05); }
+    }
+
+    @media (max-width: 992px) {
+        .features-container {
+            flex-direction: column;
+        }
+        .about-title { font-size: 2.5rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="about-hero">
+    <div class="container">
+        <div class="about-badge scroll-reveal">USSH - VNU • Nhóm Học Tập Số 9</div>
+        <h1 class="about-title scroll-reveal" style="transition-delay: 100ms;">Tủ Sách Lưu Động <br> Library Bus</h1>
+        <p class="about-subtitle scroll-reveal" style="transition-delay: 200ms;">
+            Lý tưởng của chúng tôi là phát triển văn hoá đọc, đưa sách đến gần hơn tới các bạn trẻ và các độc giả ở mọi lứa tuổi thông qua mô hình xe thư viện lưu động hiện đại kết hợp ứng dụng công nghệ số.
+        </p>
+    </div>
+</section>
+
+<!-- Câu chuyện & Vấn đề -->
+<section class="problem-section">
+    <div class="container">
+        <div class="section-header text-center" style="margin-bottom: 3rem;">
+            <h2 class="scroll-reveal" style="font-size: 2.5rem; font-weight: 800; color: var(--dark-brown);">Khởi nguồn ý tưởng</h2>
+            <p class="scroll-reveal" style="color: #666; max-width: 750px; margin: 1rem auto; line-height: 1.6;">Trong bối cảnh xã hội phát triển nhanh với nhịp độ của Cách mạng 4.0, việc trau dồi tri thức qua sách là cần thiết. Tuy nhiên, qua khảo sát thực tế trên địa bàn thành phố Hà Nội, chúng tôi nhận thấy nhiều rào cản từ các bạn học sinh, sinh viên:</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+            <div class="quote-box scroll-reveal" style="transition-delay: 100ms;">
+                <p class="quote-text">"Mình muốn đọc sách nhưng lại mất quá nhiều thời gian để đi tìm sách liên quan đến vấn đề mình cần đọc, mà mình không thích ra ngoài nên mình muốn có một trang web nào đó cung cấp sách cho mình mà không phải tốn thời gian đi lại."</p>
+                <div class="quote-author">Bạn Huỳnh Như chia sẻ</div>
+            </div>
+            <div class="quote-box scroll-reveal" style="transition-delay: 200ms;">
+                <p class="quote-text">"Mình khá thích đọc sách nhưng mình còn là sinh viên, nhiều khi không đủ tiền để mua một cuốn sách chất lượng về đọc."</p>
+                <div class="quote-author">Bạn Dương Hà chia sẻ</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mục tiêu Dự án -->
+<section class="goals-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="scroll-reveal" style="font-size: 2.5rem; font-weight: 800; color: var(--dark-brown);">Mục tiêu mang lại cho Khách hàng</h2>
+        </div>
+        <div class="goals-grid">
+            <div class="goal-card scroll-reveal">
+                <div class="goal-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                <h3 class="goal-title">Sách đến tận tay</h3>
+                <p class="goal-desc">Đem sách đến tận tay khách hàng thông qua hệ thống ứng dụng di động, website kết hợp với các chuyến xe lưu động.</p>
+            </div>
+            <div class="goal-card scroll-reveal" style="transition-delay: 100ms;">
+                <div class="goal-icon"><i class="fas fa-clock"></i></div>
+                <h3 class="goal-title">Tối ưu thời gian</h3>
+                <p class="goal-desc">Tiết kiệm tối đa không gian và thời gian tìm kiếm, đem lại sự linh hoạt cho những độc giả bận rộn.</p>
+            </div>
+            <div class="goal-card scroll-reveal" style="transition-delay: 200ms;">
+                <div class="goal-icon"><i class="fas fa-couch"></i></div>
+                <h3 class="goal-title">Trải nghiệm thoải mái</h3>
+                <p class="goal-desc">Đảm bảo sự thoải mái tuyệt đối trong trải nghiệm mượn sách và tận hưởng đam mê tri thức.</p>
+            </div>
+            <div class="goal-card scroll-reveal" style="transition-delay: 300ms;">
+                <div class="goal-icon"><i class="fas fa-users"></i></div>
+                <h3 class="goal-title">Kết nối cộng đồng</h3>
+                <p class="goal-desc">Tạo ra môi trường giao lưu không chỉ về sách, kiến thức mà còn tăng tính liên kết của cộng đồng.</p>
+            </div>
+            <div class="goal-card scroll-reveal" style="transition-delay: 400ms;">
+                <div class="goal-icon"><i class="fas fa-book-reader"></i></div>
+                <h3 class="goal-title">Nâng cao văn hoá đọc</h3>
+                <p class="goal-desc">Khơi dậy niềm đam mê và thói quen đọc sách cho nhiều lứa tuổi khác nhau trên toàn thành phố.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAST - FLEXIBLE - FUTURE -->
+<section class="features-section">
+    <div class="container">
+        <div class="features-container">
+            <div class="features-content scroll-reveal">
+                <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--dark-brown); margin-bottom: 1.5rem;">FAST <span style="color: var(--dark-gold)">•</span> FLEXIBLE <span style="color: var(--dark-gold)">•</span> FUTURE</h2>
+                <p style="color: #555; font-size: 1.1rem; margin-bottom: 2.5rem; line-height: 1.6;">
+                    Khám phá và trau dồi kiến thức với nền tảng của chúng tôi. Cùng bạn tìm kiếm những học liệu chất lượng và tiếp cận đơn giản với kiến thức mới nhất.
+                </p>
+                
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-laptop-code"></i></div>
+                    <div class="feature-text">
+                        <h4>Quản trị & Tổ chức trực tuyến</h4>
+                        <p>Nền tảng công nghệ giúp bạn tra cứu sách (Tâm lý học, Phương đông học, Quốc tế học...), theo dõi xe và quản lý tài liệu.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-truck-loading"></i></div>
+                    <div class="feature-text">
+                        <h4>Dịch vụ giao nhận tận nơi</h4>
+                        <p>Hệ thống xe thư viện lưu động trực tiếp giao nhận sách tận tay người dùng tại các điểm đỗ cố định ở Hà Nội.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-hands-helping"></i></div>
+                    <div class="feature-text">
+                        <h4>Quyên góp & Ủng hộ sách</h4>
+                        <p>Chung tay xây dựng kho tri thức cộng đồng qua các tính năng Quyên góp, đổi trả sách cũ trực tiếp trên hệ thống.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="features-img scroll-reveal" style="transition-delay: 200ms;">
+                <img src="{% static 'img/website.png' %}" alt="Library Bus Model">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to action -->
+<section style="background: var(--dark-brown); color: var(--white); padding: 5rem 0; text-align: center;">
+    <div class="container scroll-reveal">
+        <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--gold);">Đồng hành cùng Library Bus</h2>
+        <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto 2.5rem; opacity: 0.9;">Hãy trở thành một mảnh ghép trong cộng đồng yêu sách của chúng tôi. Bắt đầu hành trình khám phá tri thức cùng Nhóm học tập số 9 ngay hôm nay!</p>
+        <a href="{% url 'users:register' %}" style="display: inline-block; padding: 1rem 3rem; background: var(--primary-gradient); color: var(--dark-brown); font-weight: 700; font-size: 1.1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: transform 0.3s;">
+            Tham gia ngay
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+    });
+</script>
+{% endblock %}

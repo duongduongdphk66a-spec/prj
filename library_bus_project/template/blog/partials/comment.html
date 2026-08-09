@@ -1,0 +1,14 @@
+<div class="comment-item new-comment">
+    <div class="comment-avatar">
+        {{ comment.author.first_name|slice:":1"|default:comment.author.username|slice:":1" }}
+    </div>
+    <div class="comment-content">
+        <div class="comment-header">
+            <span class="comment-author">{{ comment.author.first_name|default:comment.author.username }}</span>
+            <span class="comment-date">{{ comment.created_at|timesince }} trước</span>
+        </div>
+        <div class="comment-text">
+            {{ comment.content|linebreaks }}
+        </div>
+    </div>
+</div>

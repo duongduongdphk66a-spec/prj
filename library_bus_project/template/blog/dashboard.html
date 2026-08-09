@@ -1,0 +1,236 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block title %}Bảng điều khiển tác giả | Thư Viện Lưu Động{% endblock %}
+
+{% block blog_title %}Bảng Điều Khiển Tác Giả{% endblock %}
+{% block blog_subtitle %}Quản lý bài viết và theo dõi tương tác của độc giả{% endblock %}
+
+{% block blog_content %}
+<style>
+/* Dashboard Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: transform 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--white);
+}
+.stat-icon.primary { background: linear-gradient(135deg, var(--dark-brown) 0%, #3a2820 100%); }
+.stat-icon.success { background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%); }
+.stat-icon.warning { background: linear-gradient(135deg, #f9a825 0%, #f57f17 100%); }
+.stat-icon.info { background: linear-gradient(135deg, #1e88e5 0%, #0d47a1 100%); }
+
+.stat-details h3 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+.stat-details p {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Dashboard Sections */
+.dashboard-section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--dark-brown);
+}
+
+/* Table Styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th, .data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.data-table th {
+    font-weight: 600;
+    color: #555;
+    background: var(--light-gray);
+}
+.data-table tr:hover td {
+    background: #fdfdfd;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-published { background: #e8f5e9; color: #2e7d32; }
+.status-pending { background: #fff3e0; color: #ef6c00; }
+.status-draft { background: #eceff1; color: #546e7a; }
+.status-rejected { background: #ffebee; color: #c62828; }
+
+.action-links a {
+    color: var(--dark-brown);
+    margin-right: 1rem;
+    font-weight: 500;
+}
+.action-links a:hover {
+    color: var(--gold);
+}
+</style>
+
+<!-- Toolbar -->
+<div class="d-flex" style="justify-content: space-between; margin-bottom: 2rem; align-items: center;">
+    <h2 style="font-size: 1.5rem; color: var(--dark-brown);">Tổng quan hoạt động</h2>
+    <a href="{% url 'blog:post_create' %}" class="btn btn-primary">
+        <i class="fas fa-pen"></i> Viết bài mới
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary"><i class="fas fa-file-alt"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.total_posts }}</h3>
+            <p>Tổng bài viết</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon success"><i class="fas fa-eye"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.total_views }}</h3>
+            <p>Lượt xem</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon warning"><i class="fas fa-heart"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.total_likes }}</h3>
+            <p>Lượt thích</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon info"><i class="fas fa-comment"></i></div>
+        <div class="stat-details">
+            <h3>{{ stats.published_posts }}</h3>
+            <p>Đã xuất bản</p>
+        </div>
+    </div>
+</div>
+
+<!-- Pending/Rejected Posts Alert if any -->
+{% if pending_posts or rejected_posts %}
+<div class="dashboard-section" style="border-left: 4px solid #f9a825;">
+    <div class="section-header">
+        <h3 class="section-title"><i class="fas fa-exclamation-circle" style="color: #f9a825;"></i> Cần chú ý</h3>
+    </div>
+    {% if rejected_posts %}
+    <p style="color: #c62828; margin-bottom: 1rem; font-weight: 600;">Bạn có {{ stats.rejected_posts }} bài viết bị từ chối. Vui lòng kiểm tra và chỉnh sửa lại.</p>
+    {% endif %}
+    {% if pending_posts %}
+    <p style="color: #ef6c00; margin-bottom: 1rem;">Bạn có {{ stats.pending_posts }} bài viết đang chờ duyệt.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Recent Posts List -->
+<div class="dashboard-section">
+    <div class="section-header">
+        <h3 class="section-title">Bài viết gần đây</h3>
+    </div>
+    
+    {% if recent_posts %}
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tiêu đề</th>
+                    <th>Ngày tạo</th>
+                    <th>Trạng thái</th>
+                    <th>Lượt xem</th>
+                    <th>Lượt thích</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in recent_posts %}
+                <tr>
+                    <td style="font-weight: 500;">
+                        {% if post.status == 'published' %}
+                        <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+                        {% else %}
+                        {{ post.title }}
+                        {% endif %}
+                    </td>
+                    <td>{{ post.created_at|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if post.status == 'published' %}
+                        <span class="status-badge status-published">Đã xuất bản</span>
+                        {% elif post.status == 'pending' %}
+                        <span class="status-badge status-pending">Chờ duyệt</span>
+                        {% elif post.status == 'draft' %}
+                        <span class="status-badge status-draft">Bản nháp</span>
+                        {% elif post.status == 'rejected' %}
+                        <span class="status-badge status-rejected">Bị từ chối</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ post.view_count }}</td>
+                    <td>{{ post.like_count }}</td>
+                    <td class="action-links">
+                        <a href="{% url 'blog:post_update' post.slug %}" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'blog:post_delete' post.slug %}" title="Xóa" style="color:#c62828;"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2rem;">
+        <p style="color: #888;">Bạn chưa có bài viết nào.</p>
+        <a href="{% url 'blog:post_create' %}" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">Tạo bài viết đầu tiên</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

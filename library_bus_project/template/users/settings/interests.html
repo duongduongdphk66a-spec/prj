@@ -1,0 +1,64 @@
+{% extends "users/base_user.html" %}
+{% load static %}
+
+{% block user_title %}Quản lý sở thích{% endblock %}
+
+{% block user_content %}
+<div class="content-header">
+    <h2>Quản lý sở thích</h2>
+    <p>Giúp chúng tôi gợi ý những cuốn sách phù hợp nhất với bạn.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">Sở thích của bạn</div>
+            <div class="card-body">
+                {% if interests %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Loại</th>
+                            <th>Giá trị</th>
+                            <th>Mức độ</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for interest in interests %}
+                        <tr>
+                            <td>{{ interest.get_interest_type_display }}</td>
+                            <td>{{ interest.interest_value }}</td>
+                            <td>{{ interest.weight }}/10</td>
+                            <td>
+                                <form action="{% url 'users:delete_interest' interest.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa sở thích này?');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>Bạn chưa thêm sở thích nào.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Thêm sở thích mới</div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

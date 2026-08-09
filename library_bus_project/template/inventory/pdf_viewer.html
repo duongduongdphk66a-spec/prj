@@ -1,0 +1,264 @@
+<!-- File: inventory/pdf_viewer.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Xem PDF: {{ book.title }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.pdf-viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.pdf-viewer-title { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 12px; }
+.pdf-viewer-title i { color: #ef4444; }
+.pdf-viewer-controls { display: flex; gap: 12px; align-items: center; }
+.pdf-control-btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+.pdf-control-back { background: #64748b; color: white; }
+.pdf-control-back:hover { background: #475569; transform: translateY(-1px); }
+.pdf-control-download { background: #10b981; color: white; }
+.pdf-control-download:hover { background: #059669; transform: translateY(-1px); }
+.pdf-control-fullscreen { background: #667eea; color: white; }
+.pdf-control-fullscreen:hover { background: #4f46e5; transform: translateY(-1px); }
+.pdf-info-bar { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea; }
+.pdf-info-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+.pdf-book-info { display: flex; align-items: center; gap: 15px; }
+.pdf-book-cover { width: 60px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+.pdf-book-details h3 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 600; color: #1e293b; }
+.pdf-book-details p { margin: 0; color: #64748b; font-size: 0.9rem; }
+.pdf-viewer-wrapper { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; }
+.pdf-viewer-container { width: 100%; height: 80vh; border: none; display: block; }
+.pdf-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #64748b; z-index: 10; }
+.pdf-loading i { font-size: 3rem; margin-bottom: 15px; animation: spin 1s linear infinite; }
+.pdf-loading-text { font-size: 1.1rem; font-weight: 600; }
+.pdf-error { text-align: center; padding: 60px 20px; color: #ef4444; background: #fef2f2; border-radius: 12px; border: 2px dashed #fca5a5; }
+.pdf-error i { font-size: 4rem; margin-bottom: 20px; }
+.pdf-error-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 10px; }
+.pdf-error-text { font-size: 1rem; margin-bottom: 20px; }
+.pdf-error-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.pdf-mobile-controls { display: none; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+.pdf-mobile-btn { width: 100%; padding: 12px; margin-bottom: 10px; border: none; border-radius: 6px; background: #667eea; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+.pdf-mobile-btn:hover { background: #4f46e5; }
+.pdf-mobile-btn:last-child { margin-bottom: 0; }
+.pdf-zoom-controls { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: 20px; position: absolute; top: 20px; right: 20px; z-index: 20; backdrop-filter: blur(10px); }
+.pdf-zoom-btn { width: 32px; height: 32px; border: none; border-radius: 50%; background: #667eea; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+.pdf-zoom-btn:hover { background: #4f46e5; transform: scale(1.1); }
+.pdf-zoom-level { font-size: 0.9rem; font-weight: 600; color: #475569; min-width: 50px; text-align: center; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@media (max-width: 768px) {
+    .pdf-viewer-header { flex-direction: column; gap: 20px; align-items: stretch; }
+    .pdf-viewer-controls { justify-content: center; }
+    .pdf-info-content { flex-direction: column; align-items: stretch; }
+    .pdf-book-info { justify-content: center; }
+    .pdf-viewer-container { height: 60vh; }
+    .pdf-mobile-controls { display: block; }
+    .pdf-zoom-controls { position: static; margin-bottom: 15px; justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="pdf-viewer-header">
+    <h1 class="pdf-viewer-title">
+        <i class="fas fa-file-pdf"></i>
+        {{ book.title }}
+    </h1>
+    <div class="pdf-viewer-controls">
+        <a href="{% url 'inventory:book_detail' book.pk %}" class="pdf-control-btn pdf-control-back">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại
+        </a>
+        {% if book.pdf_file %}
+        <a href="{{ book.pdf_file.url }}" class="pdf-control-btn pdf-control-download" download>
+            <i class="fas fa-download"></i>
+            Tải xuống
+        </a>
+        <button class="pdf-control-btn pdf-control-fullscreen" onclick="toggleFullscreen()">
+            <i class="fas fa-expand"></i>
+            Toàn màn hình
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="pdf-info-bar">
+    <div class="pdf-info-content">
+        <div class="pdf-book-info">
+            <div class="pdf-book-cover">
+                {% if book.title %}
+                    {{ book.title|slice:":1"|upper }}
+                {% else %}
+                    <i class="fas fa-book"></i>
+                {% endif %}
+            </div>
+            <div class="pdf-book-details">
+                <h3>{{ book.title }}</h3>
+                <p>{% if book.author %}Tác giả: {{ book.author }}{% endif %} • {% if book.category %}{{ book.category }}{% endif %}</p>
+            </div>
+        </div>
+        <div class="pdf-zoom-controls">
+            <button class="pdf-zoom-btn" onclick="zoomOut()">
+                <i class="fas fa-minus"></i>
+            </button>
+            <span class="pdf-zoom-level" id="zoom-level">100%</span>
+            <button class="pdf-zoom-btn" onclick="zoomIn()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="pdf-mobile-controls">
+    <button class="pdf-mobile-btn" onclick="zoomOut()">
+        <i class="fas fa-minus"></i> Thu nhỏ
+    </button>
+    <button class="pdf-mobile-btn" onclick="zoomIn()">
+        <i class="fas fa-plus"></i> Phóng to
+    </button>
+    <button class="pdf-mobile-btn" onclick="toggleFullscreen()">
+        <i class="fas fa-expand"></i> Toàn màn hình
+    </button>
+</div>
+
+<div class="pdf-viewer-wrapper" id="pdf-wrapper">
+    {% if book.pdf_file %}
+    <div class="pdf-loading" id="pdf-loading">
+        <i class="fas fa-spinner"></i>
+        <div class="pdf-loading-text">Đang tải PDF...</div>
+    </div>
+    <iframe 
+        src="{{ book.pdf_file.url }}" 
+        class="pdf-viewer-container" 
+        id="pdf-viewer"
+        frameborder="0"
+        onload="hideLoading()">
+    </iframe>
+    {% else %}
+    <div class="pdf-error">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3 class="pdf-error-title">Không tìm thấy file PDF</h3>
+        <p class="pdf-error-text">Sách này không có file PDF để hiển thị hoặc file đã bị lỗi.</p>
+        <div class="pdf-error-actions">
+            <a href="{% url 'inventory:book_detail' book.pk %}" class="pdf-control-btn pdf-control-back">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại chi tiết sách
+            </a>
+            <button class="pdf-control-btn pdf-control-download" onclick="reportError()">
+                <i class="fas fa-bug"></i>
+                Báo lỗi
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+let currentZoom = 100;
+let isFullscreen = false;
+
+function hideLoading() {
+    const loading = document.getElementById('pdf-loading');
+    if (loading) {
+        loading.style.display = 'none';
+    }
+}
+
+function zoomIn() {
+    if (currentZoom < 200) {
+        currentZoom += 25;
+        updateZoom();
+    }
+}
+
+function zoomOut() {
+    if (currentZoom > 50) {
+        currentZoom -= 25;
+        updateZoom();
+    }
+}
+
+function updateZoom() {
+    const zoomLevel = document.getElementById('zoom-level');
+    const pdfViewer = document.getElementById('pdf-viewer');
+    
+    if (zoomLevel) {
+        zoomLevel.textContent = currentZoom + '%';
+    }
+    
+    if (pdfViewer) {
+        pdfViewer.style.transform = `scale(${currentZoom / 100})`;
+        pdfViewer.style.transformOrigin = 'top center';
+    }
+}
+
+function toggleFullscreen() {
+    const wrapper = document.getElementById('pdf-wrapper');
+    
+    if (!isFullscreen) {
+        if (wrapper.requestFullscreen) {
+            wrapper.requestFullscreen();
+        } else if (wrapper.webkitRequestFullscreen) {
+            wrapper.webkitRequestFullscreen();
+        } else if (wrapper.msRequestFullscreen) {
+            wrapper.msRequestFullscreen();
+        }
+        isFullscreen = true;
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        isFullscreen = false;
+    }
+}
+
+function reportError() {
+    alert('Tính năng báo lỗi sẽ được triển khai trong phiên bản tới. Vui lòng liên hệ admin.');
+}
+
+// Handle fullscreen change
+document.addEventListener('fullscreenchange', function() {
+    isFullscreen = !isFullscreen;
+});
+
+// Handle PDF load error
+window.addEventListener('error', function(e) {
+    if (e.target.tagName === 'IFRAME') {
+        const loading = document.getElementById('pdf-loading');
+        if (loading) {
+            loading.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="pdf-loading-text">Lỗi tải PDF</div>
+            `;
+        }
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case '=':
+            case '+':
+                e.preventDefault();
+                zoomIn();
+                break;
+            case '-':
+                e.preventDefault();
+                zoomOut();
+                break;
+        }
+    }
+    
+    if (e.key === 'F11') {
+        e.preventDefault();
+        toggleFullscreen();
+    }
+});
+
+// Auto-hide loading after timeout
+setTimeout(() => {
+    hideLoading();
+}, 10000);
+</script>
+{% endblock %}

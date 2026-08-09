@@ -1,0 +1,154 @@
+<!-- File: inventory/extract_metadata.html -->
+{% extends "inventory/base_inventory.html" %}
+
+{% block title %}Trích xuất Metadata từ PDF - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.extract-container { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+.page-header { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); backdrop-filter: blur(10px); text-align: center; }
+.page-header h1 { margin: 0; color: #2d3748; font-size: 2.5rem; font-weight: 700; background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip : text; background-clip : text; -webkit-text-fill-color: transparent; }
+.card { background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); overflow: hidden; transition: all 0.3s ease; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0,0,0,0.15); }
+.card-body { padding: 30px; }
+.card-body p { color: #4a5568; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; padding: 20px; background: rgba(102,126,234,0.1); border-radius: 12px; border-left: 4px solid #667eea; }
+.table-responsive { border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+.table { background: transparent; border-collapse: separate; border-spacing: 0; margin-bottom: 0; }
+.table thead th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-weight: 600; padding: 20px; border: none; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+.table tbody td { padding: 18px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease; text-align: center; }
+.table tbody tr:hover { background: rgba(102,126,234,0.05); transform: scale(1.01); }
+.table tbody tr:hover td { color: #667eea; }
+#select-all { transform: scale(1.2); accent-color: #667eea; }
+input[type="checkbox"] { transform: scale(1.2); accent-color: #667eea; margin: 0; }
+.btn { padding: 15px 35px; border-radius: 25px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: none; display: inline-flex; align-items: center; gap: 10px; font-size: 1rem; margin-top: 25px; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #764ba2, #667eea); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(102,126,234,0.4); }
+.btn:disabled { background: #cbd5e0; color: #a0aec0; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn:disabled:hover { transform: none; box-shadow: none; }
+.text-center { text-align: center; color: #718096; font-style: italic; padding: 40px; }
+.select-all-container { background: rgba(102,126,234,0.1); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+.select-all-container label { font-weight: 600; color: #2d3748; margin: 0; cursor: pointer; }
+.book-count { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; display: inline-block; margin-bottom: 20px; }
+@media (max-width: 768px) { .page-header h1 { font-size: 2rem; } .card-body { padding: 20px; } .table { font-size: 0.9rem; } .table thead th, .table tbody td { padding: 12px 8px; } .btn { padding: 12px 25px; font-size: 0.9rem; } }
+</style>
+{% endblock %}
+
+{% block inventory_content %}
+<div class="extract-container">
+    <div class="page-header">
+        <h1>Trích xuất Metadata từ PDF</h1>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <p><i class="fas fa-info-circle"></i> Chọn những sách bạn muốn thử trích xuất và cập nhật thông tin (như số trang, tiêu đề) từ file PDF đã tải lên. Tính năng này đang trong giai đoạn thử nghiệm.</p>
+            
+            {% if books %}
+            <div class="book-count">
+                <i class="fas fa-book"></i> Tổng cộng: {{ books|length }} sách có file PDF
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if books %}
+                <div class="select-all-container">
+                    <input type="checkbox" id="select-all">
+                    <label for="select-all">Chọn tất cả sách</label>
+                </div>
+                {% endif %}
+                
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width: 80px;"><i class="fas fa-check-square"></i></th>
+                                <th>Tên sách</th>
+                                <th>Tác giả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books %}
+                            <tr>
+                                <td><input type="checkbox" name="book_ids" value="{{ book.id }}"></td>
+                                <td>{{ book.title }}</td>
+                                <td>{{ book.author }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center"><i class="fas fa-exclamation-triangle"></i> Không có sách nào có file PDF.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" {% if not books %}disabled{% endif %}>
+                    <i class="fas fa-magic"></i> Bắt đầu trích xuất
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const bookCheckboxes = document.querySelectorAll('input[name="book_ids"]');
+    const submitButton = document.querySelector('button[type="submit"]');
+    
+    // Select all functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            bookCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateSubmitButton();
+        });
+    }
+    
+    // Individual checkbox change
+    bookCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectAllState();
+            updateSubmitButton();
+        });
+    });
+    
+    function updateSelectAllState() {
+        const checkedCount = document.querySelectorAll('input[name="book_ids"]:checked').length;
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkedCount === bookCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < bookCheckboxes.length;
+        }
+    }
+    
+    function updateSubmitButton() {
+        const checkedCount = document.querySelectorAll('input[name="book_ids"]:checked').length;
+        if (submitButton && bookCheckboxes.length > 0) {
+            submitButton.disabled = checkedCount === 0;
+            submitButton.innerHTML = checkedCount > 0 
+                ? `<i class="fas fa-magic"></i> Bắt đầu trích xuất (${checkedCount} sách)`
+                : '<i class="fas fa-magic"></i> Bắt đầu trích xuất';
+        }
+    }
+    
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('table tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(102,126,234,0.1)';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.background = '';
+        });
+    });
+    
+    // Initialize button state
+    updateSubmitButton();
+});
+</script>
+{% endblock %}

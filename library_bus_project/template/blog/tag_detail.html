@@ -1,0 +1,160 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block blog_title %}Tag: {{ tag.name }}{% endblock %}
+{% block blog_subtitle %}Tất cả bài viết liên quan đến từ khóa này{% endblock %}
+
+{% block blog_content %}
+<style>
+
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 3rem 0;
+}
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--white);
+    border: 1px solid #ddd;
+    color: var(--text);
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.page-link:hover, .page-link.active {
+    background: var(--dark-brown);
+    color: var(--white);
+    border-color: var(--dark-brown);
+}
+.page-link.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f9f9f9;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--light-gray);
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+.empty-state i {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+</style>
+
+<!-- Toolbar (Search & Filter) -->
+<div class="d-flex" style="justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <form method="GET" action="{% url 'blog:post_list' %}" style="display: flex; gap: 0.5rem; max-width: 400px; width: 100%;">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Tìm kiếm bài viết..." style="flex:1; padding: 0.6rem 1rem; border: 1px solid #ddd; border-radius: 8px; outline: none;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+    </form>
+    
+    {% if user.is_authenticated and user.is_staff %}
+    <a href="{% url 'blog:post_create' %}" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-pen"></i> Viết bài mới
+    </a>
+    {% endif %}
+</div>
+
+{% if posts %}
+<div class="post-grid">
+    {% for post in posts %}
+    <article class="post-card">
+        <div class="post-image-container">
+            <div class="post-categories">
+                {% for cat in post.categories.all|slice:":2" %}
+                <span class="category-badge">{{ cat.name }}</span>
+                {% endfor %}
+            </div>
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-image">
+            {% else %}
+            <!-- Fallback gradient placeholder -->
+            <div class="post-image" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-book-open" style="font-size: 3rem; color: rgba(0,0,0,0.1);"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="post-content">
+            <div class="post-meta">
+                <span><i class="far fa-calendar-alt"></i> {{ post.publish_date|date:"d/m/Y" }}</span>
+                <span><i class="far fa-clock"></i> {{ post.content|wordcount|divisibleby:200|default:"3" }} phút đọc</span>
+            </div>
+            
+            <h2 class="post-title">
+                <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+            </h2>
+            
+            <p class="post-excerpt">{{ post.excerpt|default:post.content|striptags|truncatechars:120 }}</p>
+            
+            <div class="post-footer">
+                <div class="author-info">
+                    <div class="author-avatar">{{ post.author.first_name|slice:":1"|default:post.author.username|slice:":1" }}</div>
+                    <span class="author-name">{{ post.author.first_name|default:post.author.username }}</span>
+                </div>
+                <div class="post-stats">
+                    <span><i class="far fa-eye"></i> {{ post.view_count }}</span>
+                    <span><i class="far fa-heart"></i> {{ post.like_count }}</span>
+                    <span><i class="far fa-comment"></i> {{ post.comment_count }}</span>
+                </div>
+            </div>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link" aria-label="Previous">
+        <i class="fas fa-chevron-left"></i>
+    </a>
+    {% else %}
+    <span class="page-link disabled"><i class="fas fa-chevron-left"></i></span>
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link" aria-label="Next">
+        <i class="fas fa-chevron-right"></i>
+    </a>
+    {% else %}
+    <span class="page-link disabled"><i class="fas fa-chevron-right"></i></span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <i class="far fa-folder-open"></i>
+    <h3>Chưa có bài viết nào</h3>
+    <p>Hãy là người đầu tiên đóng góp bài viết cho cộng đồng nhé!</p>
+    {% if user.is_authenticated and user.is_staff %}
+    <a href="{% url 'blog:post_create' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Viết bài ngay</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

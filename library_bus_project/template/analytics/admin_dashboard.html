@@ -1,0 +1,275 @@
+<!-- analytics/templates/analytics/admin_dashboard.html -->
+{% extends "analytics/base_analytics.html" %}
+{% load static %}
+
+{% block analytics_title %}Admin Dashboard - Analytics{% endblock %}
+
+{% block analytics_heading %}Tổng quan Quản trị viên{% endblock %}
+
+{% block analytics_description %}Thống kê toàn hệ thống Library Bus.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Admin Dashboard</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 30px; }
+.stat-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: all 0.3s ease; position: relative; overflow: hidden; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--analytics-gradient); }
+.stat-card-header { display: flex; justify-content: between; align-items: center; margin-bottom: 16px; }
+.stat-card-header h4 { margin: 0; font-size: 1rem; font-weight: 600; color: #374151; }
+.stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--analytics-light); display: flex; align-items: center; justify-content: center; color: var(--analytics-primary); font-size: 1.5rem; }
+.stat-card-value { font-size: 2.5rem; font-weight: 800; color: #111827; margin: 8px 0; line-height: 1; }
+.stat-card-footer { font-size: 0.875rem; color: #6b7280; display: flex; align-items: center; gap: 8px; }
+.stat-card-footer .positive { color: #059669; font-weight: 600; }
+.stat-card-footer .negative { color: #dc2626; font-weight: 600; }
+.content-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+.grid-col-span-4 { grid-column: span 4; }
+.grid-col-span-6 { grid-column: span 6; }
+.grid-col-span-8 { grid-column: span 8; }
+.content-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+.content-card-header { display: flex; justify-content: between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+.content-card-header h3 { margin: 0; font-size: 1.25rem; font-weight: 600; color: #111827; }
+.content-card-body { overflow-x: auto; }
+.chart-container { position: relative; height: 300px; margin-top: 16px; }
+.custom-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.custom-table th, .custom-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+.custom-table th { background: #f9fafb; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; }
+.custom-table tbody tr:hover { background: #f9fafb; }
+.custom-table tbody tr:nth-child(even) { background: #fafafa; }
+.custom-table tbody tr:nth-child(even):hover { background: #f3f4f6; }
+.badge { display: inline-block; padding: 4px 8px; font-size: 0.75rem; font-weight: 600; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.bg-primary { background: var(--analytics-primary); color: white; }
+.text-warning { color: #f59e0b; }
+.text-center { text-align: center; }
+@media (max-width: 1024px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .grid-col-span-4, .grid-col-span-6, .grid-col-span-8 { grid-column: span 1; }
+    .stats-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+}
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .stat-card { padding: 20px; }
+    .stat-card-value { font-size: 2rem; }
+    .content-card { padding: 20px; }
+    .chart-container { height: 250px; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Tổng người dùng</h4>
+            <span class="stat-card-icon"><i class="fas fa-users"></i></span>
+        </div>
+        <div class="stat-card-value">{{ total_users }}</div>
+        <div class="stat-card-footer">
+            <span class="positive">{{ active_users_today }}</span> active hôm nay
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Tổng số sách</h4>
+            <span class="stat-card-icon"><i class="fas fa-book"></i></span>
+        </div>
+        <div class="stat-card-value">{{ total_books }}</div>
+        <div class="stat-card-footer">Trong hệ thống</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Lượt mượn hôm nay</h4>
+            <span class="stat-card-icon"><i class="fas fa-hand-holding-heart"></i></span>
+        </div>
+        <div class="stat-card-value">{{ total_borrows_today }}</div>
+        <div class="stat-card-footer">Tính đến hiện tại</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-header">
+            <h4>Hiệu suất xe bus</h4>
+            <span class="stat-card-icon"><i class="fas fa-bus"></i></span>
+        </div>
+        <div class="stat-card-value">{{ top_buses.0.efficiency_score|default:0|floatformat:1 }}%</div>
+        <div class="stat-card-footer">Xe bus hàng đầu</div>
+    </div>
+</div>
+
+<!-- Content Grid with Charts -->
+<div class="content-grid">
+    <div class="grid-col-span-8">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3>Hoạt động 4 tuần qua</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="grid-col-span-4">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3>Phân bố người dùng</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="levelDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="grid-col-span-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3>Sách phổ biến nhất</h3>
+            </div>
+            <div class="content-card-body">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Sách</th>
+                            <th>Lượt mượn</th>
+                            <th>Đánh giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for book in popular_books %}
+                        <tr>
+                            <td>{{ book.book__title }}</td>
+                            <td>{{ book.total_borrows }}</td>
+                            <td><i class="fas fa-star text-warning"></i> {{ book.average_rating }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">Chưa có dữ liệu.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="grid-col-span-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3>Độc giả hàng đầu</h3>
+            </div>
+            <div class="content-card-body">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Điểm</th>
+                            <th>Hạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for reader in top_readers %}
+                        <tr>
+                            <td>{{ reader.user.username }}</td>
+                            <td>{{ reader.reputation_score }}</td>
+                            <td><span class="badge bg-primary">{{ reader.get_member_level_display }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">Chưa có dữ liệu.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+// Pass data from Django template to JavaScript for charts
+const weeklyStatsData = {
+    labels: [{% for stat in weekly_stats|slice:"::-1" %}"{{ stat.date|date:'d/m' }}",{% endfor %}],
+    datasets: [{
+        label: 'Lượt mượn',
+        data: [{% for stat in weekly_stats|slice:"::-1" %}{{ stat.total_borrows|default:0 }},{% endfor %}],
+        borderColor: 'rgba(74, 108, 247, 1)',
+        backgroundColor: 'rgba(74, 108, 247, 0.1)',
+        fill: true,
+        tension: 0.4
+    }, {
+        label: 'Lượt trả',
+        data: [{% for stat in weekly_stats|slice:"::-1" %}{{ stat.total_returns|default:0 }},{% endfor %}],
+        borderColor: 'rgba(22, 163, 74, 1)',
+        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+        fill: true,
+        tension: 0.4
+    }]
+};
+
+const levelDistributionData = {
+    labels: [{% for level in level_distribution %}"{{ level.member_level|capfirst }}",{% endfor %}],
+    datasets: [{
+        label: 'Phân bố người dùng',
+        data: [{% for level in level_distribution %}{{ level.count }},{% endfor %}],
+        backgroundColor: ['#CD7F32', '#C0C0C0', '#FFD700', '#E5E4E2', '#B9F2FF'],
+        hoverOffset: 4
+    }]
+};
+
+// Initialize charts when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Activity Chart
+    const activityCtx = document.getElementById('activityChart');
+    if (activityCtx) {
+        new Chart(activityCtx, {
+            type: 'line',
+            data: weeklyStatsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Hoạt động 4 tuần qua'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // Level Distribution Chart
+    const levelCtx = document.getElementById('levelDistributionChart');
+    if (levelCtx) {
+        new Chart(levelCtx, {
+            type: 'doughnut',
+            data: levelDistributionData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Phân bố người dùng theo cấp độ'
+                    }
+                }
+            }
+        });
+    }
+
+    // Animate counters
+    const counters = document.querySelectorAll('.stat-card-value');
+    counters.forEach(counter => {
+        const value = parseInt(counter.textContent);
+        if (!isNaN(value)) {
+            animateCounter(counter, 0, value, 2000);
+        }
+    });
+});
+</script>
+{% endblock %}

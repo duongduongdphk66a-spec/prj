@@ -1,0 +1,165 @@
+<!-- analytics/templates/analytics/recommendations.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Gợi ý sách{% endblock %}
+
+{% block analytics_heading %}Sách gợi ý cho bạn{% endblock %}
+
+{% block analytics_description %}Những cuốn sách được lựa chọn dựa trên thói quen đọc của bạn.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Gợi ý cho bạn</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.recommendation-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: all 0.3s ease; }
+.recommendation-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.book-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.book-cover { width: 60px; height: 80px; background: var(--analytics-gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; }
+.book-details h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: #111827; }
+.book-details p { margin: 0; color: #6b7280; font-size: 0.9rem; }
+.recommendation-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.reason-badge { background: var(--analytics-light); color: var(--analytics-dark); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+.score-container { display: flex; align-items: center; gap: 8px; }
+.score-bar { width: 80px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.score-fill { height: 100%; background: var(--analytics-gradient); transition: width 0.3s ease; }
+.score-text { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
+.action-buttons { display: flex; gap: 10px; }
+.btn-view { background: transparent; border: 1px solid var(--analytics-primary); color: var(--analytics-primary); padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease; }
+.btn-view:hover { background: var(--analytics-primary); color: white; }
+.btn-borrow { background: var(--analytics-primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
+.btn-borrow:hover { background: var(--analytics-accent); }
+.refresh-btn { background: var(--analytics-primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px; }
+.refresh-btn:hover { background: var(--analytics-accent); }
+.refresh-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+.generating-alert { background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+.empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+.empty-state i { font-size: 3rem; margin-bottom: 16px; color: #d1d5db; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+.pagination a, .pagination span { padding: 8px 12px; border-radius: 6px; text-decoration: none; color: #374151; border: 1px solid #d1d5db; transition: all 0.3s ease; }
+.pagination a:hover { background: var(--analytics-light); border-color: var(--analytics-primary); }
+.pagination .active { background: var(--analytics-primary); color: white; border-color: var(--analytics-primary); }
+@media (max-width: 768px) {
+.book-info { flex-direction: column; text-align: center; }
+.recommendation-meta { flex-direction: column; gap: 10px; }
+.action-buttons { justify-content: center; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+{% if generating %}
+<div class="generating-alert">
+    <i class="fas fa-spinner fa-spin"></i>
+    Chúng tôi đang tạo các gợi ý mới cho bạn. Quá trình này có thể mất vài phút. Vui lòng tải lại trang sau.
+</div>
+{% endif %}
+
+<button class="refresh-btn" onclick="refreshRecommendations()" id="refreshBtn">
+    <i class="fas fa-sync-alt"></i> Làm mới gợi ý
+</button>
+
+<div class="recommendations-container">
+    {% for rec in recommendations %}
+    <div class="recommendation-card">
+        <div class="book-info">
+            <div class="book-cover">
+                {{ rec.book.title|slice:":1"|upper }}
+            </div>
+            <div class="book-details">
+                <h4>{{ rec.book.title }}</h4>
+                <p>{{ rec.book.author }}</p>
+            </div>
+        </div>
+        
+        <div class="recommendation-meta">
+            <span class="reason-badge">{{ rec.get_algorithm_type_display }}</span>
+            <div class="score-container">
+                <div class="score-bar">
+                    <div class="score-fill" style="width: {{ rec.score|floatformat:0 }}%;"></div>
+                </div>
+                <span class="score-text">{{ rec.score|floatformat:0 }}%</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'inventory:book_detail' rec.book.id %}" class="btn-view">
+                <i class="fas fa-eye"></i> Xem chi tiết
+            </a>
+            <button class="btn-borrow" onclick="borrowBook({{ rec.book.id }})">
+                <i class="fas fa-book"></i> Mượn sách
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <i class="fas fa-lightbulb"></i>
+        <h3>Không có gợi ý nào</h3>
+        <p>Hãy đọc thêm để chúng tôi hiểu bạn hơn!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Phân trang gợi ý">
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">
+                <i class="fas fa-chevron-left"></i> Trước
+            </a>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+                <span class="active">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">
+                Sau <i class="fas fa-chevron-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}
+{% endblock analytics_content %}
+
+{% block analytics_extra_js %}
+<script>
+function refreshRecommendations() {
+    const button = document.getElementById('refreshBtn');
+    const originalHTML = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải...';
+    button.disabled = true;
+    
+    setTimeout(function() {
+        window.location.reload();
+    }, 500);
+}
+
+function borrowBook(bookId) {
+    if (confirm('Bạn có muốn mượn sách này không?')) {
+        // Implement book borrowing logic here
+        alert('Tính năng mượn sách đang được phát triển!');
+    }
+}
+
+// Animate score bars on load
+document.addEventListener('DOMContentLoaded', function() {
+    const scoreFills = document.querySelectorAll('.score-fill');
+    scoreFills.forEach(fill => {
+        const width = fill.style.width;
+        fill.style.width = '0%';
+        setTimeout(() => {
+            fill.style.width = width;
+        }, 300);
+    });
+});
+</script>
+{% endblock %}

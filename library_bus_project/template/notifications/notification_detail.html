@@ -1,0 +1,133 @@
+<!-- file: notification_detail.html -->
+{% extends 'notifications/base_notifications.html' %}
+
+{% block notification_title %}Chi tiết Thông báo{% endblock %}
+
+{% block content_title %}{{ notification.title }}{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'notifications:list' %}" class="btn btn-secondary btn-sm">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+    </a>
+{% endblock %}
+
+{% block extra_css %}
+    {{ block.super }}
+    <style>
+        .notification-detail-card { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 24px; transition: all 0.3s ease; }
+        .notification-detail-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; color: white; position: relative; overflow: hidden; }
+        .card-header::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: pulse 3s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } }
+        .detail-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 14px; position: relative; z-index: 1; }
+        .detail-meta span { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(255,255,255,0.15); border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .detail-meta span::before { content: ''; width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .detail-meta strong { font-weight: 600; margin-right: 4px; }
+        .card-body { padding: 32px; font-size: 16px; line-height: 1.8; color: #334155; position: relative; }
+        .card-body::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .card-body p { margin-bottom: 16px; text-align: justify; }
+        .card-body p:last-child { margin-bottom: 0; }
+        .card-footer { padding: 24px 32px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .card-footer .btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .card-footer .btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; background: rgba(255,255,255,0.3); border-radius: 50%; transition: all 0.3s ease; }
+        .card-footer .btn:hover::before { width: 200%; height: 200%; top: -50%; left: -50%; }
+        .card-footer .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59,130,246,0.3); }
+        .notification-status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .notification-status.read { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .notification-status.unread { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+        .notification-actions { display: flex; gap: 12px; margin-top: 24px; }
+        .notification-actions .btn { padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+        .mark-read-btn { background: #10b981; color: white; border: none; }
+        .mark-read-btn:hover { background: #059669; transform: translateY(-1px); }
+        .delete-btn { background: #ef4444; color: white; border: none; }
+        .delete-btn:hover { background: #dc2626; transform: translateY(-1px); }
+        @media (max-width: 768px) { .detail-meta { flex-direction: column; gap: 12px; } .detail-meta span { justify-content: center; } .card-body { padding: 24px; font-size: 14px; } .card-footer { flex-direction: column; gap: 12px; } }
+    </style>
+{% endblock %}
+
+{% block notification_content %}
+    <div class="card notification-detail-card">
+        <div class="card-header">
+            <div class="detail-meta">
+                <span><strong>Loại:</strong> {{ notification.get_notification_type_display }}</span>
+                <span><strong>Mức ưu tiên:</strong> {{ notification.get_priority_display }}</span>
+                <span><strong>Ngày gửi:</strong> {{ notification.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if notification.html_content %}
+                {{ notification.html_content|safe }}
+            {% else %}
+                <p>{{ notification.message|linebreaks }}</p>
+            {% endif %}
+            
+            <div class="notification-actions">
+                {% if not notification.is_read %}
+                    <button class="btn mark-read-btn" onclick="markAsRead({{ notification.id }})">
+                        <i class="fas fa-check"></i> Đánh dấu đã đọc
+                    </button>
+                {% endif %}
+                <button class="btn delete-btn" onclick="deleteNotification({{ notification.id }})">
+                    <i class="fas fa-trash"></i> Xóa thông báo
+                </button>
+            </div>
+        </div>
+        {% if notification.action_url %}
+        <div class="card-footer">
+            <div class="notification-status {% if notification.is_read %}read{% else %}unread{% endif %}">
+                <i class="fas fa-circle"></i>
+                {% if notification.is_read %}Đã đọc{% else %}Chưa đọc{% endif %}
+            </div>
+            <a href="{{ notification.action_url }}" class="btn btn-primary">
+                <i class="fas fa-external-link-alt"></i> Thực hiện hành động
+            </a>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script>
+        function markAsRead(notificationId) {
+            fetch(`/notifications/${notificationId}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function deleteNotification(notificationId) {
+            if (confirm('Bạn có chắc chắn muốn xóa thông báo này?')) {
+                fetch(`/notifications/${notificationId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/notifications/';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+    </script>
+{% endblock %}

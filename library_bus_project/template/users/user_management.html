@@ -1,0 +1,272 @@
+<!-- users/templates/users/user_management.html -->
+{% extends "users/base_user.html" %}
+{% load static %}
+
+{% block user_title %}Quản lý người dùng{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.admin-header h2{color:#333;font-size:1.8rem;font-weight:700;margin:0;background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem;}.stat-item{background:linear-gradient(135deg,#fff 0%,#f8f9fa 100%);padding:1.5rem;border-radius:12px;text-align:center;border:2px solid #ffd700;transition:all 0.3s ease;}.stat-item:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(255,215,0,0.3);}.stat-number{font-size:2rem;font-weight:700;color:#ffd700;margin-bottom:0.5rem;}.stat-label{color:#666;font-size:0.9rem;font-weight:500;}.search-filters{background:rgba(255,255,255,0.95);border-radius:12px;padding:1.5rem;margin-bottom:2rem;border:2px solid #ffd700;}.search-row{display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end;}.search-input{padding:0.75rem 1rem;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;transition:all 0.3s ease;}.search-input:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,0.1);}.filter-select{padding:0.75rem 1rem;border:2px solid #e0e0e0;border-radius:8px;font-size:0.95rem;background:#fff;cursor:pointer;transition:all 0.3s ease;}.filter-select:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,0.1);}.btn-search{padding:0.75rem 1.5rem;background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);border:none;border-radius:8px;font-weight:600;color:#333;cursor:pointer;transition:all 0.3s ease;}.btn-search:hover{background:linear-gradient(135deg,#ffed4e 0%,#ffd700 100%);transform:translateY(-2px);}.user-table-container{background:#fff;border-radius:12px;overflow:hidden;border:2px solid #ffd700;box-shadow:0 4px 20px rgba(255,215,0,0.1);}
+.user-table{width:100%;border-collapse:collapse;}
+.user-table th{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#333;padding:1rem;font-weight:600;text-align:left;font-size:0.95rem;border-bottom:2px solid #cc9900;}
+.user-table td{padding:1rem;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+.user-table tr:hover{background:rgba(255,215,0,0.05);}
+.user-table tr:last-child td{border-bottom:none;}
+.user-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #ffd700;}
+.user-avatar-placeholder{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:1rem;border:2px solid #ffd700;}
+.user-info{display:flex;align-items:center;gap:1rem;}.user-details h5{margin:0;color:#333;font-weight:600;font-size:1rem;}
+.user-details p{margin:0;color:#666;font-size:0.85rem;}
+.badge{padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.badge.bg-success{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;}
+.badge.bg-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;}
+.badge.bg-info{background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;}
+.badge.bg-warning{background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;}
+.action-buttons{display:flex;gap:0.5rem;}
+.btn-action{padding:0.5rem 1rem;border-radius:6px;font-size:0.8rem;font-weight:500;text-decoration:none;transition:all 0.3s ease;border:none;cursor:pointer;}
+.btn-secondary{background:linear-gradient(135deg,#6c757d,#5a6268);color:#fff;}
+.btn-secondary:hover{background:linear-gradient(135deg,#5a6268,#6c757d);transform:translateY(-1px);}
+.btn-danger{background:linear-gradient(135deg,#dc3545,#c82333);color:#fff;}.btn-danger:hover{background:linear-gradient(135deg,#c82333,#dc3545);transform:translateY(-1px);}
+.btn-warning{background:linear-gradient(135deg,#ffc107,#e0a800);color:#333;}
+.btn-warning:hover{background:linear-gradient(135deg,#e0a800,#ffc107);transform:translateY(-1px);}
+.pagination{display:flex;justify-content:center;align-items:center;gap:0.5rem;margin-top:2rem;}
+.pagination a,.pagination span{padding:0.5rem 1rem;border-radius:6px;text-decoration:none;font-weight:500;transition:all 0.3s ease;}.pagination a{background:#fff;color:#333;border:2px solid #ffd700;}
+.pagination a:hover{background:linear-gradient(135deg,#ffd700,#ffed4e);color:#333;}
+.pagination .current{background:linear-gradient(135deg,#ffd700,#ffed4e);color:#333;border:2px solid #cc9900;}
+.empty-state{text-align:center;padding:3rem;color:#666;}
+.empty-state i{font-size:4rem;color:#ffd700;margin-bottom:1rem;}
+.empty-state h3{color:#333;margin-bottom:1rem;}
+.loading-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;}
+.loading-spinner{width:60px;height:60px;border:6px solid #f3f3f3;border-top:6px solid #ffd700;border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{
+    0%{transform:rotate(0deg);}
+    100%{transform:rotate(360deg);}
+    }
+@media (max-width:768px){
+    .admin-header{flex-direction:column;align-items:flex-start;}
+    .search-row{grid-template-columns:1fr;gap:1rem;}
+    .user-table{font-size:0.8rem;}
+    .user-table th,.user-table td{padding:0.75rem 0.5rem;}
+    .user-info{flex-direction:column;align-items:flex-start;gap:0.5rem;}
+    .action-buttons{flex-direction:column;}
+    .btn-action{text-align:center;}
+    }
+</style>
+{% endblock %}
+
+{% block user_content %}
+<div class="admin-header">
+    <h2><i class="fas fa-users-cog" style="margin-right:0.5rem;color:#ffd700;"></i>Quản lý người dùng</h2>
+    <div class="header-actions">
+        <button class="btn btn-search" onclick="exportUsers()">
+            <i class="fas fa-download" style="margin-right:0.5rem;"></i>Xuất danh sách
+        </button>
+    </div>
+</div>
+
+<div class="admin-stats">
+    <div class="stat-item">
+        <div class="stat-number">{{ users.count }}</div>
+        <div class="stat-label">Tổng người dùng</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">{{ users|length }}</div>
+        <div class="stat-label">Đang hoạt động</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Bị khóa</div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-number">0</div>
+        <div class="stat-label">Quản trị viên</div>
+    </div>
+</div>
+
+<div class="search-filters">
+    <form method="get" class="search-form">
+        <div class="search-row">
+            <input type="text" name="search" placeholder="Tìm theo tên đăng nhập, email, họ tên..." 
+                   class="search-input" value="{{ request.GET.search }}">
+            <select name="status" class="filter-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Hoạt động</option>
+                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Bị khóa</option>
+                <option value="staff" {% if request.GET.status == 'staff' %}selected{% endif %}>Quản trị viên</option>
+            </select>
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="user-table-container">
+    {% if users %}
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Người dùng</th>
+                <th>Email</th>
+                <th>Ngày tham gia</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div class="user-info">
+                        {% if u.profile.avatar %}
+                            <img src="{{ u.profile.avatar.url }}" alt="Avatar" class="user-avatar">
+                        {% else %}
+                            <div class="user-avatar-placeholder">
+                                {% if u.first_name %}{{ u.first_name|slice:":1" }}{% else %}{{ u.username|slice:":1" }}{% endif %}
+                            </div>
+                        {% endif %}
+                        <div class="user-details">
+                            <h5>{{ u.username }}</h5>
+                            <p>{{ u.get_full_name|default:"Chưa cập nhật" }}</p>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.date_joined|date:"d/m/Y" }}</td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="badge bg-success">Hoạt động</span>
+                    {% else %}
+                        <span class="badge bg-danger">Bị khóa</span>
+                    {% endif %}
+                    {% if u.is_staff %}
+                        <span class="badge bg-info">Quản trị</span>
+                    {% endif %}
+                    {% if u.is_superuser %}
+                        <span class="badge bg-warning">Super Admin</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin:auth_user_change' u.id %}" class="btn-action btn-secondary" target="_blank">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        {% if u.is_active %}
+                            <button class="btn-action btn-warning" onclick="toggleUserStatus({{ u.id }}, 'deactivate')">
+                                <i class="fas fa-ban"></i> Khóa
+                            </button>
+                        {% else %}
+                            <button class="btn-action btn-secondary" onclick="toggleUserStatus({{ u.id }}, 'activate')">
+                                <i class="fas fa-check"></i> Mở
+                            </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <h3>Không tìm thấy người dùng nào</h3>
+        <p>Hãy thử thay đổi điều kiện tìm kiếm hoặc kiểm tra lại.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% if users.has_other_pages %}
+<div class="pagination">
+    {% if users.has_previous %}
+        <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">&laquo; Đầu</a>
+        <a href="?page={{ users.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">‹ Trước</a>
+    {% endif %}
+    
+    {% for num in users.paginator.page_range %}
+        {% if users.number == num %}
+            <span class="current">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if users.has_next %}
+        <a href="?page={{ users.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Tiếp ›</a>
+        <a href="?page={{ users.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Cuối &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+function toggleUserStatus(userId, action) {
+    if (confirm(`Bạn có chắc muốn ${action === 'activate' ? 'kích hoạt' : 'khóa'} người dùng này?`)) {
+        showLoading();
+        fetch(`/admin/users/${userId}/${action}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Có lỗi xảy ra. Vui lòng thử lại.');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        });
+    }
+}
+
+function exportUsers() {
+    showLoading();
+    window.location.href = '/admin/users/export/';
+    setTimeout(hideLoading, 2000);
+}
+
+function showLoading() {
+    const loading = document.createElement('div');
+    loading.className = 'loading-overlay';
+    loading.innerHTML = '<div class="loading-spinner"></div>';
+    document.body.appendChild(loading);
+}
+
+function hideLoading() {
+    const loading = document.querySelector('.loading-overlay');
+    if (loading) loading.remove();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.querySelector('.search-form');
+    const searchInput = document.querySelector('.search-input');
+    
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            searchForm.submit();
+        }, 500);
+    });
+    
+    // Animate table rows
+    const tableRows = document.querySelectorAll('.user-table tbody tr');
+    tableRows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

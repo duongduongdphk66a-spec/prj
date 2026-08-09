@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>Bài viết được cập nhật cần duyệt lại</h2>
+    <p>Xin chào Admin,</p>
+    <p>Bài viết "<strong>{{ post.title }}</strong>" của <strong>{{ author.get_full_name|default:author.username }}</strong> đã được cập nhật và cần duyệt lại.</p>
+    
+    <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+        <p><strong>Lưu ý:</strong> Bài viết này đã được chỉnh sửa sau khi xuất bản và cần phê duyệt lại.</p>
+    </div>
+
+    <p style="text-align: center; margin: 30px 0;">
+        <a href="{{ admin_url }}" style="background-color: #d4af37; color: #2c1810; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            Xem và Duyệt lại
+        </a>
+    </p>
+    <p>Nếu nút trên không hoạt động, copy đường dẫn này: <br>{{ admin_url }}</p>
+</body>
+</html>

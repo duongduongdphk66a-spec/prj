@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quyên góp sách - Tủ Sách Lưu Động{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-hand-holding-heart me-2"></i>Quyên góp sách</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Cảm ơn bạn đã đồng hành cùng Tủ Sách Lưu Động. Vui lòng điền thông tin về cuốn sách bạn muốn đóng góp, quản trị viên sẽ liên hệ lại với bạn.</p>
+                    
+                    <form method="post" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            {{ form.as_p }}
+                        </div>
+                        <div class="mt-4 text-end">
+                            <a href="{% url 'inventory:book_list' %}" class="btn btn-secondary me-2">Hủy</a>
+                            <button type="submit" class="btn btn-primary">Gửi thông tin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

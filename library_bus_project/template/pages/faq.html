@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Câu hỏi thường gặp - Tủ Sách Lưu Động{% endblock %}
+
+{% block extra_css %}
+<style>
+    .faq-container {
+        max-width: 800px;
+        margin: 120px auto 80px;
+        padding: 0 15px;
+    }
+    
+    .faq-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .faq-header h1 {
+        font-size: 2.5rem;
+        color: var(--dark-brown);
+        margin-bottom: 10px;
+    }
+    
+    .faq-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .faq-item {
+        background: var(--white);
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        overflow: hidden;
+    }
+
+    .faq-question {
+        width: 100%;
+        text-align: left;
+        padding: 20px;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-brown);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.3s ease;
+    }
+
+    .faq-question:hover {
+        background-color: #fafafa;
+    }
+
+    .faq-question i {
+        transition: transform 0.3s ease;
+        color: var(--gold);
+    }
+
+    .faq-item.active .faq-question i {
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease, padding 0.4s ease;
+        background-color: #fff;
+    }
+    
+    .faq-answer-inner {
+        padding: 0 20px 20px;
+        color: #555;
+        line-height: 1.7;
+    }
+
+    .faq-item.active .faq-answer {
+        max-height: 500px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="faq-container">
+    <div class="faq-header">
+        <h1>Câu hỏi thường gặp</h1>
+        <p>Giải đáp những thắc mắc phổ biến về dịch vụ của Tủ Sách Lưu Động</p>
+    </div>
+
+    <div class="faq-list">
+        <div class="faq-item">
+            <button class="faq-question">
+                Làm thế nào để tôi có thể mượn sách?
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    Để mượn sách, bạn chỉ cần tạo tài khoản trên hệ thống, tìm kiếm cuốn sách bạn muốn mượn và nhấn nút "Mượn sách". Hệ thống sẽ tạo một yêu cầu đặt trước (reservation) để giữ sách cho bạn. Sau đó, bạn có thể đến thư viện để nhận sách.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Thời gian mượn sách tối đa là bao lâu?
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    Thời gian mượn tiêu chuẩn là 14 ngày. Bạn có thể gia hạn thêm 7 ngày nữa nếu cuốn sách đó chưa có người khác đặt trước.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Tôi có bị phạt nếu trả sách trễ không?
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    Có. Để đảm bảo mọi người đều có cơ hội đọc sách, hệ thống sẽ áp dụng mức phạt nhỏ cho mỗi ngày trả trễ. Vui lòng trả sách đúng hạn hoặc gia hạn trước khi hết thời gian mượn để tránh bị phạt.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">
+                Tôi có thể yêu cầu mua thêm sách không?
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    Chúng tôi luôn hoan nghênh các đề xuất sách mới từ bạn đọc. Bạn có thể gửi yêu cầu thông qua trang Liên hệ hoặc trao đổi trực tiếp với thủ thư khi đến mượn sách.
+                </div>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <button class="faq-question">
+                Nếu tôi làm mất hoặc làm hỏng sách thì sao?
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">
+                    Trong trường hợp làm hỏng hoặc mất sách, bạn sẽ cần bồi thường bằng một cuốn sách mới cùng loại hoặc đền bù giá trị tương đương của cuốn sách để thư viện có thể mua lại.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const questionBtn = item.querySelector('.faq-question');
+            questionBtn.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                
+                // Đóng tất cả các mục khác
+                faqItems.forEach(otherItem => {
+                    otherItem.classList.remove('active');
+                });
+                
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

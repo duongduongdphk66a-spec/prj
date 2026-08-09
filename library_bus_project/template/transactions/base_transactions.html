@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Quản lý Giao dịch - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .transaction-body { background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%); min-height: 100vh; }
+    .transaction-container { display: flex; gap: 2rem; padding: 2rem 0; max-width: 1200px; margin: 0 auto; }
+    .transaction-sidebar { flex: 0 0 280px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(255, 193, 7, 0.1); padding: 2rem; height: fit-content; border: 1px solid #fff3cd; }
+    .sidebar-header { color: #f57c00; font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sidebar-header i { background: linear-gradient(135deg, #ffc107, #ff9800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .sidebar-nav { list-style: none; padding: 0; margin: 0; }
+    .sidebar-nav .nav-item { margin-bottom: 0.5rem; }
+    .sidebar-nav .nav-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1.25rem; border-radius: 12px; color: #495057; font-weight: 500; text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+    .sidebar-nav .nav-link::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent); transition: left 0.5s ease; }
+    .sidebar-nav .nav-link:hover::before { left: 100%; }
+    .sidebar-nav .nav-link i { width: 20px; text-align: center; font-size: 1.1rem; color: #ffc107; transition: transform 0.3s ease; }
+    .sidebar-nav .nav-link:hover i { transform: scale(1.1); }
+    .sidebar-nav .nav-link.active, .sidebar-nav .nav-link:hover { background: linear-gradient(135deg, #fff8e1, #fffde7); color: #f57c00; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2); transform: translateX(4px); }
+    .sidebar-nav .nav-link.active i, .sidebar-nav .nav-link:hover i { color: #f57c00; }
+    .sidebar-nav .nav-link.active::after { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 60%; background: linear-gradient(135deg, #ffc107, #ff9800); border-radius: 0 2px 2px 0; }
+    .transaction-content { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(255, 193, 7, 0.1); padding: 2rem; border: 1px solid #fff3cd; }
+    .content-header { border-bottom: 2px solid #fff8e1; padding-bottom: 1.5rem; margin-bottom: 2rem; position: relative; }
+    .content-header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 60px; height: 2px; background: linear-gradient(135deg, #ffc107, #ff9800); }
+    .content-header h1 { font-size: 1.875rem; font-weight: 700; color: #f57c00; margin: 0; }
+    .content-header .breadcrumb { background: none; padding: 0; margin: 0.5rem 0 0 0; font-size: 0.875rem; }
+    .content-header .breadcrumb-item { color: #6c757d; }
+    .content-header .breadcrumb-item.active { color: #ffc107; }
+    .content-header .breadcrumb-item + .breadcrumb-item::before { content: '›'; color: #ffc107; }
+    .transaction-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: linear-gradient(135deg, #fff8e1, #fffde7); padding: 1.5rem; border-radius: 12px; border: 1px solid #fff3cd; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 193, 7, 0.15); }
+    .stat-card .stat-icon { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #ffc107, #ff9800); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; margin-bottom: 1rem; }
+    .stat-card .stat-title { font-size: 0.875rem; color: #6c757d; margin-bottom: 0.5rem; }
+    .stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: #f57c00; }
+    .btn-primary { background: linear-gradient(135deg, #ffc107, #ff9800); border: none; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; }
+    .btn-primary:hover { background: linear-gradient(135deg, #ff9800, #f57c00); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4); }
+    .btn-secondary { background: #fff; border: 2px solid #ffc107; color: #ffc107; border-radius: 8px; padding: 0.75rem 1.5rem; font-weight: 500; transition: all 0.3s ease; }
+    .btn-secondary:hover { background: #ffc107; color: #fff; transform: translateY(-2px); }
+    .table-responsive { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1); }
+    .table { margin-bottom: 0; }
+    .table thead th { background: linear-gradient(135deg, #fff8e1, #fffde7); color: #f57c00; font-weight: 600; border: none; padding: 1rem; }
+    .table tbody tr { transition: background-color 0.3s ease; }
+    .table tbody tr:hover { background: rgba(255, 248, 225, 0.5); }
+    .table tbody td { padding: 1rem; border-color: #fff3cd; }
+    .badge { border-radius: 20px; padding: 0.5rem 1rem; font-weight: 500; }
+    .badge-warning { background: linear-gradient(135deg, #ffc107, #ff9800); color: #fff; }
+    .badge-success { background: linear-gradient(135deg, #28a745, #20c997); color: #fff; }
+    .badge-danger { background: linear-gradient(135deg, #dc3545, #e83e8c); color: #fff; }
+    .badge-info { background: linear-gradient(135deg, #17a2b8, #6f42c1); color: #fff; }
+    .alert { border-radius: 12px; border: none; padding: 1rem 1.5rem; }
+    .alert-warning { background: rgba(255, 193, 7, 0.1); color: #856404; border-left: 4px solid #ffc107; }
+    .alert-success { background: rgba(40, 167, 69, 0.1); color: #155724; border-left: 4px solid #28a745; }
+    .alert-danger { background: rgba(220, 53, 69, 0.1); color: #721c24; border-left: 4px solid #dc3545; }
+    .alert-info { background: rgba(23, 162, 184, 0.1); color: #0c5460; border-left: 4px solid #17a2b8; }
+    .form-control { border-radius: 8px; border: 2px solid #fff3cd; padding: 0.75rem 1rem; transition: all 0.3s ease; }
+    .form-control:focus { border-color: #ffc107; box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25); }
+    .pagination { justify-content: center; margin-top: 2rem; }
+    .pagination .page-link { border: 2px solid #fff3cd; color: #ffc107; border-radius: 8px; margin: 0 0.25rem; padding: 0.5rem 1rem; transition: all 0.3s ease; }
+    .pagination .page-link:hover { background: #ffc107; color: #fff; transform: translateY(-2px); }
+    .pagination .page-item.active .page-link { background: linear-gradient(135deg, #ffc107, #ff9800); border-color: #ffc107; color: #fff; }
+    @media (max-width: 768px) {
+        .transaction-container { flex-direction: column; gap: 1rem; padding: 1rem; }
+        .transaction-sidebar { flex: none; width: 100%; }
+        .sidebar-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .sidebar-nav .nav-item { margin-bottom: 0; flex: 1; min-width: 120px; }
+        .sidebar-nav .nav-link { padding: 0.75rem; justify-content: center; text-align: center; }
+        .content-header h1 { font-size: 1.5rem; }
+        .transaction-stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    }
+</style>
+
+{% if user.is_staff %}
+<style>
+    /* Admin specific styling matching Inventory app (Brown/Gold) */
+    .transaction-body { background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%) !important; }
+    .transaction-sidebar { box-shadow: 0 4px 20px rgba(92, 64, 51, 0.1) !important; border: 1px solid #FDE68A !important; }
+    .sidebar-header { color: #5C4033 !important; }
+    .sidebar-header i { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; background-clip: text !important; }
+    .sidebar-nav .nav-link::before { background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent) !important; }
+    .sidebar-nav .nav-link i { color: #5C4033 !important; }
+    .sidebar-nav .nav-link.active, .sidebar-nav .nav-link:hover { background: linear-gradient(135deg, #fef08a, #fef9c3) !important; color: #5C4033 !important; box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2) !important; }
+    .sidebar-nav .nav-link.active i, .sidebar-nav .nav-link:hover i { color: #5C4033 !important; }
+    .sidebar-nav .nav-link.active::after { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .transaction-content { box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1) !important; border: 1px solid #FDE68A !important; }
+    .content-header { border-bottom: 2px solid #fef08a !important; }
+    .content-header::after { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .content-header h1 { color: #5C4033 !important; }
+    .content-header .breadcrumb-item.active { color: #5C4033 !important; }
+    .content-header .breadcrumb-item + .breadcrumb-item::before { color: #5C4033 !important; }
+    
+    /* Stats */
+    .stat-card { background: linear-gradient(135deg, #fef08a, #fef9c3) !important; border: 1px solid #FDE68A !important; }
+    .stat-card:hover { box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15) !important; }
+    .stat-card .stat-icon { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .stat-card .stat-value { color: #5C4033 !important; }
+    
+    /* Buttons */
+    .btn-primary { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .btn-primary:hover { background: linear-gradient(135deg, #5C4033, #5C4033) !important; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4) !important; }
+    .btn-secondary { border: 2px solid #D4AF37 !important; color: #D4AF37 !important; }
+    .btn-secondary:hover { background: #D4AF37 !important; color: #fff !important; }
+    
+    /* Tables */
+    .table-responsive { box-shadow: 0 2px 8px rgba(212, 175, 55, 0.1) !important; }
+    .table thead th { background: linear-gradient(135deg, #fef08a, #fef9c3) !important; color: #5C4033 !important; }
+    .table tbody tr:hover { background: rgba(254, 240, 138, 0.5) !important; }
+    .table tbody td { border-color: #fef08a !important; }
+    
+    /* Forms & Pagination */
+    .form-control { border: 2px solid #FDE68A !important; }
+    .form-control:focus { border-color: #D4AF37 !important; box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25) !important; }
+    .pagination .page-link { border: 2px solid #FDE68A !important; color: #D4AF37 !important; }
+    .pagination .page-link:hover { background: #D4AF37 !important; color: #fff !important; }
+    .pagination .page-item.active .page-link { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; border-color: #D4AF37 !important; color: #fff !important; }
+    
+    /* Overrides for borrow_list.html */
+    .enhanced-content-header h1 { background: linear-gradient(135deg, #5C4033, #D4AF37) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+    .enhanced-content-header::before { background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%) !important; }
+    .enhanced-create-btn { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .enhanced-create-btn:hover { box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4) !important; }
+    .enhanced-filter-btn { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .enhanced-filter-btn:hover { box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4) !important; }
+    .enhanced-table thead th { background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%) !important; }
+    .enhanced-table tbody tr:hover { background: linear-gradient(135deg, #fef08a 0%, #fef9c3 100%) !important; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1) !important; }
+    .enhanced-action-btn { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; }
+    .enhanced-action-btn:hover { box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4) !important; }
+    .enhanced-pagination .page-link:hover { background: #D4AF37 !important; border-color: #D4AF37 !important; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4) !important; }
+    .enhanced-pagination .page-item.active .page-link { background: linear-gradient(135deg, #D4AF37, #5C4033) !important; border-color: #D4AF37 !important; }
+    .enhanced-form-control:focus { border-color: #D4AF37 !important; box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25) !important; }
+</style>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="transaction-body">
+    <div class="container transaction-container">
+        <!-- Sidebar Navigation -->
+        <aside class="transaction-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Giao dịch</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'transactions:dashboard' %}active{% endif %}" href="{% url 'transactions:dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Bảng điều khiển</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'transactions:borrow_list' %}active{% endif %}" href="{% url 'transactions:borrow_list' %}">
+                        <i class="fas fa-book-reader"></i>
+                        <span>Mượn / Trả sách</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'transactions:reservation_list' %}active{% endif %}" href="{% url 'transactions:reservation_list' %}">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Đặt trước</span>
+                    </a>
+                </div>
+                {% if user.is_staff %}
+                <div class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'transactions:bulk_operations' %}active{% endif %}" href="{% url 'transactions:bulk_operations' %}">
+                        <i class="fas fa-tasks"></i>
+                        <span>Xử lý hàng loạt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.view_name == 'transactions:statistics' %}active{% endif %}" href="{% url 'transactions:statistics' %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Thống kê</span>
+                    </a>
+                </div>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="transaction-content">
+            <div class="content-header">
+                <h1>{% block page_title %}Quản lý Giao dịch{% endblock %}</h1>
+                <nav class="breadcrumb">
+                    <span class="breadcrumb-item">Trang chủ</span>
+                    <span class="breadcrumb-item">Giao dịch</span>
+                    <span class="breadcrumb-item active">{% block breadcrumb_current %}Bảng điều khiển{% endblock %}</span>
+                </nav>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block transaction_content %}
+            <!-- Specific transaction content goes here -->
+            {% endblock %}
+        </section>
+    </div>
+</div>
+{% endblock %}

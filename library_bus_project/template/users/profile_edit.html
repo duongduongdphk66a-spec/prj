@@ -1,0 +1,283 @@
+<!-- templates/users/profile_edit.html -->
+{% extends "users/base_user.html" %}
+{% load static %}
+
+{% block user_title %}Chỉnh sửa hồ sơ{% endblock %}
+
+{% block user_content %}
+<div class="content-header">
+    <h2><i class="fas fa-user-edit"></i> Chỉnh sửa hồ sơ</h2>
+    <p class="text-muted">Cập nhật thông tin cá nhân của bạn</p>
+</div>
+
+<div class="profile-edit-container">
+    <form method="post" enctype="multipart/form-data" novalidate class="profile-form">
+        {% csrf_token %}
+        
+        {% if user_form.errors or profile_form.errors %}
+        <div class="alert alert-danger" style="margin-bottom: 20px; padding: 15px; border-radius: 8px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+            <strong><i class="fas fa-exclamation-triangle"></i> Vui lòng kiểm tra lại các lỗi sau:</strong>
+            <ul style="margin-top: 10px; margin-bottom: 0;">
+                {% for field in user_form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in user_form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% for field in profile_form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in profile_form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Avatar Section -->
+        <div class="avatar-section">
+            <div class="avatar-preview">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="Avatar" class="current-avatar" id="avatar-preview">
+                {% else %}
+                    <div class="avatar-placeholder" id="avatar-preview">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+                <div class="avatar-overlay">
+                    <i class="fas fa-camera"></i>
+                    <span>Thay đổi</span>
+                </div>
+            </div>
+            <div class="avatar-upload">
+                {{ profile_form.avatar }}
+                <label for="{{ profile_form.avatar.id_for_label }}" class="upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Tải ảnh lên
+                </label>
+            </div>
+        </div>
+
+        <!-- Basic Information -->
+        <div class="form-section">
+            <h3><i class="fas fa-id-card"></i> Thông tin cơ bản</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ user_form.first_name.id_for_label }}">
+                        <i class="fas fa-user"></i>
+                        {{ user_form.first_name.label }}
+                    </label>
+                    {{ user_form.first_name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ user_form.last_name.id_for_label }}">
+                        <i class="fas fa-user"></i>
+                        {{ user_form.last_name.label }}
+                    </label>
+                    {{ user_form.last_name }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="{{ user_form.email.id_for_label }}">
+                    <i class="fas fa-envelope"></i>
+                    {{ user_form.email.label }}
+                </label>
+                {{ user_form.email }}
+            </div>
+        </div>
+
+        <!-- Detailed Information -->
+        <div class="form-section">
+            <h3><i class="fas fa-info-circle"></i> Thông tin chi tiết</h3>
+            <div class="form-group">
+                <label for="{{ profile_form.bio.id_for_label }}">
+                    <i class="fas fa-pen"></i>
+                    {{ profile_form.bio.label }}
+                </label>
+                {{ profile_form.bio }}
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ profile_form.phone_number.id_for_label }}">
+                        <i class="fas fa-phone"></i>
+                        {{ profile_form.phone_number.label }}
+                    </label>
+                    {{ profile_form.phone_number }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.date_of_birth.id_for_label }}">
+                        <i class="fas fa-calendar"></i>
+                        {{ profile_form.date_of_birth.label }}
+                    </label>
+                    {{ profile_form.date_of_birth }}
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ profile_form.gender.id_for_label }}">
+                        <i class="fas fa-venus-mars"></i>
+                        {{ profile_form.gender.label }}
+                    </label>
+                    {{ profile_form.gender }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.occupation.id_for_label }}">
+                        <i class="fas fa-briefcase"></i>
+                        {{ profile_form.occupation.label }}
+                    </label>
+                    {{ profile_form.occupation }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="form-section">
+            <h3><i class="fas fa-map-marker-alt"></i> Địa chỉ</h3>
+            <div class="form-group">
+                <label for="{{ profile_form.address.id_for_label }}">
+                    <i class="fas fa-home"></i>
+                    {{ profile_form.address.label }}
+                </label>
+                {{ profile_form.address }}
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ profile_form.city.id_for_label }}">
+                        <i class="fas fa-city"></i>
+                        {{ profile_form.city.label }}
+                    </label>
+                    {{ profile_form.city }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.district.id_for_label }}">
+                        <i class="fas fa-map"></i>
+                        {{ profile_form.district.label }}
+                    </label>
+                    {{ profile_form.district }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Lưu thay đổi
+            </button>
+            <a href="{% url 'users:profile' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Hủy
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+.profile-edit-container{max-width:800px;margin:0 auto;}
+.content-header{text-align:center;margin-bottom:2rem;padding:1.5rem;background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);border-radius:12px;color:#333;position:relative;overflow:hidden;}
+.content-header::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');opacity:0.3;}
+.content-header h2{margin:0;font-size:1.8rem;font-weight:700;position:relative;z-index:2;}
+.content-header p{margin:0.5rem 0 0 0;position:relative;z-index:2;}
+.content-header i{margin-right:0.5rem;color:#cc9900;}
+.avatar-section{display:flex;align-items:center;gap:2rem;margin-bottom:2rem;padding:2rem;background:linear-gradient(135deg,#fff 0%,#f8f9fa 100%);border-radius:12px;border:2px solid #ffd700;position:relative;overflow:hidden;}
+.avatar-section::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="90" cy="10" r="1" fill="rgba(255,215,0,0.1)"/><circle cx="10" cy="90" r="1.5" fill="rgba(255,215,0,0.1)"/></svg>');opacity:0.5;}
+.avatar-preview{position:relative;width:120px;height:120px;border-radius:50%;overflow:hidden;border:4px solid #ffd700;box-shadow:0 8px 25px rgba(255,215,0,0.3);cursor:pointer;transition:all 0.3s ease;z-index:2;}
+.avatar-preview:hover{transform:scale(1.05);box-shadow:0 12px 35px rgba(255,215,0,0.4);}
+.current-avatar{width:100%;height:100%;object-fit:cover;}
+.avatar-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-size:2.5rem;}
+.avatar-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;opacity:0;transition:opacity 0.3s ease;font-size:0.9rem;}
+.avatar-preview:hover .avatar-overlay{opacity:1;}
+.avatar-overlay i{font-size:1.5rem;margin-bottom:0.5rem;}
+.avatar-upload{position:relative;z-index:2;}
+.avatar-upload input[type="file"]{display:none;}
+.upload-btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#333;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:all 0.3s ease;text-decoration:none;box-shadow:0 4px 15px rgba(255,215,0,0.3);}
+.upload-btn:hover{background:linear-gradient(135deg,#ffed4e 0%,#ffd700 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,0.4);}
+.form-section{margin-bottom:2rem;padding:2rem;background:#fff;border-radius:12px;border:2px solid #ffd700;box-shadow:0 4px 15px rgba(0,0,0,0.05);transition:all 0.3s ease;}
+.form-section:hover{box-shadow:0 8px 25px rgba(255,215,0,0.15);transform:translateY(-2px);}
+.form-section h3{margin:0 0 1.5rem 0;color:#333;font-size:1.3rem;font-weight:600;padding-bottom:0.5rem;border-bottom:2px solid #ffd700;position:relative;}
+.form-section h3 i{margin-right:0.5rem;color:#ffd700;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.form-group{margin-bottom:1.5rem;}
+.form-group label{display:block;margin-bottom:0.5rem;font-weight:600;color:#333;font-size:0.95rem;}
+.form-group label i{margin-right:0.5rem;color:#ffd700;width:16px;text-align:center;}
+.form-control{width:100%;padding:0.875rem 1rem;border:2px solid #e0e0e0;border-radius:8px;font-size:1rem;transition:all 0.3s ease;background:#fff;font-family:inherit;}
+.form-control:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,0.15);background:#fffef7;}
+.form-control:hover{border-color:#ffd700;}
+textarea.form-control{resize:vertical;min-height:120px;}
+select.form-control{cursor:pointer;}
+.form-actions{display:flex;justify-content:center;gap:1rem;margin-top:2rem;padding:2rem;background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);border-radius:12px;border:2px solid #ffd700;}
+.btn{padding:0.875rem 2rem;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;text-decoration:none;display:inline-flex;align-items:center;gap:0.5rem;font-size:1rem;min-width:140px;justify-content:center;}
+.btn-primary{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#333;box-shadow:0 4px 15px rgba(255,215,0,0.3);}
+.btn-primary:hover{background:linear-gradient(135deg,#ffed4e 0%,#ffd700 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,0.4);}
+.btn-secondary{background:linear-gradient(135deg,#6c757d 0%,#5a6268 100%);color:#fff;box-shadow:0 4px 15px rgba(108,117,125,0.3);}
+.btn-secondary:hover{background:linear-gradient(135deg,#5a6268 0%,#6c757d 100%);transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,117,125,0.4);}
+.btn i{font-size:0.9rem;}
+@media (max-width: 768px) {
+    .form-grid{grid-template-columns:1fr;}
+    .avatar-section{flex-direction:column;text-align:center;}
+    .form-section{padding:1.5rem;}
+    .form-actions{flex-direction:column;align-items:center;}
+    .btn{min-width:200px;}
+}
+@media (max-width: 480px) {
+    .content-header{padding:1rem;}
+    .content-header h2{font-size:1.5rem;}
+    .avatar-preview{width:100px;height:100px;}
+    .form-section{padding:1rem;}
+    .form-actions{padding:1rem;}
+}
+.profile-edit-container{animation:fadeInUp 0.6s ease-out;}
+.form-section{animation:slideInUp 0.5s ease-out;}
+.form-section:nth-child(2){animation-delay:0.1s;}
+.form-section:nth-child(3){animation-delay:0.2s;}
+.form-section:nth-child(4){animation-delay:0.3s;}
+.form-actions{animation:slideInUp 0.5s ease-out;animation-delay:0.4s;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.form-control:valid{border-color:#28a745;}
+.form-control:invalid{border-color:#dc3545;}
+.form-group:focus-within label{color:#ffd700;}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('{{ profile_form.avatar.id_for_label }}');
+    const avatarPreview = document.getElementById('avatar-preview');
+    if (avatarInput && avatarPreview) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="current-avatar">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    const formControls = document.querySelectorAll('.form-control');
+    formControls.forEach(control => {
+        control.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
+        });
+        control.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
+        });
+    });
+    const form = document.querySelector('.profile-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,374 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Chỉnh sửa: {{ object.title }}{% else %}Viết bài mới{% endif %} | Thư Viện Lưu Động{% endblock %}
+
+{% block blog_title %}{% if object %}Chỉnh sửa bài viết{% else %}Viết bài mới{% endif %}{% endblock %}
+{% block blog_subtitle %}Chia sẻ kiến thức và câu chuyện của bạn với cộng đồng{% endblock %}
+
+{% block blog_breadcrumb %}
+<span class="separator"><i class="fas fa-chevron-right"></i></span>
+<span class="current">{% if object %}Chỉnh sửa{% else %}Viết bài mới{% endif %}</span>
+{% endblock %}
+
+{% block blog_content %}
+<style>
+/* ========== Form Layout ========== */
+.form-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+@media (max-width: 992px) {
+    .form-wrapper { grid-template-columns: 1fr; }
+}
+
+.form-main {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    animation: fadeInUp 0.5s var(--ease-out) forwards;
+}
+.form-sidebar {
+    display: flex; flex-direction: column; gap: 1.5rem;
+    animation: fadeInUp 0.5s var(--ease-out) 0.15s both;
+}
+
+/* ========== Form Section Headers ========== */
+.form-section-title {
+    font-size: 1.3rem; font-weight: 700;
+    color: var(--dark-brown);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--warm-100);
+    font-family: 'Playfair Display', serif;
+    display: flex; align-items: center; gap: 10px;
+}
+.form-section-title i { color: var(--amber-500); font-size: 1rem; }
+
+/* ========== Form Controls ========== */
+.form-group { margin-bottom: 1.5rem; position: relative; }
+.form-label {
+    display: block; font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-brown);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+}
+.form-label .required { color: var(--danger); margin-left: 2px; }
+.form-control, .form-main input[type="text"], .form-main input[type="url"],
+.form-main input[type="email"], .form-main input[type="date"], .form-main input[type="datetime-local"],
+.form-main textarea, .form-main select,
+.form-sidebar input[type="text"], .form-sidebar input[type="url"],
+.form-sidebar input[type="date"], .form-sidebar input[type="datetime-local"],
+.form-sidebar textarea, .form-sidebar select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--warm-200);
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s var(--ease-smooth);
+    font-family: 'Inter', sans-serif;
+    background: var(--white);
+    color: var(--text);
+}
+.form-control:focus, .form-main input:focus, .form-main textarea:focus, .form-main select:focus,
+.form-sidebar input:focus, .form-sidebar textarea:focus, .form-sidebar select:focus {
+    border-color: var(--amber-400);
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.12);
+}
+textarea.form-control, .form-main textarea { resize: vertical; min-height: 120px; line-height: 1.7; }
+.form-help {
+    font-size: 0.82rem; color: var(--warm-400);
+    margin-top: 0.4rem; display: block;
+}
+.char-info {
+    position: absolute; right: 0; top: 0;
+    font-size: 0.78rem; color: var(--warm-400);
+    font-weight: 500;
+}
+
+/* ========== Sidebar Panels ========== */
+.panel {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+}
+.panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--gradient-gold);
+}
+.panel-title {
+    font-size: 1.05rem; font-weight: 700;
+    margin-bottom: 1.2rem;
+    color: var(--dark-brown);
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--warm-100);
+    font-family: 'Playfair Display', serif;
+}
+.panel-title i { color: var(--amber-500); font-size: 0.9rem; }
+.checkbox-group {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    padding: 0.5rem 0.6rem; border-radius: 8px;
+    transition: background 0.2s;
+}
+.checkbox-group:hover { background: var(--warm-50); }
+.checkbox-group input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--dark-brown);
+    cursor: pointer;
+}
+.checkbox-group label { cursor: pointer; font-weight: 500; color: var(--text); }
+
+/* ========== Image Upload Area ========== */
+.image-upload-wrap {
+    border: 2px dashed var(--warm-200);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--warm-50);
+    transition: all 0.3s var(--ease-smooth);
+}
+.image-upload-wrap:hover {
+    border-color: var(--amber-400);
+    background: var(--amber-50);
+}
+.image-upload-wrap i { font-size: 2.5rem; color: var(--warm-300); margin-bottom: 0.75rem; display: block; }
+.image-upload-wrap p { color: var(--warm-400); font-size: 0.9rem; }
+.image-preview {
+    margin-top: 1rem; border-radius: 12px; overflow: hidden;
+    border: 2px solid var(--warm-100);
+}
+.image-preview img { width: 100%; display: block; }
+
+/* ========== Submit Button ========== */
+.submit-btn-main {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    background: var(--gradient-brown);
+    color: var(--gold);
+    border: none; border-radius: 12px;
+    font-size: 1.1rem; font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: 'Inter', sans-serif;
+}
+.submit-btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(92, 64, 51, 0.25);
+}
+.submit-btn-main:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.cancel-link {
+    display: block; width: 100%; text-align: center;
+    margin-top: 0.75rem; padding: 0.7rem;
+    color: var(--warm-500); font-weight: 600;
+    border: 2px solid var(--warm-200);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+.cancel-link:hover {
+    border-color: var(--warm-400);
+    color: var(--dark-brown);
+    background: var(--warm-50);
+}
+
+/* ========== Error Messages ========== */
+.form-errors {
+    background: rgba(239, 68, 68, 0.06);
+    color: var(--danger);
+    padding: 1.25rem 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    animation: fadeInDown 0.4s var(--ease-out) forwards;
+}
+.form-errors p { font-weight: 700; margin-bottom: 0.5rem; }
+.form-errors ul { margin-left: 1.2rem; }
+.form-errors li { margin-bottom: 0.3rem; }
+.field-error {
+    color: var(--danger); font-size: 0.82rem;
+    margin-top: 0.3rem; display: flex;
+    align-items: center; gap: 4px;
+}
+.field-error::before { content: '⚠'; font-size: 0.75rem; }
+
+/* SEO Section */
+.seo-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px dashed var(--warm-200);
+}
+</style>
+
+<form method="POST" enctype="multipart/form-data" class="form-wrapper" id="post-form">
+    {% csrf_token %}
+    
+    {% if form.errors %}
+    <div class="form-errors" style="grid-column: 1 / -1;">
+        <p><i class="fas fa-exclamation-triangle"></i> Vui lòng kiểm tra lại các lỗi sau:</p>
+        <ul>
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="form-main">
+        <div class="form-section-title">
+            <i class="fas fa-pen-fancy"></i> Nội dung bài viết
+        </div>
+
+        <div class="form-group" style="position:relative;">
+            <label class="form-label" for="{{ form.title.id_for_label }}">{{ form.title.label }} <span class="required">*</span></label>
+            {{ form.title }}
+            {% if form.title.help_text %}<small class="form-help">{{ form.title.help_text }}</small>{% endif %}
+            {% if form.title.errors %}<span class="field-error">{{ form.title.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="{{ form.excerpt.id_for_label }}">{{ form.excerpt.label }}</label>
+            {{ form.excerpt }}
+            {% if form.excerpt.errors %}<span class="field-error">{{ form.excerpt.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="{{ form.content.id_for_label }}">{{ form.content.label }} <span class="required">*</span></label>
+            {{ form.content }}
+            {% if form.content.errors %}<span class="field-error">{{ form.content.errors.0 }}</span>{% endif %}
+        </div>
+        
+        <div class="seo-section">
+            <div class="form-section-title">
+                <i class="fas fa-search"></i> Cài đặt SEO
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.seo_title.id_for_label }}">{{ form.seo_title.label }}</label>
+                {{ form.seo_title }}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.seo_description.id_for_label }}">{{ form.seo_description.label }}</label>
+                {{ form.seo_description }}
+            </div>
+        </div>
+    </div>
+
+    <div class="form-sidebar">
+        <!-- Publish Settings -->
+        <div class="panel">
+            <h4 class="panel-title"><i class="fas fa-paper-plane"></i> Xuất bản</h4>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                {{ form.status }}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.publish_date.id_for_label }}">{{ form.publish_date.label }}</label>
+                {{ form.publish_date }}
+                <small class="form-help">Để trống nếu xuất bản ngay lập tức.</small>
+            </div>
+            <hr style="border: 0; border-top: 1px solid var(--warm-100); margin: 1.2rem 0;">
+            <button type="submit" class="submit-btn-main" id="submit-btn">
+                <i class="fas fa-save"></i>
+                <span class="btn-text">Lưu bài viết</span>
+            </button>
+            <a href="{% url 'blog:post_list' %}" class="cancel-link">Hủy</a>
+        </div>
+
+        <!-- Media -->
+        <div class="panel">
+            <h4 class="panel-title"><i class="fas fa-image"></i> Ảnh bìa</h4>
+            <div class="form-group">
+                {{ form.featured_image }}
+                {% if object and object.featured_image %}
+                <div class="image-preview">
+                    <img src="{{ object.featured_image.url }}" alt="Current Image">
+                </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.featured_image_alt.id_for_label }}">{{ form.featured_image_alt.label }}</label>
+                {{ form.featured_image_alt }}
+            </div>
+        </div>
+
+        <!-- Taxonomy -->
+        <div class="panel">
+            <h4 class="panel-title"><i class="fas fa-tags"></i> Phân loại</h4>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.content_type.id_for_label }}">{{ form.content_type.label }}</label>
+                {{ form.content_type }}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.categories.id_for_label }}">{{ form.categories.label }}</label>
+                <div style="max-height: 160px; overflow-y: auto; padding: 0.6rem; border: 2px solid var(--warm-200); border-radius: 12px; background: var(--white);">
+                    {{ form.categories }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.tags.id_for_label }}">{{ form.tags.label }}</label>
+                {{ form.tags }}
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="{{ form.new_tags.id_for_label }}">{{ form.new_tags.label }}</label>
+                {{ form.new_tags }}
+                <small class="form-help"><i class="fas fa-info-circle"></i> Thêm tags mới, cách nhau bởi dấu phẩy.</small>
+            </div>
+        </div>
+
+        <!-- Options -->
+        <div class="panel">
+            <h4 class="panel-title"><i class="fas fa-sliders-h"></i> Tùy chọn khác</h4>
+            <div class="checkbox-group">
+                {{ form.allow_comments }}
+                <label for="{{ form.allow_comments.id_for_label }}">{{ form.allow_comments.label }}</label>
+            </div>
+            {% if user.is_staff %}
+            <div class="checkbox-group">
+                {{ form.is_featured }}
+                <label for="{{ form.is_featured.id_for_label }}">{{ form.is_featured.label }}</label>
+            </div>
+            <div class="checkbox-group">
+                {{ form.is_pinned }}
+                <label for="{{ form.is_pinned.id_for_label }}">{{ form.is_pinned.label }}</label>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Submit button loading state
+    const form = document.getElementById('post-form');
+    const submitBtn = document.getElementById('submit-btn');
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            const btnText = submitBtn.querySelector('.btn-text');
+            submitBtn.disabled = true;
+            btnText.textContent = 'Đang lưu...';
+            submitBtn.querySelector('i').className = 'spinner';
+        });
+    }
+});
+</script>
+{% endblock %}

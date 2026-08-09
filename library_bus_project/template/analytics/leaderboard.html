@@ -1,0 +1,173 @@
+<!-- analytics/templates/analytics/leaderboard.html -->
+{% extends "analytics/base_analytics.html" %}
+
+{% block analytics_title %}Bảng xếp hạng{% endblock %}
+
+{% block analytics_heading %}Bảng xếp hạng{% endblock %}
+
+{% block analytics_description %}Xem ai là những độc giả tích cực nhất trong cộng đồng.{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item active" aria-current="page">Bảng xếp hạng</li>
+{% endblock %}
+
+{% block analytics_extra_css %}
+<style>
+.leaderboard-header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center; position: relative; overflow: hidden; }
+.leaderboard-header::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+.leaderboard-header h2 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+.leaderboard-header p { opacity: 0.9; margin: 0; font-size: 1.1rem; }
+.podium { display: flex; align-items: end; justify-content: center; gap: 1rem; margin-bottom: 3rem; }
+.podium-item { background: white; border-radius: 16px; padding: 1.5rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: relative; }
+.podium-item.first { order: 2; transform: translateY(-20px); border: 3px solid #fbbf24; }
+.podium-item.second { order: 1; transform: translateY(-10px); border: 3px solid #94a3b8; }
+.podium-item.third { order: 3; transform: translateY(-5px); border: 3px solid #f59e0b; }
+.podium-medal { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; }
+.podium-medal.gold { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; }
+.podium-medal.silver { background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%); color: white; }
+.podium-medal.bronze { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+.podium-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin: 0 auto 1rem; text-transform: uppercase; }
+.podium-name { font-weight: 700; font-size: 1.1rem; color: #1f2937; margin-bottom: 0.5rem; }
+.podium-score { font-size: 1.5rem; font-weight: 700; color: var(--analytics-primary); margin-bottom: 0.5rem; }
+.podium-stats { font-size: 0.85rem; color: #6b7280; }
+.leaderboard-table { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.leaderboard-table-header { padding: 1.5rem; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-bottom: 2px solid #e2e8f0; }
+.leaderboard-table-header h3 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+.leaderboard-table-body { padding: 1.5rem; }
+.leaderboard-row { display: flex; align-items: center; padding: 1rem 0; border-bottom: 1px solid #f0f0f0; transition: all 0.3s ease; }
+.leaderboard-row:hover { background: #f9fafb; }
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-row.highlight { background: linear-gradient(90deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%); border-left: 4px solid var(--analytics-primary); }
+.rank-badge { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 1rem; flex-shrink: 0; }
+.rank-badge.top3 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; }
+.rank-badge.normal { background: #f3f4f6; color: #6b7280; }
+.user-info { display: flex; align-items: center; flex: 1; margin-right: 1rem; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-weight: 600; color: white; margin-right: 0.75rem; text-transform: uppercase; }
+.user-details h4 { font-size: 1rem; font-weight: 600; color: #1f2937; margin: 0; }
+.user-badge { background: var(--analytics-primary); color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; margin-left: 0.5rem; }
+.stat-item { text-align: center; padding: 0 1rem; }
+.stat-item.score { min-width: 80px; }
+.stat-item.level { min-width: 100px; }
+.stat-item.streak { min-width: 90px; }
+.stat-item.books { min-width: 80px; }
+.stat-value { font-size: 1.1rem; font-weight: 700; color: #1f2937; display: block; }
+.stat-label { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+.level-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.level-badge.bronze { background: #fef3c7; color: #92400e; }
+.level-badge.silver { background: #f1f5f9; color: #475569; }
+.level-badge.gold { background: #fef3c7; color: #92400e; }
+.level-badge.platinum { background: #f3e8ff; color: #7c3aed; }
+.streak-icon { color: #ef4444; margin-right: 0.25rem; }
+.score-badge { background: #dcfce7; color: #166534; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+.empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+.empty-state-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-state h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+@media (max-width: 768px) { 
+    .podium { flex-direction: column; align-items: center; }
+    .podium-item { transform: none !important; order: initial !important; margin-bottom: 1rem; }
+    .leaderboard-row { flex-direction: column; align-items: stretch; padding: 1rem; }
+    .user-info { margin-bottom: 1rem; }
+    .stat-item { padding: 0.5rem; }
+    .leaderboard-header { padding: 1.5rem; }
+    .leaderboard-header h2 { font-size: 1.5rem; }
+}
+</style>
+{% endblock %}
+
+{% block analytics_content %}
+<!-- Leaderboard Header -->
+<div class="leaderboard-header">
+    <h2><i class="fas fa-trophy"></i> Bảng xếp hạng</h2>
+    <p>Tôn vinh những độc giả xuất sắc nhất trong cộng đồng</p>
+</div>
+
+<!-- Top 3 Podium -->
+{% if top_readers %}
+<div class="podium">
+    {% for reader in top_readers|slice:":3" %}
+    <div class="podium-item {% if forloop.counter == 1 %}first{% elif forloop.counter == 2 %}second{% else %}third{% endif %}">
+        <div class="podium-medal {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
+            {{ forloop.counter }}
+        </div>
+        <div class="podium-avatar">
+            {% if reader.user.first_name %}
+                {{ reader.user.first_name|slice:":1" }}
+            {% else %}
+                {{ reader.user.username|slice:":1" }}
+            {% endif %}
+        </div>
+        <div class="podium-name">{{ reader.user.get_full_name|default:reader.user.username }}</div>
+        <div class="podium-score">{{ reader.reputation_score }}</div>
+        <div class="podium-stats">
+            <i class="fas fa-fire streak-icon"></i>{{ reader.reading_streak_days }} ngày<br>
+            <i class="fas fa-book"></i> {{ reader.total_books_borrowed|default:0 }} sách
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Full Leaderboard -->
+<div class="leaderboard-table">
+    <div class="leaderboard-table-header">
+        <h3><i class="fas fa-list-ol"></i> Bảng xếp hạng đầy đủ</h3>
+    </div>
+    <div class="leaderboard-table-body">
+        {% for reader in top_readers %}
+        <div class="leaderboard-row {% if reader.user == request.user %}highlight{% endif %}">
+            <div class="rank-badge {% if forloop.counter <= 3 %}top3{% else %}normal{% endif %}">
+                {% if forloop.counter <= 3 %}
+                    <i class="fas fa-medal"></i>
+                {% else %}
+                    {{ forloop.counter }}
+                {% endif %}
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if reader.user.first_name %}
+                        {{ reader.user.first_name|slice:":1" }}
+                    {% else %}
+                        {{ reader.user.username|slice:":1" }}
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h4>
+                        {{ reader.user.get_full_name|default:reader.user.username }}
+                        {% if reader.user == request.user %}
+                            <span class="user-badge">Bạn</span>
+                        {% endif %}
+                    </h4>
+                </div>
+            </div>
+            
+            <div class="stat-item score">
+                <span class="stat-value score-badge">{{ reader.reputation_score }}</span>
+                <small class="stat-label">Điểm</small>
+            </div>
+            
+            <div class="stat-item level">
+                <span class="stat-value level-badge bronze">{{ reader.get_member_level_display }}</span>
+                <small class="stat-label">Cấp độ</small>
+            </div>
+            
+            <div class="stat-item streak">
+                <span class="stat-value"><i class="fas fa-fire streak-icon"></i>{{ reader.reading_streak_days }}</span>
+                <small class="stat-label">Chuỗi đọc</small>
+            </div>
+            
+            <div class="stat-item books">
+                <span class="stat-value">{{ reader.total_books_borrowed|default:0 }}</span>
+                <small class="stat-label">Sách</small>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-trophy empty-state-icon"></i>
+            <h3>Chưa có dữ liệu xếp hạng</h3>
+            <p>Hãy bắt đầu đọc sách để xuất hiện trong bảng xếp hạng!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock analytics_content %}

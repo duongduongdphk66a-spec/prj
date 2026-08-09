@@ -1,0 +1,54 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block blog_title %}Bài viết chờ duyệt{% endblock %}
+{% block blog_subtitle %}{{ total_pending }} bài viết đang chờ phê duyệt{% endblock %}
+
+{% block blog_content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    {% if posts %}
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.9rem; color: #666;">
+            Hiển thị {{ posts|length }} bài viết chờ duyệt
+        </span>
+    </div>
+
+    {% for post in posts %}
+    <div style="background: var(--white); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid var(--gold);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 0.5rem;">
+                    {{ post.title }}
+                </h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    {{ post.excerpt|default:post.content|truncatewords:25 }}
+                </p>
+                <div style="display: flex; gap: 1.25rem; font-size: 0.8rem; color: #999;">
+                    <span><i class="fas fa-user"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
+                    <span><i class="fas fa-calendar"></i> {{ post.created_at|date:"d/m/Y H:i" }}</span>
+                    {% if post.reading_time %}<span><i class="fas fa-clock"></i> {{ post.reading_time }} phút</span>{% endif %}
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-left: 1rem;">
+                <a href="{% url 'blog:moderate_post' post.id %}" 
+                   style="padding: 0.5rem 1rem; background: var(--gold); color: var(--dark-brown); border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85rem;">
+                    <i class="fas fa-gavel"></i> Duyệt
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if is_paginated %}
+    {% include "partials/_pagination.html" %}
+    {% endif %}
+
+    {% else %}
+    <div style="text-align: center; padding: 4rem 2rem; background: var(--white); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+        <h3 style="color: var(--dark-brown); margin-bottom: 0.5rem;">Không có bài viết nào chờ duyệt</h3>
+        <p style="color: #666;">Tất cả bài viết đã được xử lý.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

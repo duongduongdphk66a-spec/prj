@@ -1,0 +1,28 @@
+# Python & Môi trường ảo
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+env/
+.env/
+
+# Django & Database
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Static & Media Files
+media/
+staticfiles/
+
+# Bảo mật
+.env
+.env.local
+
+# Hệ điều hành & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

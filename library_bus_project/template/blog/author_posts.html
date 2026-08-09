@@ -1,0 +1,128 @@
+{% extends "blog/baseblog.html" %}
+{% load static %}
+
+{% block title %}Tác giả: {{ author.first_name|default:author.username }} | Thư Viện Lưu Động{% endblock %}
+
+{% block blog_title %}Hồ Sơ Tác Giả{% endblock %}
+{% block blog_subtitle %}Khám phá các bài viết từ {{ author.first_name|default:author.username }}{% endblock %}
+
+{% block blog_content %}
+<style>
+/* Author Profile Layout */
+.author-header {
+    background: var(--white);
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.author-avatar-huge {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dark-brown) 0%, #3a2820 100%);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.author-name-huge {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--dark-brown);
+    margin-bottom: 0.5rem;
+}
+.author-bio {
+    font-size: 1.1rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+.author-stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+}
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gold);
+}
+.stat-label {
+    font-size: 0.9rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+
+</style>
+
+<div class="author-header">
+    <div class="author-avatar-huge">
+        {{ author.first_name|slice:":1"|default:author.username|slice:":1" }}
+    </div>
+    <h1 class="author-name-huge">{{ author.first_name|default:author.username }}</h1>
+    
+    <div class="author-stats">
+        <div class="stat-box">
+            <span class="stat-value">{{ author_stats.total_posts }}</span>
+            <span class="stat-label">Bài viết</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ author_stats.total_views }}</span>
+            <span class="stat-label">Lượt xem</span>
+        </div>
+    </div>
+</div>
+
+<h3 style="margin-bottom: 2rem; color: var(--dark-brown); font-size: 1.5rem;">Tất cả bài viết từ tác giả này</h3>
+
+{% if posts %}
+<div class="post-grid">
+    {% for post in posts %}
+    <article class="post-card">
+        <div class="post-image-container">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-image">
+            {% else %}
+            <div class="post-image" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-book-open" style="font-size: 3rem; color: rgba(0,0,0,0.1);"></i>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="post-content">
+            <div style="font-size: 0.85rem; color: #666; margin-bottom: 0.8rem;">
+                <i class="far fa-calendar-alt"></i> {{ post.publish_date|date:"d/m/Y" }}
+            </div>
+            
+            <h2 class="post-title">
+                <a href="{% url 'blog:post_detail' post.slug %}">{{ post.title }}</a>
+            </h2>
+            
+            <p class="post-excerpt">{{ post.excerpt|default:post.content|striptags|truncatechars:120 }}</p>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 4rem; background: var(--light-gray); border-radius: 12px;">
+    <i class="far fa-folder-open" style="font-size: 4rem; color: #ccc; margin-bottom: 1rem;"></i>
+    <h3>Chưa có bài viết nào</h3>
+</div>
+{% endif %}
+{% endblock %}

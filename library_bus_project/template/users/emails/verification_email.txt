@@ -1,0 +1,8 @@
+<!-- users/verification_email.txt -->
+Chào {{ user.get_full_name|default:user.username }},
+
+Cảm ơn bạn đã đăng ký tại {{ site_name }}. Vui lòng truy cập liên kết sau để kích hoạt tài khoản của bạn:
+{{ verify_url }}
+
+Trân trọng,
+Đội ngũ {{ site_name }}

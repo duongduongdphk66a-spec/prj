@@ -1,0 +1,278 @@
+<!-- File: dashboard.html -->
+{% extends "transactions/base_transactions.html" %}
+
+{% block title %}Bảng điều khiển - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .dashboard-hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 16px 16px 0 0; position: relative; overflow: hidden; }
+    .dashboard-hero::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
+    .dashboard-hero h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .dashboard-hero p { font-size: 1.1rem; opacity: 0.9; margin: 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .stat-card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid rgba(255,255,255,0.8); }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #667eea, #764ba2); }
+    .stat-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .stat-card .stat-icon { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin-bottom: 1rem; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3); }
+    .stat-card .stat-value { font-size: 2.5rem; font-weight: 800; color: #2c3e50; margin-bottom: 0.5rem; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-card .stat-label { color: #7f8c8d; font-size: 0.9rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .section-title { font-size: 1.8rem; font-weight: 700; color: #2c3e50; margin-bottom: 1.5rem; position: relative; display: inline-block; }
+    .section-title::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 50px; height: 3px; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px; }
+    .enhanced-table { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+    .enhanced-table .table { margin: 0; }
+    .enhanced-table .table thead th { background: linear-gradient(135deg, #f8f9fa, #e9ecef); color: #495057; font-weight: 600; border: none; padding: 1.5rem 1.25rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .enhanced-table .table tbody tr { transition: all 0.3s ease; border: none; }
+    .enhanced-table .table tbody tr:hover { background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); transform: scale(1.01); }
+    .enhanced-table .table tbody td { padding: 1.25rem; border: none; border-bottom: 1px solid #f1f3f4; font-weight: 500; }
+    .enhanced-table .table tbody tr:last-child td { border-bottom: none; }
+    .status-badge { padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .status-badge i { font-size: 0.7rem; }
+    .status-badge.overdue { background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+    .status-badge.returned { background: linear-gradient(135deg, #00d2d3, #54a0ff); color: white; box-shadow: 0 4px 15px rgba(0, 210, 211, 0.3); }
+    .status-badge.active { background: linear-gradient(135deg, #5f27cd, #a55eea); color: white; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3); }
+    .status-badge.reserved { background: linear-gradient(135deg, #feca57, #ff9ff3); color: white; box-shadow: 0 4px 15px rgba(254, 202, 87, 0.3); }
+    .empty-state { text-align: center; padding: 3rem; color: #95a5a6; }
+    .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-state h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 1rem; margin: 0; }
+    .dashboard-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+    .action-btn { padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .action-btn.primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); }
+    .action-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); color: white; }
+    .action-btn.secondary { background: white; color: #667eea; border: 2px solid #667eea; }
+    .action-btn.secondary:hover { background: #667eea; color: white; transform: translateY(-2px); }
+    .user-greeting { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+    .user-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.2rem; }
+    .greeting-text h2 { margin: 0; font-size: 1.5rem; color: #2c3e50; }
+    .greeting-text p { margin: 0; color: #7f8c8d; }
+    @media (max-width: 768px) {
+        .dashboard-hero { padding: 2rem 1rem; margin: -2rem -1rem 2rem -1rem; }
+        .dashboard-hero h1 { font-size: 2rem; }
+        .stats-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .stat-card { padding: 1.5rem; }
+        .enhanced-table .table thead th, .enhanced-table .table tbody td { padding: 1rem 0.75rem; }
+        .dashboard-actions { flex-direction: column; }
+        .action-btn { justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block transaction_content %}
+<div class="dashboard-hero">
+    <div class="user-greeting">
+        <div class="user-avatar">
+            {% if user.first_name %}
+                {{ user.first_name|slice:":1" }}
+            {% else %}
+                {{ user.username|slice:":1" }}
+            {% endif %}
+        </div>
+        <div class="greeting-text">
+            <h1>Chào mừng trở lại!</h1>
+            <p>{{ user.get_full_name|default:user.username }}</p>
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Librarian/Admin View -->
+{% if user.is_staff %}
+<div class="admin-dashboard">
+    <h2 class="section-title">Thống kê nhanh tháng này</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-book-reader"></i>
+            </div>
+            <div class="stat-value">{{ total_borrows|default:0 }}</div>
+            <div class="stat-label">Lượt mượn mới</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-undo-alt"></i>
+            </div>
+            <div class="stat-value">{{ total_returns|default:0 }}</div>
+            <div class="stat-label">Lượt trả sách</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ pending_reservations|default:0 }}</div>
+            <div class="stat-label">Đặt trước đang chờ</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-value">{{ fine_collected|default:0|floatformat:0 }}đ</div>
+            <div class="stat-label">Tiền phạt đã thu</div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Giao dịch gần đây</h2>
+    <div class="enhanced-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i> Người mượn</th>
+                    <th><i class="fas fa-book"></i> Sách</th>
+                    <th><i class="fas fa-calendar"></i> Ngày mượn</th>
+                    <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for borrow in recent_borrows %}
+                <tr>
+                    <td>{{ borrow.user.username }}</td>
+                    <td><a href="{% url 'transactions:borrow_detail' borrow.pk %}" class="text-primary fw-bold">{{ borrow.book.title }}</a></td>
+                    <td>{{ borrow.borrow_date }}</td>
+                    <td>
+                        {% if borrow.is_overdue %}
+                            <span class="status-badge overdue"><i class="fas fa-exclamation-triangle"></i>Quá hạn</span>
+                        {% elif borrow.return_date %}
+                            <span class="status-badge returned"><i class="fas fa-check-circle"></i>Đã trả</span>
+                        {% else %}
+                            <span class="status-badge active"><i class="fas fa-book-open"></i>Đang mượn</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>Chưa có giao dịch nào</h3>
+                            <p>Giao dịch gần đây sẽ hiển thị tại đây</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Regular User View -->
+{% else %}
+<div class="user-dashboard">
+    <h2 class="section-title">Tổng quan của bạn</h2>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-value">{{ active_borrows|length }}</div>
+            <div class="stat-label">Sách đang mượn</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ overdue_count|default:0 }}</div>
+            <div class="stat-label">Sách quá hạn</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-bookmark"></i>
+            </div>
+            <div class="stat-value">{{ active_reservations|length }}</div>
+            <div class="stat-label">Sách đang đặt trước</div>
+        </div>
+    </div>
+
+    <h2 class="section-title">Sách đang mượn</h2>
+    <div class="enhanced-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-book"></i> Sách</th>
+                    <th><i class="fas fa-calendar-plus"></i> Ngày mượn</th>
+                    <th><i class="fas fa-calendar-times"></i> Hạn trả</th>
+                    <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for borrow in active_borrows %}
+                <tr>
+                    <td><a href="{% url 'transactions:borrow_detail' borrow.pk %}" class="text-primary fw-bold">{{ borrow.book.title }}</a></td>
+                    <td>{{ borrow.borrow_date }}</td>
+                    <td>{{ borrow.due_date }}</td>
+                    <td>
+                        {% if borrow.is_overdue %}
+                            <span class="status-badge overdue"><i class="fas fa-exclamation-triangle"></i>Quá hạn</span>
+                        {% else %}
+                            <span class="status-badge active"><i class="fas fa-book-open"></i>Đang mượn</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <h3>Chưa có sách nào</h3>
+                            <p>Bạn chưa mượn cuốn sách nào. Hãy khám phá thư viện của chúng tôi!</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="section-title">Sách đang đặt trước</h2>
+    <div class="enhanced-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-book"></i> Sách</th>
+                    <th><i class="fas fa-calendar"></i> Ngày đặt</th>
+                    <th><i class="fas fa-list-ol"></i> Vị trí trong hàng đợi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reservation in active_reservations %}
+                <tr>
+                    <td><a href="{% url 'transactions:reservation_detail' reservation.pk %}" class="text-primary fw-bold">{{ reservation.book.title }}</a></td>
+                    <td>{{ reservation.created_at|date:"d/m/Y" }}</td>
+                    <td><span class="status-badge reserved">#{{ reservation.queue_position }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3">
+                        <div class="empty-state">
+                            <i class="fas fa-bookmark"></i>
+                            <h3>Chưa có đặt trước nào</h3>
+                            <p>Bạn chưa đặt trước cuốn sách nào</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="{% url 'inventory:book_list' %}" class="action-btn primary">
+            <i class="fas fa-search"></i>
+            Tìm kiếm sách
+        </a>
+        <a href="{% url 'transactions:borrow_list' %}" class="action-btn secondary">
+            <i class="fas fa-history"></i>
+            Lịch sử mượn
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
