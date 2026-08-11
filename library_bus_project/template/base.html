@@ -775,9 +775,13 @@
                         </a>
                         <div class="profile-dropdown" id="profile-dropdown">
                             <button class="profile-trigger" id="profile-trigger" aria-label="Mở menu tài khoản" aria-expanded="false">
-                                <div class="profile-avatar">
-                                    {{ user.first_name|slice:":1"|default:user.username|slice:":1" }}
-                                </div>
+                                {% if user.profile.avatar and user.profile.avatar.name != 'avatars/default.png' %}
+                                    <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="profile-avatar" id="navbar-avatar" style="object-fit: cover;">
+                                {% else %}
+                                    <div class="profile-avatar" id="navbar-avatar">
+                                        {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
                                 <span class="profile-name">{{ user.first_name|default:user.username }}</span>
                                 <i class="fas fa-chevron-down profile-dropdown-icon" style="font-size: 0.7rem; opacity: 0.6;"></i>
                             </button>

@@ -58,7 +58,7 @@
         </div>
         <div class="card-body">
             {% if notification.html_content %}
-                {{ notification.html_content|safe }}
+                {{ notification.html_content|linebreaks }}
             {% else %}
                 <p>{{ notification.message|linebreaks }}</p>
             {% endif %}

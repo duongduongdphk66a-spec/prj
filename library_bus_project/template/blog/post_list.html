@@ -179,6 +179,22 @@
 .empty-state h3 { color: var(--dark-brown); margin-bottom: 0.75rem; font-size: 1.5rem; }
 .empty-state p { color: var(--warm-400); margin-bottom: 1.5rem; }
 
+/* Quick Interaction */
+.post-stats form { margin: 0; padding: 0; display: inline; }
+.post-stats .action-btn-small {
+    background: none; border: none; cursor: pointer; padding: 0;
+    color: var(--warm-400); font-size: 0.9rem; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;
+}
+.post-stats .action-btn-small:hover { color: var(--amber-600); }
+.post-stats .action-btn-small.active { color: #e74c3c; }
+.post-stats .action-btn-small.active i { font-weight: 900; }
+
+.inline-comment-section {
+    padding-top: 1rem; border-top: 1px dashed var(--warm-200); margin-top: 1rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
 @media (max-width: 992px) {
     .post-card-featured { grid-template-columns: 1fr; }
     .featured-image-container { min-height: 250px; }
@@ -243,10 +259,34 @@
                     <span class="author-name">{{ post.author.first_name|default:post.author.username }}</span>
                 </div>
                 <div class="post-stats">
-                    <span><i class="far fa-eye"></i> {{ post.view_count }}</span>
-                    <span><i class="far fa-heart"></i> {{ post.like_count }}</span>
-                    <span><i class="far fa-comment"></i> {{ post.comment_count }}</span>
+                    <span title="Lượt xem"><i class="far fa-eye"></i> {{ post.view_count }}</span>
+                    <form action="{% url 'blog:toggle_like' post.id %}" method="POST" class="list-like-form" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn-small {% if post.is_liked_by_user %}active{% endif %}">
+                            <i class="{% if post.is_liked_by_user %}fas{% else %}far{% endif %} fa-heart"></i>
+                            <span class="like-count">{{ post.like_count }}</span>
+                        </button>
+                    </form>
+                    <button class="action-btn-small toggle-comment-btn" data-target="comment-section-{{ post.id }}">
+                        <i class="far fa-comment"></i> <span class="comment-count">{{ post.comment_count }}</span>
+                    </button>
                 </div>
+            </div>
+            <!-- Inline comment -->
+            <div class="inline-comment-section" id="comment-section-{{ post.id }}" style="display: none;">
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'blog:add_comment' post.id %}" class="list-comment-form">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" name="content" placeholder="Viết bình luận..." required minlength="5" maxlength="2000" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--warm-200); border-radius: 50px; outline: none; font-size: 0.9rem;">
+                        <button type="submit" style="background: var(--gradient-brown); color: var(--gold); border: none; border-radius: 50px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 600;">
+                            Gửi
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <p style="font-size: 0.85rem; color: var(--warm-400); margin: 0;">Vui lòng <a href="{% url 'users:login' %}?next={{ request.path }}" style="color:var(--amber-500);font-weight:700;">đăng nhập</a> để bình luận.</p>
+                {% endif %}
             </div>
         </div>
     </article>
@@ -289,10 +329,34 @@
                     <span class="author-name">{{ post.author.first_name|default:post.author.username }}</span>
                 </div>
                 <div class="post-stats">
-                    <span><i class="far fa-eye"></i> {{ post.view_count }}</span>
-                    <span><i class="far fa-heart"></i> {{ post.like_count }}</span>
-                    <span><i class="far fa-comment"></i> {{ post.comment_count }}</span>
+                    <span title="Lượt xem"><i class="far fa-eye"></i> {{ post.view_count }}</span>
+                    <form action="{% url 'blog:toggle_like' post.id %}" method="POST" class="list-like-form" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn-small {% if post.is_liked_by_user %}active{% endif %}">
+                            <i class="{% if post.is_liked_by_user %}fas{% else %}far{% endif %} fa-heart"></i>
+                            <span class="like-count">{{ post.like_count }}</span>
+                        </button>
+                    </form>
+                    <button class="action-btn-small toggle-comment-btn" data-target="comment-section-{{ post.id }}">
+                        <i class="far fa-comment"></i> <span class="comment-count">{{ post.comment_count }}</span>
+                    </button>
                 </div>
+            </div>
+            <!-- Inline comment -->
+            <div class="inline-comment-section" id="comment-section-{{ post.id }}" style="display: none;">
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'blog:add_comment' post.id %}" class="list-comment-form">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" name="content" placeholder="Viết bình luận..." required maxlength="2000" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--warm-200); border-radius: 50px; outline: none; font-size: 0.9rem;">
+                        <button type="submit" style="background: var(--gradient-brown); color: var(--gold); border: none; border-radius: 50px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 600;">
+                            Gửi
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <p style="font-size: 0.85rem; color: var(--warm-400); margin: 0;">Vui lòng <a href="{% url 'users:login' %}?next={{ request.path }}" style="color:var(--amber-500);font-weight:700;">đăng nhập</a> để bình luận.</p>
+                {% endif %}
             </div>
         </div>
     </article>
@@ -342,4 +406,118 @@
 </div>
 {% endif %}
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Determine CSRF token getter based on the project's setup
+    const getCSRF = () => {
+        if(typeof window.getCSRFToken === 'function') return window.getCSRFToken();
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfInput ? csrfInput.value : '';
+    };
+
+    const csrftoken = getCSRF();
+
+    // Toggle like inline
+    document.querySelectorAll('.list-like-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('.action-btn-small');
+            const countSpan = btn.querySelector('.like-count');
+            const icon = btn.querySelector('i');
+            const formData = new FormData(this);
+
+            const isLiked = btn.classList.contains('active');
+            const currentCount = parseInt(countSpan.textContent) || 0;
+
+            // Optimistic UI update
+            btn.classList.toggle('active', !isLiked);
+            icon.className = !isLiked ? 'fas fa-heart' : 'far fa-heart';
+            countSpan.textContent = isLiked ? currentCount - 1 : currentCount + 1;
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrftoken },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.liked !== undefined) {
+                    btn.classList.toggle('active', data.liked);
+                    icon.className = data.liked ? 'fas fa-heart' : 'far fa-heart';
+                    countSpan.textContent = data.like_count;
+                }
+            }).catch(err => {
+                // Revert
+                btn.classList.toggle('active', isLiked);
+                icon.className = isLiked ? 'fas fa-heart' : 'far fa-heart';
+                countSpan.textContent = currentCount;
+                if(typeof showToast === 'function') showToast('error', 'Lỗi', 'Không thể thích bài viết.');
+            });
+        });
+    });
+
+    // Toggle comment section
+    document.querySelectorAll('.toggle-comment-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target');
+            const target = document.getElementById(targetId);
+            if(target) {
+                target.style.display = target.style.display === 'none' ? 'block' : 'none';
+                if(target.style.display === 'block') {
+                    const input = target.querySelector('input[type="text"]');
+                    if(input) input.focus();
+                }
+            }
+        });
+    });
+
+    // Submit comment inline
+    document.querySelectorAll('.list-comment-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const content = formData.get('content').trim();
+            if (!content) return;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '...';
+            submitBtn.disabled = true;
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrftoken },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                if (data.success) {
+                    this.reset();
+                    if(typeof showToast === 'function') showToast('success', 'Thành công!', 'Bình luận đã được đăng.');
+                    // Hide section
+                    this.closest('.inline-comment-section').style.display = 'none';
+                    // Increment count UI
+                    const container = this.closest('.post-card-featured') || this.closest('.post-card');
+                    if(container) {
+                        const countSpan = container.querySelector('.comment-count');
+                        if(countSpan) countSpan.textContent = (parseInt(countSpan.textContent) || 0) + 1;
+                    }
+                } else {
+                    if(typeof showToast === 'function') showToast('error', 'Lỗi', data.error || 'Có lỗi xảy ra.');
+                }
+            }).catch(err => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                if(typeof showToast === 'function') showToast('error', 'Lỗi', 'Không thể gửi bình luận.');
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

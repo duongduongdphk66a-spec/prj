@@ -9,7 +9,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count, Avg, Prefetch
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods, require_POST
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView, UpdateView, CreateView
@@ -76,18 +76,28 @@ def register_view(request):
     return render(request, 'users/register.html', {'form': form})
 
 def login_view(request):
-    """Đăng nhập với hỗ trợ email và tracking"""
+    """Đăng nhập với hỗ trợ email, tracking và rate limiting"""
     if request.user.is_authenticated:
         return redirect('users:dashboard')
+    
+    ip_address = get_client_ip(request)
+    cache_key = f'login_attempts_{ip_address}'
+    attempts = cache.get(cache_key, 0)
+    
+    if attempts >= 5:
+        messages.error(request, 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi 15 phút trước khi thử lại.')
+        return render(request, 'users/login.html', {'form': UserLoginForm()})
     
     if request.method == 'POST':
         form = UserLoginForm(request, data=request.POST)
         if form.is_valid():
+            # Đăng nhập thành công, xóa cache số lần thử
+            cache.delete(cache_key)
+            
             user = form.get_user()
             login(request, user)
             
             # Ghi log đăng nhập
-            ip_address = get_client_ip(request)
             user_agent = request.META.get('HTTP_USER_AGENT', '')
             device_info = get_user_agent_info(user_agent)
             LoginHistory.objects.create(
@@ -110,30 +120,38 @@ def login_view(request):
             messages.success(request, f'Chào mừng {user.get_full_name() or user.username}!')
             
             # Redirect đến trang được yêu cầu hoặc dashboard
-            next_url = request.GET.get('next', 'users:dashboard')
+            # Validate next URL để chống Open Redirect
+            next_url = request.GET.get('next', '')
+            if not next_url or not url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
+                next_url = 'users:dashboard'
             return redirect(next_url)
         else:
-            # Ghi log đăng nhập thất bại
+            # Ghi log đăng nhập thất bại và tăng bộ đếm
+            cache.set(cache_key, attempts + 1, timeout=900)  # timeout 15 phút
+            
             username = request.POST.get('username', '')
             if username:
                 try:
                     user = User.objects.get(Q(username=username) | Q(email=username))
                     LoginHistory.objects.create(
-                        user=user, ip_address=get_client_ip(request),
+                        user=user, ip_address=ip_address,
                         user_agent=request.META.get('HTTP_USER_AGENT', ''),
                         is_successful=False
                     )
                 except User.DoesNotExist:
                     pass
-            messages.error(request, 'Thông tin đăng nhập không đúng.')
+            messages.error(request, f'Thông tin đăng nhập không đúng. Bạn còn {4 - attempts} lần thử lại.')
     else:
         form = UserLoginForm()
     
     return render(request, 'users/login.html', {'form': form})
 
 @login_required
+@require_POST
 def logout_view(request):
-    """Đăng xuất với thông báo"""
+    """Đăng xuất với thông báo — chỉ cho phép POST để chống CSRF logout attack"""
     username = request.user.username
     logout(request)
     messages.success(request, f'Đã đăng xuất thành công. Tạm biệt {username}!')
@@ -300,12 +318,12 @@ class UserListView(ListView):
     def get_queryset(self):
         queryset = User.objects.select_related('profile').filter(is_active=True)
         
-        # Tìm kiếm
+        # Tìm kiếm — không cho tìm theo email để chống email harvesting
         search = self.request.GET.get('search', '').strip()
         if search:
             queryset = queryset.filter(
                 Q(username__icontains=search) | Q(first_name__icontains=search) | 
-                Q(last_name__icontains=search) | Q(email__icontains=search) |
+                Q(last_name__icontains=search) |
                 Q(profile__city__icontains=search) | Q(profile__occupation__icontains=search)
             )
         
@@ -386,7 +404,7 @@ def resend_verification(request):
     return redirect('users:profile')
 
 def password_reset_request(request):
-    """Yêu cầu reset mật khẩu"""
+    """Yêu cầu reset mật khẩu — không tiết lộ email có tồn tại hay không"""
     if request.method == 'POST':
         form = CustomPasswordResetForm(request.POST)
         if form.is_valid():
@@ -409,11 +427,15 @@ def password_reset_request(request):
                         'user': user, 'reset_url': reset_url
                     })
                 )
-                messages.success(request, 'Đã gửi hướng dẫn đặt lại mật khẩu qua email.')
-                return redirect('users:login')
+            except User.DoesNotExist:
+                # SECURITY: Không tiết lộ email có tồn tại hay không
+                pass
             except Exception as e:
                 logger.error(f"Password reset error: {e}")
-                messages.error(request, 'Có lỗi xảy ra khi gửi email.')
+            
+            # Luôn hiển thị thông báo thành công dù email có tồn tại hay không
+            messages.success(request, 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.')
+            return redirect('users:login')
     else:
         form = CustomPasswordResetForm()
     
@@ -433,16 +455,34 @@ def ajax_profile_stats(request):
     }
     return JsonResponse(data)
 
+# --- Constants cho file upload validation ---
+ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2MB
+
 @login_required
 @require_POST
 def ajax_update_avatar(request):
-    """Cập nhật avatar qua AJAX"""
+    """Cập nhật avatar qua AJAX — có validate file type và size"""
     if 'avatar' not in request.FILES:
         return JsonResponse({'error': 'Không có file được tải lên'}, status=400)
     
+    avatar_file = request.FILES['avatar']
+    
+    # Validate file type
+    if avatar_file.content_type not in ALLOWED_AVATAR_TYPES:
+        return JsonResponse(
+            {'error': 'Chỉ chấp nhận ảnh JPEG, PNG, WebP hoặc GIF.'}, status=400
+        )
+    
+    # Validate file size
+    if avatar_file.size > MAX_AVATAR_SIZE:
+        return JsonResponse(
+            {'error': 'File ảnh quá lớn. Kích thước tối đa là 2MB.'}, status=400
+        )
+    
     try:
         profile = request.user.profile
-        profile.avatar = request.FILES['avatar']
+        profile.avatar = avatar_file
         profile.save()
         
         return JsonResponse({

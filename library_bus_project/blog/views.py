@@ -70,6 +70,13 @@ class PostListView(ListView):
         elif sort == 'oldest': queryset = queryset.order_by('publish_date')
         else: queryset = queryset.order_by('-publish_date')
         
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                is_liked_by_user=models.Exists(
+                    PostLike.objects.filter(post=models.OuterRef('pk'), user=self.request.user)
+                )
+            )
+        
         return queryset
     
     def get_context_data(self, **kwargs):
@@ -480,7 +487,11 @@ def add_comment(request, post_id):
         comment_html = render_to_string('blog/partials/comment.html', {'comment': comment}, request=request)
         return JsonResponse({'success': True, 'comment_html': comment_html})
     
-    return JsonResponse({'error': 'Invalid comment data'}, status=400)
+    error_msg = 'Dữ liệu bình luận không hợp lệ.'
+    if form.errors:
+        error_msg = list(form.errors.values())[0][0]
+        
+    return JsonResponse({'error': error_msg, 'details': form.errors}, status=400)
 
 # ========== SEARCH VIEWS ==========
 class SearchView(ListView):

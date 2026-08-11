@@ -552,16 +552,29 @@
 <section class="cta-section">
     <div class="container">
         <div class="cta-content scroll-reveal">
-            <h2>Sẵn sàng khám phá?</h2>
-            <p>Tham gia cộng đồng hơn 50.000 độc giả đang trải nghiệm dịch vụ thư viện lưu động hàng đầu Việt Nam.</p>
-            <div class="hero-buttons">
-                <a href="{% url 'users:register' %}" class="btn-hero primary">
-                    <i class="fas fa-user-plus"></i> Đăng ký miễn phí
-                </a>
-                <a href="{% url 'about' %}" class="btn-hero secondary">
-                    <i class="fas fa-info-circle"></i> Tìm hiểu thêm
-                </a>
-            </div>
+            {% if request.user.is_authenticated %}
+                <h2>Tiếp tục trải nghiệm!</h2>
+                <p>Khám phá kho sách khổng lồ hoặc kiểm tra các hoạt động gần đây tại bảng điều khiển của bạn.</p>
+                <div class="hero-buttons">
+                    <a href="{% url 'inventory:book_list' %}" class="btn-hero primary">
+                        <i class="fas fa-search"></i> Tra cứu sách
+                    </a>
+                    <a href="{% url 'users:dashboard' %}" class="btn-hero secondary">
+                        <i class="fas fa-columns"></i> Vào Dashboard
+                    </a>
+                </div>
+            {% else %}
+                <h2>Sẵn sàng khám phá?</h2>
+                <p>Tham gia cộng đồng hơn 50.000 độc giả đang trải nghiệm dịch vụ thư viện lưu động hàng đầu Việt Nam.</p>
+                <div class="hero-buttons">
+                    <a href="{% url 'users:register' %}" class="btn-hero primary">
+                        <i class="fas fa-user-plus"></i> Đăng ký miễn phí
+                    </a>
+                    <a href="{% url 'about' %}" class="btn-hero secondary">
+                        <i class="fas fa-info-circle"></i> Tìm hiểu thêm
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </section>

@@ -285,7 +285,7 @@ class BusAnalytics(TimestampedModel):
                 .values(
                     'bus__id',
                     'bus__name',
-                    'bus__route',
+                    'bus__location_name',
                     'efficiency_score',
                     'total_visits',
                     'total_borrows'

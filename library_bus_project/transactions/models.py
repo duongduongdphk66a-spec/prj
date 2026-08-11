@@ -71,7 +71,9 @@ class BorrowRecord(SoftDeleteModel): # CẬP NHẬT: Kế thừa từ SoftDelete
     def days_overdue(self): return max(0, (timezone.now().date() - self.due_date).days) if self.is_overdue else 0
     
     @cached_property
-    def fine_amount(self): return Decimal('5000') * self.days_overdue if self.is_overdue else Decimal('0')
+    def fine_amount(self): 
+        from transactions.services import TransactionService
+        return TransactionService.calculate_fine(self)
     
     @cached_property
     def can_renew(self): return self.renewal_count < 2 and not self.is_overdue and not self.book.reservations.filter(is_fulfilled=False).exists()
@@ -128,8 +130,9 @@ class BookReservation(TimestampedModel):
     def __str__(self): return f"{self.user.username} - {self.book.title} (#{self.queue_position})"
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.expires_date: self.expires_date = timezone.now().date() + datetime.timedelta(days=7)
-        if not self.pk: self.queue_position = (self.book.reservations.filter(is_fulfilled=False).aggregate(max_pos=models.Max('queue_position'))['max_pos'] or 0) + 1
+        is_new = self._state.adding
+        if is_new and not self.expires_date: self.expires_date = timezone.now().date() + datetime.timedelta(days=7)
+        if is_new: self.queue_position = (self.book.reservations.filter(is_fulfilled=False).aggregate(max_pos=models.Max('queue_position'))['max_pos'] or 0) + 1
         super().save(*args, **kwargs)
 
     def fulfill(self):

@@ -254,7 +254,7 @@ def update_user_streaks_task():
         
         # Lấy users có hoạt động hôm qua
         active_users = User.objects.filter(
-            borrow_records__borrow_date__date=yesterday
+            borrow_records__borrow_date=yesterday
         ).distinct()
         
         # Cập nhật streak cho users active

@@ -244,4 +244,113 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.book-form');
+    if (!form) return;
+    
+    // 1. Cover Image Preview
+    const coverInput = document.getElementById('{{ form.cover_image.id_for_label }}');
+    if (coverInput) {
+        coverInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let preview = document.getElementById('cover-preview-img');
+                    if (!preview) {
+                        const previewContainer = document.createElement('div');
+                        previewContainer.className = 'book-form-preview';
+                        previewContainer.style.marginTop = '15px';
+                        previewContainer.innerHTML = `
+                            <div class="book-form-preview-image">
+                                <img id="cover-preview-img" src="${e.target.result}" alt="Preview">
+                            </div>
+                            <div class="book-form-meta">
+                                <strong>Ảnh đã chọn</strong>
+                            </div>
+                        `;
+                        coverInput.closest('.book-form-group').appendChild(previewContainer);
+                    } else {
+                        preview.src = e.target.result;
+                    }
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    // 2. AJAX Submission to preserve files on validation errors
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        submitBtn.disabled = true;
+        
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.redirected) {
+                // Success! Redirected to book list or detail
+                window.location.href = response.url;
+                return;
+            }
+            
+            // Validation failed, parse HTML to extract errors
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Clear current errors
+            document.querySelectorAll('.book-form-errors').forEach(el => el.remove());
+            
+            const newForm = doc.querySelector('.book-form');
+            if (newForm) {
+                // Restore top level errors
+                const topErrors = Array.from(newForm.children).filter(node => 
+                    node.classList.contains('book-form-errors')
+                );
+                topErrors.forEach(err => {
+                    form.insertBefore(err.cloneNode(true), form.querySelector('.book-form-section'));
+                });
+                
+                // Restore field level errors
+                newForm.querySelectorAll('.book-form-group').forEach(newGroup => {
+                    const error = newGroup.querySelector('.book-form-errors');
+                    if (error) {
+                        const label = newGroup.querySelector('label');
+                        if (label) {
+                            const inputId = label.getAttribute('for');
+                            if (inputId) {
+                                const currentLabel = form.querySelector(`label[for="${inputId}"]`);
+                                if (currentLabel) {
+                                    currentLabel.closest('.book-form-group').appendChild(error.cloneNode(true));
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                if (window.showToast) {
+                    showToast('error', 'Lỗi', 'Vui lòng kiểm tra lại các trường có lỗi.');
+                }
+            } else {
+                if (window.showToast) showToast('error', 'Lỗi', 'Lỗi máy chủ!');
+            }
+        } catch (err) {
+            console.error(err);
+            if (window.showToast) showToast('error', 'Lỗi', 'Không thể kết nối đến máy chủ.');
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -38,7 +38,7 @@ class UserNotification(TimestampedModel):
     
     # Optional Relations
     related_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    related_object_id = models.PositiveIntegerField(null=True, blank=True)
+    related_object_id = models.CharField(max_length=255, null=True, blank=True)
     related_object = GenericForeignKey('related_content_type', 'related_object_id')
     
     objects = NotificationManager()

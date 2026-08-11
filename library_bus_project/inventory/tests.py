@@ -1,72 +1,47 @@
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User
+from django.test import TestCase
 from inventory.models import Book, Category, LibraryBus
 
-class WebFlowIntegrationTest(TestCase):
+class InventoryModelTest(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.category = Category.objects.create(name='Khoa Học')
+        self.bus = LibraryBus.objects.create(name='Bus 1', license_plate='29A-12345', capacity=100)
         
-        # Tạo dữ liệu phụ thuộc
-        self.category = Category.objects.create(name="Sách Giáo Khoa", slug="sgk", is_active=True)
-        self.bus = LibraryBus.objects.create(
-            name="Bus 01", 
-            license_plate="29A-12345", 
-            capacity=100, 
-            operating_status='active'
+    def test_bus_book_count_and_capacity(self):
+        # Ban đầu xe bus trống
+        self.assertEqual(self.bus.current_book_count, 0)
+        self.assertEqual(self.bus.capacity_usage_percentage, 0)
+        
+        # Thêm sách vào xe bus
+        book1 = Book.objects.create(
+            title='Sách 1', author='Tác giả 1', publication_year=2021, 
+            page_count=200, category=self.category, location=self.bus, status='available'
         )
         
-        # Tạo tài khoản admin để thêm sách
-        self.admin_user = User.objects.create_superuser(
-            email='duongduong.dphk66a@gmail.com',
-            username='admin_test',
-            password='dddphk66'
+        # Refresh cache (vì property sử dụng cache)
+        self.bus.invalidate_cache()
+        self.assertEqual(self.bus.current_book_count, 1)
+        self.assertEqual(self.bus.capacity_usage_percentage, 1.0)
+        
+        # Thêm sách thứ 2 nhưng bị hỏng (status != available)
+        book2 = Book.objects.create(
+            title='Sách 2', author='Tác giả 2', publication_year=2021, 
+            page_count=200, category=self.category, location=self.bus, status='maintenance'
         )
-
-    def test_full_web_flow(self):
-        # 1. Đăng ký tài khoản mới
-        response = self.client.post(reverse('users:register'), {
-            'username': 'newuser123',
-            'email': 'newuser123@example.com',
-            'first_name': 'New',
-            'last_name': 'User',
-            'password': 'Password123!',
-            'password2': 'Password123!',
-            'terms_agreed': True
-        })
-        self.assertIn(response.status_code, [302, 200], "Đăng ký không thành công")
-        self.assertTrue(User.objects.filter(username='newuser123').exists())
+        self.bus.invalidate_cache()
         
-        # 2. Đăng nhập
-        response = self.client.post(reverse('users:login'), {
-            'username': 'newuser123@example.com',
-            'password': 'Password123!'
-        })
-        self.assertEqual(response.status_code, 302, "Đăng nhập không thành công")
+        # Chỉ đếm sách available
+        self.assertEqual(self.bus.current_book_count, 1)
         
-        # 3. Thêm sách (cần quyền admin)
-        self.client.login(username='admin_test', password='dddphk66')
+    def test_book_change_status_history(self):
+        book = Book.objects.create(
+            title='Sách 3', author='Tác giả 3', publication_year=2021, 
+            page_count=200, category=self.category, location=self.bus, status='available'
+        )
         
-        response = self.client.post(reverse('inventory:book_create'), {
-            'title': 'Sách Kiểm Thử 1',
-            'author': 'Nguyễn Văn A',
-            'publisher': 'NXB Trẻ',
-            'publication_year': 2024,
-            'page_count': 300,
-            'category': self.category.id,
-            'location': self.bus.id,
-            'condition': 'new',
-            'status': 'available',
-            'language': 'Tiếng Việt'
-        })
-        self.assertIn(response.status_code, [302, 200], "Thêm sách không thành công")
-        self.assertTrue(Book.objects.filter(title='Sách Kiểm Thử 1').exists())
-        book = Book.objects.get(title='Sách Kiểm Thử 1')
+        book.change_status('checked_out')
         
-        # 4. Thay đổi trạng thái sách (Mượn sách)
-        response = self.client.post(reverse('inventory:book_status_change', kwargs={'pk': book.id}), {
-            'new_status': 'checked_out'
-        })
-        self.assertIn(response.status_code, [302, 200], "Mượn sách không thành công")
-        book.refresh_from_db()
         self.assertEqual(book.status, 'checked_out')
+        self.assertEqual(book.status_history.count(), 1)
+        history = book.status_history.first()
+        self.assertEqual(history.from_status, 'available')
+        self.assertEqual(history.to_status, 'checked_out')

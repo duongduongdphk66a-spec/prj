@@ -154,6 +154,9 @@ else:
     SESSION_CACHE_ALIAS = "default"
 
 SESSION_COOKIE_AGE = 86400  # 24 giờ
+SESSION_COOKIE_HTTPONLY = True  # Ngăn JavaScript truy cập session cookie
+CSRF_COOKIE_HTTPONLY = True     # Ngăn JavaScript truy cập CSRF cookie
+X_FRAME_OPTIONS = 'DENY'        # Chống clickjacking
 
 
 # --- CELERY SETTINGS ---
@@ -201,7 +204,14 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 
-# --- PASSWORD VALIDATION ---
+# --- PASSWORD VALIDATION & HASHING ---
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -321,11 +331,14 @@ LOGGING = {
 # --- PRODUCTION SECURITY ---
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'

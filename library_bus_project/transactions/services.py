@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.db.models import Q, F, Count, Sum, Max, Avg 
+from django.db.models import Q, F, Count, Sum, Max, Avg
+from django.db.models.functions import TruncDate
 from django.core.cache import cache
 from inventory.models import Book, LibraryBus
 from notifications.models import UserNotification
@@ -52,6 +53,10 @@ class TransactionService:
             if borrow.return_date:
                 raise ValidationError("Sách đã được trả trước đó")
             
+            # Tính phạt trước khi gán return_date
+            needs_fine = borrow.is_overdue
+            fine_amount = borrow.fine_amount
+
             borrow.return_date = timezone.now().date()
             borrow.return_location = return_location
             if condition_notes:
@@ -62,8 +67,8 @@ class TransactionService:
             borrow.book.change_status('available', user=returned_by)
             
             # Create fine payment if overdue
-            if borrow.is_overdue and borrow.fine_amount > 0:
-                FinePayment.objects.get_or_create(borrow_record=borrow, defaults={'amount': borrow.fine_amount, 'processed_by': returned_by})
+            if needs_fine and fine_amount > 0:
+                FinePayment.objects.get_or_create(borrow_record=borrow, defaults={'amount': fine_amount, 'processed_by': returned_by})
             
             # Clear cache
             cache.delete(f'user_active_borrows_{borrow.user.id}')
@@ -92,16 +97,20 @@ class TransactionService:
     @staticmethod
     def create_reservation(user: User, book: Book, preferred_location: Optional[LibraryBus] = None) -> BookReservation:
         """Tạo đặt trước sách"""
-        if book.is_available:
-            raise ValidationError("Sách đang có sẵn, không cần đặt trước")
-        
-        existing = BookReservation.objects.filter(user=user, book=book, is_fulfilled=False).first()
-        if existing:
-            raise ValidationError("Bạn đã đặt trước sách này rồi")
-        
-        reservation = BookReservation.objects.create(user=user, book=book, preferred_pickup_location=preferred_location)
-        logger.info(f"Tạo đặt trước: {user.username} - {book.title} (vị trí #{reservation.queue_position})")
-        return reservation
+        with transaction.atomic():
+            # Lock the book to prevent race conditions on queue_position
+            locked_book = Book.objects.select_for_update().get(pk=book.pk)
+            
+            if locked_book.is_available:
+                raise ValidationError("Sách đang có sẵn, không cần đặt trước")
+            
+            existing = BookReservation.objects.filter(user=user, book=locked_book, is_fulfilled=False).first()
+            if existing:
+                raise ValidationError("Bạn đã đặt trước sách này rồi")
+            
+            reservation = BookReservation.objects.create(user=user, book=locked_book, preferred_pickup_location=preferred_location)
+            logger.info(f"Tạo đặt trước: {user.username} - {locked_book.title} (vị trí #{reservation.queue_position})")
+            return reservation
 
     @staticmethod
     def cancel_reservation(reservation_id: int) -> bool:
@@ -343,28 +352,6 @@ Ghi chú: {shipping_request.delivery_notes}"""
         except Exception as e:
             logger.error(f"Lỗi gửi thông báo web cho admin: {e}")
             return False
-                
-            subject = f'Yêu cầu giao sách mới: {shipping_request.book.title}'
-            message = f'''Xin chào Admin,
-
-Có một yêu cầu giao sách mới trên hệ thống:
-- Người yêu cầu: {shipping_request.user.username}
-- Sách: {shipping_request.book.title}
-- Ngày yêu cầu: {shipping_request.created_at.strftime("%d/%m/%Y %H:%M") if hasattr(shipping_request, "created_at") else ""}
-
-Thông tin giao hàng:
-- Người nhận: {shipping_request.recipient_name}
-- SĐT: {shipping_request.phone_number}
-- Địa chỉ: {shipping_request.shipping_address}
-- Ghi chú: {shipping_request.delivery_notes}
-
-Vui lòng đăng nhập hệ thống để duyệt yêu cầu này.
-'''
-            send_mail(subject=subject, message=message, from_email='library@system.com', recipient_list=admin_emails, fail_silently=False)
-            return True
-        except Exception as e:
-            logger.error(f"Lỗi gửi thông báo cho admin: {e}")
-            return False
 
     @staticmethod
     def send_shipping_update(shipping_request: ShippingRequest) -> bool:
@@ -422,7 +409,7 @@ class AnalyticsService:
     def get_borrowing_trends(days: int = 30) -> Dict[str, Any]:
         """Xu hướng mượn sách"""
         start_date = timezone.now().date() - timedelta(days=days)
-        daily_borrows = BorrowRecord.objects.filter(borrow_date__gte=start_date).extra(select={'day': 'date(borrow_date)'}).values('day').annotate(count=Count('id')).order_by('day')
+        daily_borrows = BorrowRecord.objects.filter(borrow_date__gte=start_date).annotate(day=TruncDate('borrow_date')).values('day').annotate(count=Count('id')).order_by('day')
         
         return {'period_days': days, 'daily_borrows': list(daily_borrows), 'peak_day': max(daily_borrows, key=lambda x: x['count']) if daily_borrows else None, 'average_per_day': sum(item['count'] for item in daily_borrows) / len(daily_borrows) if daily_borrows else 0}
 

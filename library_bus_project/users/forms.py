@@ -152,6 +152,7 @@ class ProfileUpdateForm(forms.ModelForm):
             'preferred_language': 'Ngôn ngữ'
         }
         widgets = {
+            'avatar': forms.FileInput(attrs={'class': 'd-none', 'accept': 'image/*'}),
             'bio': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'maxlength': '300'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control', 'pattern': r'^(\+84|0)[0-9]{9,10}$'}),
             'gender': forms.Select(attrs={'class': 'form-control'}),
@@ -288,8 +289,7 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email', '').strip().lower()
-        if not User.objects.filter(email__iexact=email).exists():
-            raise ValidationError('Email không tồn tại trong hệ thống.')
+        # SECURITY: Không tiết lộ email có tồn tại hay không để chống user enumeration
         return email
 
 # Forms nâng cao cho admin

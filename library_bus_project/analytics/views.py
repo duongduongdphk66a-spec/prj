@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView, TemplateView
 from django.utils.decorators import method_decorator
 from datetime import datetime, timedelta
-from django.db.models.functions import Extract
+from django.db.models.functions import Extract, TruncDate
 from .models import (
     UserReadingStats, BookAnalytics, BusAnalytics, UserActivity, 
     BookRecommendation, DailyStats, get_user_stats_summary, get_book_stats_summary, get_system_health
@@ -296,7 +296,7 @@ class BookDetailAnalyticsView(CacheAwareMixin, DetailView):
         return UserActivity.objects.filter(
             book=book, activity_type='borrow',
             created_at__date__gte=thirty_days_ago
-        ).extra(select={'date': 'DATE(created_at)'}) \
+        ).annotate(date=TruncDate('created_at')) \
          .values('date') \
          .annotate(borrows=Count('id')) \
          .order_by('date')

@@ -7,7 +7,6 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Count, Avg, Prefetch
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -154,17 +153,29 @@ class LibraryBusUpdateView(AdminRequiredMixin, UpdateView):
 
 @staff_required
 @login_required
+@require_http_methods(["POST"])
 def bus_location_update(request, pk):
-    """Cập nhật vị trí xe bus qua AJAX"""
-    if request.method == 'POST':
-        bus = get_object_or_404(LibraryBus, pk=pk)
+    """Cập nhật vị trí xe bus qua AJAX — có validate input"""
+    bus = get_object_or_404(LibraryBus, pk=pk)
+    try:
         data = json.loads(request.body)
-        bus.latitude = data.get('latitude')
-        bus.longitude = data.get('longitude')
-        bus.location_name = data.get('location_name', '')
-        bus.save()
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Dữ liệu không hợp lệ'}, status=400)
+    
+    # Validate latitude và longitude
+    try:
+        lat = float(data.get('latitude', 0))
+        lng = float(data.get('longitude', 0))
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            return JsonResponse({'status': 'error', 'message': 'Tọa độ không hợp lệ'}, status=400)
+    except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Tọa độ phải là số'}, status=400)
+    
+    bus.latitude = lat
+    bus.longitude = lng
+    bus.location_name = str(data.get('location_name', ''))[:200]  # Limit length
+    bus.save(update_fields=['latitude', 'longitude', 'location_name'])
+    return JsonResponse({'status': 'success'})
 
 # Category Views
 class CategoryListView(AdminRequiredMixin, ListView):
@@ -610,7 +621,7 @@ def api_chatbot(request):
         
     except Exception as e:
         logger.error(f"Chatbot API error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Có lỗi xảy ra, vui lòng thử lại sau.'}, status=500)
 
 
 # Export Views
@@ -758,6 +769,7 @@ def donation_status_change(request, pk):
 
 from django.http import JsonResponse
 
+@login_required
 def autocomplete_books(request):
     query = request.GET.get('q', '')
     if len(query) >= 2:
