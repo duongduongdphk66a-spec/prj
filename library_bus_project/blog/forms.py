@@ -76,6 +76,11 @@ class PostForm(forms.ModelForm):
         if not content:
             raise ValidationError("Nội dung không được để trống.")
         
+        import bleach
+        allowed_tags = ['p', 'b', 'i', 'u', 'em', 'strong', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br', 'img', 'blockquote', 'pre', 'code']
+        allowed_attributes = {'*': ['class', 'style'], 'a': ['href', 'title', 'target'], 'img': ['src', 'alt', 'width', 'height']}
+        content = bleach.clean(content, tags=allowed_tags, attributes=allowed_attributes, styles=['color', 'text-align', 'font-weight'])
+        
         clean_content = strip_tags(content).strip()
         if len(clean_content) < 100:
             raise ValidationError("Nội dung phải có ít nhất 100 ký tự (không tính thẻ HTML).")
@@ -186,6 +191,15 @@ class QuickPostForm(forms.ModelForm):
         
         # Giới hạn categories cho form nhanh
         self.fields['categories'].queryset = BlogCategory.objects.filter(is_featured=True).order_by('sort_order')
+
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if content:
+            import bleach
+            allowed_tags = ['p', 'b', 'i', 'u', 'em', 'strong', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br', 'img', 'blockquote', 'pre', 'code']
+            allowed_attributes = {'*': ['class', 'style'], 'a': ['href', 'title', 'target'], 'img': ['src', 'alt', 'width', 'height']}
+            return bleach.clean(content, tags=allowed_tags, attributes=allowed_attributes, styles=['color', 'text-align', 'font-weight'])
+        return content
 
     def save(self, commit=True):
         instance = super().save(commit=False)

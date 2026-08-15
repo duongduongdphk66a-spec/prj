@@ -102,7 +102,7 @@ class BaseManager(models.Manager):
     def active(self): return self.get_queryset().active()
     def recent(self, days=30): return self.get_queryset().recent(days)
 
-class TimestampedModel(models.Model, CacheMixin): 
+class TimestampedModel(CacheMixin, models.Model):
     """Base model với UUID và timestamps. Tất cả các model khác kế thừa từ đây sẽ có chức năng cache."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name="Ngày tạo")

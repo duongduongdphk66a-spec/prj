@@ -12,6 +12,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.cache import cache_page
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -90,6 +91,7 @@ class AdminLibraryBusListView(AdminRequiredMixin, ListView):
         context['active_buses'] = LibraryBus.objects.filter(operating_status='active').count()
         return context
 
+@method_decorator(cache_page(60 * 5), name='dispatch')
 class LibraryBusListView(LoginRequiredMixin, ListView):
     model = LibraryBus
     template_name = 'inventory/bus_list.html'
@@ -354,7 +356,8 @@ def book_status_change(request, pk):
                 book.change_status(new_status, user=request.user)
                 messages.success(request, f'Trạng thái sách đã được thay đổi thành "{book.get_status_display()}"')
         except Exception as e:
-            messages.error(request, f'Lỗi khi thay đổi trạng thái: {str(e)}')
+            logger.error(f'Lỗi khi thay đổi trạng thái sách {pk}: {e}')
+            messages.error(request, 'Có lỗi xảy ra khi thay đổi trạng thái. Vui lòng thử lại.')
     else:
         messages.error(request, 'Dữ liệu không hợp lệ')
     
@@ -693,10 +696,11 @@ def book_pdf_viewer(request, pk):
     
     return render(request, 'inventory/pdf_viewer.html', {'book': book})
 
+@require_http_methods(["POST"])
 @staff_required
 @login_required
 def clear_cache(request):
-    """Xóa cache"""
+    """Xóa cache — chỉ cho phép POST để chống CSRF attack"""
     cache.clear()
     messages.success(request, 'Cache đã được xóa')
     return redirect('inventory:dashboard')

@@ -30,7 +30,8 @@ class TransactionService:
             if not book.is_available:
                 raise ValidationError(f"Sách '{book.title}' không khả dụng để mượn")
             
-            # Check user borrow limit
+            # Check user borrow limit (lock user to prevent TOCTOU race conditions)
+            User.objects.select_for_update().get(pk=user.pk)
             active_count = BorrowRecord.objects.filter(user=user, return_date__isnull=True).count()
             if hasattr(user, 'profile') and active_count >= getattr(user.profile, 'borrow_limit', 5):
                 raise ValidationError(f"Người dùng đã đạt giới hạn mượn sách ({active_count} cuốn)")

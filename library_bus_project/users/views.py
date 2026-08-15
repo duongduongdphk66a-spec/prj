@@ -389,13 +389,21 @@ def verify_email(request, uidb64, token):
 
 @login_required
 def resend_verification(request):
-    """Gửi lại email xác thực"""
+    """Gửi lại email xác thực — có rate limiting"""
     if request.user.profile.is_verified:
         messages.info(request, 'Tài khoản đã được xác thực.')
         return redirect('users:profile')
     
+    # Rate limiting — tối đa 3 lần mỗi 15 phút
+    cache_key = f'resend_verify_{request.user.id}'
+    attempts = cache.get(cache_key, 0)
+    if attempts >= 3:
+        messages.warning(request, 'Bạn đã gửi quá nhiều lần. Vui lòng đợi 15 phút.')
+        return redirect('users:profile')
+    
     try:
         send_verification_email(request.user)
+        cache.set(cache_key, attempts + 1, timeout=900)
         messages.success(request, 'Đã gửi lại email xác thực.')
     except Exception as e:
         logger.error(f"Resend verification error: {e}")
@@ -462,7 +470,7 @@ MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2MB
 @login_required
 @require_POST
 def ajax_update_avatar(request):
-    """Cập nhật avatar qua AJAX — có validate file type và size"""
+    """Cập nhật avatar qua AJAX — có validate file type, size, và magic bytes"""
     if 'avatar' not in request.FILES:
         return JsonResponse({'error': 'Không có file được tải lên'}, status=400)
     
@@ -478,6 +486,17 @@ def ajax_update_avatar(request):
     if avatar_file.size > MAX_AVATAR_SIZE:
         return JsonResponse(
             {'error': 'File ảnh quá lớn. Kích thước tối đa là 2MB.'}, status=400
+        )
+    
+    # Validate file content (magic bytes) — chống upload file giả mạo content_type
+    try:
+        from PIL import Image
+        img = Image.open(avatar_file)
+        img.verify()
+        avatar_file.seek(0)  # Reset file pointer sau verify
+    except Exception:
+        return JsonResponse(
+            {'error': 'File không phải ảnh hợp lệ. Vui lòng chọn file ảnh thật.'}, status=400
         )
     
     try:
@@ -569,7 +588,14 @@ def activity_history(request):
 
 @login_required
 def export_profile_data(request):
-    """Xuất dữ liệu profile (GDPR compliance)"""
+    """Xuất dữ liệu profile (GDPR compliance) — có rate limiting"""
+    # Rate limiting — tối đa 1 lần mỗi 5 phút
+    cache_key = f'export_data_{request.user.id}'
+    if cache.get(cache_key):
+        messages.warning(request, 'Bạn chỉ có thể xuất dữ liệu 1 lần mỗi 5 phút.')
+        return redirect('users:profile')
+    cache.set(cache_key, True, timeout=300)
+    
     profile = request.user.profile
     data = {
         'user_info': {

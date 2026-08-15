@@ -54,9 +54,9 @@ def send_verification_email(user):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         
-        # Tạo URL xác thực (cần có domain trong settings)
-        domain = getattr(settings, 'SITE_DOMAIN', 'localhost:8000')
-        verify_url = f"http://{domain}{reverse('users:verify_email', kwargs={'uidb64': uid, 'token': token})}"
+        # Tạo URL xác thực — dùng SITE_URL để tự động dùng HTTPS trên production
+        site_url = getattr(settings, 'SITE_URL', 'http://localhost:8000')
+        verify_url = f"{site_url}{reverse('users:verify_email', kwargs={'uidb64': uid, 'token': token})}"
         
         context = {
             'user': user,

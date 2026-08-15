@@ -11,13 +11,13 @@ from django.db.models import Q, F, Count, Sum, Avg
 from django.utils.functional import cached_property
 from django.core.cache import cache
 from inventory.models import Book
-from core.models import TimestampedModel, SoftDeleteModel
+from core.models import TimestampedModel, SoftDeleteModel, BaseQuerySet, SoftDeleteManager
 
 # --- SERVICE LAYER ---
 # TransactionService đã được chuyển sang transactions/services.py
 # Import khi cần: from transactions.services import TransactionService
 
-class TransactionQuerySet(models.QuerySet):
+class TransactionQuerySet(BaseQuerySet):
     """Custom QuerySet cho các transaction"""
     def active_borrows(self): return self.filter(return_date__isnull=True, is_lost=False)
     def overdue(self): return self.filter(return_date__isnull=True, due_date__lt=timezone.now().date())
@@ -27,8 +27,8 @@ class TransactionQuerySet(models.QuerySet):
     def this_month(self): return self.filter(created_at__month=timezone.now().month, created_at__year=timezone.now().year)
     def popular_books(self): return self.values('book').annotate(borrow_count=Count('id')).order_by('-borrow_count')
 
-class TransactionManager(models.Manager):
-    def get_queryset(self): return TransactionQuerySet(self.model, using=self._db)
+class TransactionManager(SoftDeleteManager):
+    def get_queryset(self): return TransactionQuerySet(self.model, using=self._db).filter(deleted_at__isnull=True)
     def active_borrows(self): return self.get_queryset().active_borrows()
     def overdue(self): return self.get_queryset().overdue()
     def get_user_stats(self, user): return self.get_queryset().by_user(user).aggregate(total=Count('id'), returned=Count('return_date'))

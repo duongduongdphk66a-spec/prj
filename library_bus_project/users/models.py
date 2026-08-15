@@ -143,8 +143,8 @@ class Profile(TimestampedModel, CacheMixin):
 
     def generate_verification_code(self):
         """Tạo mã xác thực mới"""
-        import random
-        self.verification_code = str(random.randint(100000, 999999))
+        import secrets
+        self.verification_code = str(secrets.randbelow(900000) + 100000)
         self.verification_expires = timezone.now() + timezone.timedelta(minutes=15)
         self.save(update_fields=['verification_code', 'verification_expires'])
 

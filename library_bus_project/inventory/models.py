@@ -8,14 +8,14 @@ from django.utils import timezone
 from django.db.models import F, Count, Avg, Q, Prefetch
 from django.core.cache import cache
 from django.conf import settings
-from core.models import TimestampedModel, SoftDeleteModel, CacheMixin
+from core.models import TimestampedModel, SoftDeleteModel, CacheMixin, BaseQuerySet
 from analytics.models import BookAnalytics
 from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
-class LibraryBusQuerySet(models.QuerySet):
+class LibraryBusQuerySet(BaseQuerySet):
     """Custom QuerySet cho LibraryBus với các tối ưu hoá"""
     
     def with_book_counts(self):
@@ -131,7 +131,7 @@ class LibraryBus(TimestampedModel):
         super().save(*args, **kwargs)
         self.invalidate_cache()
 
-class CategoryQuerySet(models.QuerySet):
+class CategoryQuerySet(BaseQuerySet):
     """Custom QuerySet cho Category"""
     
     def active_only(self):
@@ -192,7 +192,7 @@ class Category(TimestampedModel):
             self._book_count = count
             self.save(update_fields=['_book_count'])
 
-class BookQuerySet(models.QuerySet):
+class BookQuerySet(BaseQuerySet):
     """Custom QuerySet cho Book với nhiều tối ưu hoá"""
     
     def available(self):

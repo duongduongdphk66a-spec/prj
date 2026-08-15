@@ -5,6 +5,7 @@
 import os
 from pathlib import Path
 from django.contrib.messages import constants as messages_constants
+from django.core.exceptions import ImproperlyConfigured
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
@@ -16,9 +17,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # --- SECURITY ---
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-secret-key-for-dev')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "SECRET_KEY environment variable is required. "
+        "Set it in your .env file. Generate one with: "
+        "python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
+    )
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,yourdomain.com').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # --- APPLICATION DEFINITION ---
@@ -53,16 +60,19 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # --- MIDDLEWARE ---
 # Thêm WhiteNoise (static files) và GZip (compression) cho production
+# LƯU Ý: GZipMiddleware phải ở đầu stack để nén response trước khi các middleware khác xử lý.
+# CẢNH BÁO BREACH: GZip + HTTPS có thể bị tấn công BREACH nếu response chứa secrets.
+# Django CSRF protection đã có biện pháp chống BREACH (random mask trên token).
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',                # Nén response (phải ở đầu)
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',          # Serve static files hiệu quả
+    'whitenoise.middleware.WhiteNoiseMiddleware',           # Serve static files hiệu quả
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.gzip.GZipMiddleware',                # Nén response
 ]
 
 ROOT_URLCONF = 'library_bus_project.urls'
@@ -115,7 +125,7 @@ CACHES = {
         "LOCATION": os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {"max_connections": 50},
+            "CONNECTION_POOL_KWARGS": {"max_connections": 600},
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
@@ -154,9 +164,10 @@ else:
     SESSION_CACHE_ALIAS = "default"
 
 SESSION_COOKIE_AGE = 86400  # 24 giờ
-SESSION_COOKIE_HTTPONLY = True  # Ngăn JavaScript truy cập session cookie
-CSRF_COOKIE_HTTPONLY = True     # Ngăn JavaScript truy cập CSRF cookie
+SESSION_COOKIE_HTTPONLY = True   # Ngăn JavaScript truy cập session cookie
+CSRF_COOKIE_HTTPONLY = False     # Cho phép JS đọc CSRF token (chuẩn Django cho AJAX requests)
 X_FRAME_OPTIONS = 'DENY'        # Chống clickjacking
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Chống MIME-type sniffing (bật cả dev lẫn production)
 
 
 # --- CELERY SETTINGS ---
