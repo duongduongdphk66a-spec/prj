@@ -27,4 +27,5 @@ staticfiles/
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+.idea/
+website.pdf

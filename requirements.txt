@@ -1,0 +1,45 @@
+# =============================================================================
+# Library Bus Project - Production Dependencies
+# Pinned versions for reproducible builds
+# =============================================================================
+
+# Django & Admin
+Django==5.2.4
+django-jazzmin==3.0.5
+django-rangefilter==0.9.1
+django-admin-rangefilter==0.13.3
+django-crispy-forms==2.4
+
+# Database & Cache
+mysqlclient==2.2.7
+redis==6.2.0
+django-redis==6.0.0
+hiredis==3.4.0
+
+# Asynchronous & Task Queue
+celery==5.5.3
+kombu==5.5.4
+billiard==4.2.1
+amqp==5.3.1
+
+# Static Files & Server
+whitenoise==6.12.0
+gunicorn==26.0.0
+waitress==3.0.2
+
+# Security & Utilities
+argon2-cffi==25.1.0
+python-dotenv==1.2.2
+python-dateutil==2.9.0.post0
+requests==2.32.4
+user-agents==2.2.0
+ua-parser==1.0.1
+pillow==11.3.0
+sqlparse==0.5.5
+
+# AI & LLM Integration
+google-generativeai==0.8.5
+google-ai-generativelanguage==0.6.15
+google-api-python-client==2.177.0
+google-auth==2.40.3
+google-auth-httplib2==0.2.0

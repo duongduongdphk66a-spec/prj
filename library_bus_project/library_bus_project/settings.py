@@ -264,6 +264,11 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'library@system.com')
 
 
+# --- AI & GEMINI INTEGRATION ---
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+GEMINI_MODEL_NAME = os.environ.get('GEMINI_MODEL_NAME', 'gemini-1.5-flash')
+
+
 # --- AUTHENTICATION ---
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'users:dashboard'

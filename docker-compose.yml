@@ -1,0 +1,131 @@
+# =============================================================================
+# Library Bus Project - Docker Compose Orchestration
+# Services: Django Web, MySQL 8.0, Redis 7, Celery Worker, Celery Beat
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # 1. MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: lbp_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-tsdd}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_USER: ${DB_USER:-tsdd_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-tsdd_pass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lbp_network
+
+  # 2. Redis Cache & Broker
+  redis:
+    image: redis:7-alpine
+    container_name: lbp_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lbp_network
+
+  # 3. Django Web Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lbp_web
+    restart: unless-stopped
+    env_file:
+      - ./library_bus_project/.env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./library_bus_project/media:/app/media
+      - static_volume:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lbp_network
+
+  # 4. Celery Worker (Asynchronous Task Processing)
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lbp_celery_worker
+    restart: unless-stopped
+    command: celery -A library_bus_project worker -l info --concurrency=4
+    env_file:
+      - ./library_bus_project/.env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lbp_network
+
+  # 5. Celery Beat (Periodic Scheduled Tasks)
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lbp_celery_beat
+    restart: unless-stopped
+    command: celery -A library_bus_project beat -l info
+    env_file:
+      - ./library_bus_project/.env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - REDIS_URL=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lbp_network
+
+volumes:
+  mysql_data:
+  redis_data:
+  static_volume:
+
+networks:
+  lbp_network:
+    driver: bridge

@@ -599,34 +599,61 @@ def api_book_analytics(request, pk):
 @login_required
 @require_http_methods(["POST"])
 def api_chatbot(request):
+    """Endpoint trợ lý ảo AI - Có Rate Limiting và kiểm soát Token Payload an toàn"""
     try:
         import json
         import google.generativeai as genai
         
-        api_key = os.environ.get('GEMINI_API_KEY', '')
+        # 1. Rate Limiting (Tối đa 10 yêu cầu/phút trên mỗi User/IP)
+        user_identifier = request.user.id if request.user.is_authenticated else request.META.get('REMOTE_ADDR', 'anon')
+        rate_key = f"chatbot_rate_{user_identifier}"
+        request_count = cache.get(rate_key, 0)
+        if request_count >= 10:
+            return JsonResponse({
+                'error': 'Bạn đã gửi quá nhiều yêu cầu đến trợ lý ảo. Vui lòng thử lại sau 1 phút.'
+            }, status=429)
+        cache.set(rate_key, request_count + 1, timeout=60)
+        
+        # 2. Lấy API Key từ settings hoặc biến môi trường
+        api_key = getattr(settings, 'GEMINI_API_KEY', '') or os.environ.get('GEMINI_API_KEY', '')
         if not api_key:
-            return JsonResponse({'error': 'API key not configured'}, status=503)
+            return JsonResponse({'error': 'Dịch vụ AI Chatbot chưa được cấu hình API key.'}, status=503)
         genai.configure(api_key=api_key)
         
-        data = json.loads(request.body)
-        message = data.get('message', '')
-        history = data.get('history', [])
-        
-        if not message:
-            return JsonResponse({'error': 'Message is required'}, status=400)
+        # 3. Đọc và Validate Input Payload
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Dữ liệu JSON không hợp lệ.'}, status=400)
             
+        message = str(data.get('message', '')).strip()
+        if not message:
+            return JsonResponse({'error': 'Nội dung tin nhắn không được để trống.'}, status=400)
+        if len(message) > 1000:
+            return JsonResponse({'error': 'Tin nhắn quá dài (tối đa 1000 ký tự).'}, status=400)
+            
+        history = data.get('history', [])
+        if not isinstance(history, list):
+            history = []
+        # Giới hạn 10 tin nhắn gần nhất để tối ưu chi phí token
+        history = history[-10:]
+        
+        # 4. Model Gemini chuẩn hóa
+        model_name = getattr(settings, 'GEMINI_MODEL_NAME', 'gemini-1.5-flash')
         model = genai.GenerativeModel(
-            model_name='gemini-3.5-flash',
+            model_name=model_name,
             system_instruction="Bạn là một trợ lý ảo thân thiện, thông minh của hệ thống Tủ Sách Lưu Động (Library Bus). Bạn giúp người dùng tìm kiếm sách, giải đáp thắc mắc về các quy định mượn sách, và gợi ý sách hay. Hãy trả lời ngắn gọn, súc tích và sử dụng tiếng Việt."
         )
         
         formatted_history = []
         for msg in history:
             role = 'user' if msg.get('role') == 'user' else 'model'
-            formatted_history.append({
-                'role': role,
-                'parts': [msg.get('text', '')]
-            })
+            text_content = str(msg.get('text', ''))[:1000]
+            if text_content:
+                formatted_history.append({
+                    'role': role,
+                    'parts': [text_content]
+                })
             
         chat = model.start_chat(history=formatted_history)
         response = chat.send_message(message)
@@ -637,7 +664,7 @@ def api_chatbot(request):
         
     except Exception as e:
         logger.error(f"Chatbot API error: {e}")
-        return JsonResponse({'error': 'Có lỗi xảy ra, vui lòng thử lại sau.'}, status=500)
+        return JsonResponse({'error': 'Trợ lý ảo đang bận, vui lòng thử lại sau giây lát.'}, status=500)
 
 
 # Export Views
