@@ -3,8 +3,10 @@ import sys
 import django
 
 # Fix encoding
-sys.stdout.reconfigure(encoding='utf-8')
-sys.stderr.reconfigure(encoding='utf-8')
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -14,8 +16,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()
 
 from django.conf import settings
-if 'testserver' not in settings.ALLOWED_HOSTS:
-    settings.ALLOWED_HOSTS.append('testserver')
+allowed_hosts = getattr(settings, 'ALLOWED_HOSTS', None)
+if isinstance(allowed_hosts, list) and 'testserver' not in allowed_hosts:
+    allowed_hosts.append('testserver')
 
 from django.test import Client
 from django.contrib.auth import get_user_model

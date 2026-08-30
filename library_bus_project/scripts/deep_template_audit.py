@@ -3,7 +3,7 @@ import re
 import sys
 from pathlib import Path
 
-if sys.platform == 'win32':
+if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 # Safe Unicode for Windows console
-if sys.platform == 'win32':
+if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 # Paths

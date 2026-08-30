@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from PIL import Image
 
-if sys.platform == 'win32':
+if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 BASE_DIR = Path(__file__).resolve().parent.parent

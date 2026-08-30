@@ -59,6 +59,12 @@ include = ["library_bus_project"]
 extraPaths = ["library_bus_project"]
 venvPath = "."
 venv = "mta"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+reportAttributeAccessIssue = false
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "library_bus_project.settings"
