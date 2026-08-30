@@ -125,18 +125,28 @@
 }
 
 .btn-hero.secondary {
-    background: rgba(255, 253, 249, 0.12);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: #FFFDF9 !important;
-    border: 2px solid rgba(255, 253, 249, 0.4);
+    background: #FFFDF9;
+    color: var(--color-molasses) !important;
+    border: 2px solid #FFFDF9;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-hero.secondary span,
+.btn-hero.secondary i {
+    color: var(--color-molasses) !important;
 }
 
 .btn-hero.secondary:hover {
-    background: rgba(255, 253, 249, 0.25);
+    background: var(--color-butter);
     border-color: var(--color-butter);
-    color: var(--color-butter) !important;
+    color: var(--color-molasses) !important;
     transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(253, 233, 113, 0.4);
+}
+
+.btn-hero.secondary:hover span,
+.btn-hero.secondary:hover i {
+    color: var(--color-molasses) !important;
 }
 
 .hero-buttons {
