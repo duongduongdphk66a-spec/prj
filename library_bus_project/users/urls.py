@@ -45,7 +45,7 @@ urlpatterns = [
     path('settings/password/', views.change_password, name='change_password'),
     path('settings/preferences/', views.preferences_view, name='preferences'),
     path('settings/interests/', views.interests_view, name='interests'),
-    path('settings/interests/<int:interest_id>/delete/', views.delete_interest, name='delete_interest'),
+    path('settings/interests/<uuid:interest_id>/delete/', views.delete_interest, name='delete_interest'),
 
     # ==========================================================================
     # URL cho tính năng xã hội (Social)

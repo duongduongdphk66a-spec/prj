@@ -35,7 +35,7 @@ urlpatterns = [
 
     # Donation URLs (Admin)
     path('donations/', views.BookDonationListView.as_view(), name='donation_list'),
-    path('donations/<int:pk>/change-status/', views.donation_status_change, name='donation_status_change'),
+    path('donations/<uuid:pk>/change-status/', views.donation_status_change, name='donation_status_change'),
 
 
     # Bulk Operations
