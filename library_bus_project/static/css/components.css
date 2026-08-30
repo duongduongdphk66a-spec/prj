@@ -669,7 +669,7 @@
 }
 
 .footer-col p {
-    color: #DCC3B8;
+    color: #EADCD4;
     font-size: 0.95rem;
     line-height: 1.7;
     margin-bottom: 1rem;
@@ -684,7 +684,7 @@
 }
 
 .footer-col ul li a {
-    color: #E2CDC4;
+    color: #F7EFEA;
     text-decoration: none;
     font-size: 0.92rem;
     transition: all var(--transition-fast);
@@ -696,6 +696,29 @@
 .footer-col ul li a:hover {
     color: var(--color-butter);
     transform: translateX(4px);
+}
+
+.footer-col address {
+    color: #F7EFEA;
+    font-style: normal;
+    line-height: 2;
+    font-size: 0.92rem;
+}
+
+.footer-col address a {
+    color: #F7EFEA;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.footer-col address a:hover {
+    color: var(--color-butter);
+}
+
+.footer-col address i {
+    color: var(--color-toasty);
+    margin-right: 6px;
+    width: 16px;
 }
 
 .social-links {
@@ -728,9 +751,22 @@
 .footer-bottom {
     text-align: center;
     padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.88rem;
-    color: #B89688;
+    border-top: 1px solid rgba(253, 233, 113, 0.2);
+    font-size: 0.95rem;
+    color: #FFFDF9;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.footer-bottom p {
+    color: #FFFDF9;
+    margin: 0;
+    opacity: 0.95;
+}
+
+.footer-bottom .text-gold {
+    color: var(--color-butter) !important;
+    margin: 0 4px;
 }
 
 /* ========== 9. BACK TO TOP ========== */
