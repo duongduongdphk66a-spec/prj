@@ -288,7 +288,7 @@ def send_notification_email(user, subject, template_name, context):
     """Gửi email thông báo chung"""
     try:
         # Kiểm tra cài đặt nhận email
-        if hasattr(user, 'preferences') and not user.preferences.email_notifications:
+        if hasattr(user, 'preferences') and not getattr(user.preferences, 'email_notifications', True):
             return False
         
         context.update({

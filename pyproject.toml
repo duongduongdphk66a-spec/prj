@@ -57,4 +57,5 @@ exclude = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "library_bus_project.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
+norecursedirs = ["scripts", "mta", ".git", ".agents", "staticfiles", "media"]
 addopts = "--tb=short -ra"
