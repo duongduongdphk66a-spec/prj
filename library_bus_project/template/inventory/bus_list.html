@@ -132,12 +132,22 @@
             defaultLng = busesData[0].lng;
         }
 
-        const map = L.map('bus-map').setView([defaultLat, defaultLng], 12);
+        const map = L.map('bus-map').setView([defaultLat, defaultLng], 13);
 
-        // Thêm tile layer từ OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+        // Thêm tile layer CartoDB Voyager (Nhanh, đẹp, ổn định toàn cầu, không bị chặn)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(map);
+
+        // Đảm bảo kích thước map tính toán chuẩn sau khi render giao diện
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 200);
+        window.addEventListener('resize', function() {
+            map.invalidateSize();
+        });
 
         // Custom marker icon cho xe bus (Taste-Skill Accent Pin)
         const busIcon = L.divIcon({
