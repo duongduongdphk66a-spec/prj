@@ -86,19 +86,15 @@ class BorrowRecord(SoftDeleteModel): # CẬP NHẬT: Kế thừa từ SoftDelete
         if self.return_date and self.borrow_date and self.return_date < self.borrow_date:
             raise ValidationError({'return_date': "Ngày trả không thể trước ngày mượn."})
 
-    def return_book(self, condition_notes="", returned_by=None):
-        """Đơn giản hóa method, gọi service"""
-        return TransactionService.return_borrow(self.id, condition_notes, returned_by)
+    def return_book(self, condition_notes="", returned_by=None, return_location=None):
+        """Trả sách - ủy quyền qua TransactionService để đảm bảo an toàn giao dịch"""
+        from transactions.services import TransactionService
+        return TransactionService.return_book(self.id, condition_notes, returned_by, return_location)
     
     def renew(self, days=14):
-        """Gia hạn sách với validation"""
-        if not self.can_renew: raise ValidationError("Không thể gia hạn sách này")
-        with transaction.atomic():
-            self.due_date += datetime.timedelta(days=days)
-            self.renewal_count = F('renewal_count') + 1
-            self.save(update_fields=['due_date', 'renewal_count'])
-            # Invalidate cache
-            cache.delete(f'borrow_record_{self.id}')
+        """Gia hạn sách - thống nhất ủy quyền cho TransactionService với khóa select_for_update"""
+        from transactions.services import TransactionService
+        return TransactionService.renew_book(self.id, days=days)
 
 
 class ReservationQuerySet(models.QuerySet):

@@ -1,0 +1,30 @@
+# =============================================================================
+# Library Bus Project - Docker Build Ignore
+# =============================================================================
+
+.git
+.gitignore
+.github
+.agents
+*.md
+!README.md
+__pycache__
+*.py[cod]
+*$py.class
+*.log
+logs/
+media/
+staticfiles/
+venv/
+env/
+.env/
+mta/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.sqlite3
+celerybeat-schedule*
+website.pdf

@@ -124,6 +124,7 @@ class Profile(TimestampedModel, CacheMixin):
     @property
     def reading_stats_summary(self):
         """Tóm tắt thống kê đọc sách"""
+        from django.core.exceptions import ObjectDoesNotExist
         try:
             stats = self.user.reading_stats
             return {
@@ -132,7 +133,11 @@ class Profile(TimestampedModel, CacheMixin):
                 'streak_days': stats.reading_streak_days,
                 'level': stats.get_member_level_display()
             }
-        except: return {'books_borrowed': 0, 'books_returned': 0, 'streak_days': 0, 'level': 'Đồng'}
+        except ObjectDoesNotExist:
+            return {'books_borrowed': 0, 'books_returned': 0, 'streak_days': 0, 'level': 'Đồng'}
+        except Exception as e:
+            logger.warning(f"Lỗi khi đọc reading_stats cho user {self.user_id}: {e}")
+            return {'books_borrowed': 0, 'books_returned': 0, 'streak_days': 0, 'level': 'Đồng'}
 
     @property
     def completion_percentage(self):
@@ -149,8 +154,12 @@ class Profile(TimestampedModel, CacheMixin):
         self.save(update_fields=['verification_code', 'verification_expires'])
 
     def verify_code(self, code):
-        """Xác thực mã code"""
-        if self.verification_code == code and self.verification_expires and timezone.now() < self.verification_expires:
+        """Xác thực mã code sử dụng constant-time so sánh chống timing attack"""
+        import secrets
+        if (self.verification_code and 
+            secrets.compare_digest(str(self.verification_code), str(code)) and 
+            self.verification_expires and 
+            timezone.now() < self.verification_expires):
             self.is_verified = True
             self.verification_code = ''
             self.verification_expires = None

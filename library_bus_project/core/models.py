@@ -58,13 +58,28 @@ class CacheMixin:
 
     # --- Automatic Invalidation on Save/Delete ---
     def save(self, *args, **kwargs):
-        # Xóa cache của instance cụ thể và tăng version của cả model
-        cache.delete(self._get_instance_cache_key(self.pk))
-        self.__class__.invalidate_model_cache()
+        # 1. Luôn xóa cache của instance cụ thể
+        if hasattr(self, 'pk') and self.pk:
+            cache.delete(self._get_instance_cache_key(self.pk))
+        
+        # 2. Tinh chỉnh Invalidation toàn Model:
+        # Nếu chỉ cập nhật các trường tracking/counter/metadata nhỏ thì không tăng model version,
+        # tránh gây giật giảm hit-rate cache của hàng ngàn độc giả đang đọc danh sách.
+        update_fields = kwargs.get('update_fields')
+        minor_tracking_fields = {
+            'last_activity', 'last_borrowed', 'login_count', 'last_login_ip',
+            '_book_count', '_last_book_update', 'view_count', 'like_count', 
+            'updated_at', 'modified_at', 'reading_streak_days', 'max_reading_streak'
+        }
+        
+        if not update_fields or not set(update_fields).issubset(minor_tracking_fields):
+            self.__class__.invalidate_model_cache()
+            
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        cache.delete(self._get_instance_cache_key(self.pk))
+        if hasattr(self, 'pk') and self.pk:
+            cache.delete(self._get_instance_cache_key(self.pk))
         self.__class__.invalidate_model_cache()
         super().delete(*args, **kwargs)
 

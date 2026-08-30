@@ -1,5 +1,5 @@
 # =============================================================================
-# Library Bus Project - Multi-Stage Production Dockerfile
+# Library Bus Project - Multi-Stage Production Dockerfile (Non-Root Hardened)
 # =============================================================================
 
 # --- Stage 1: Builder ---
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Stage 2: Final Runtime ---
 FROM python:3.11-slim AS final
@@ -28,7 +28,8 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH=/root/.local/bin:$PATH \
+    PATH=/install/bin:$PATH \
+    PYTHONPATH=/install/lib/python3.11/site-packages:$PYTHONPATH \
     DJANGO_SETTINGS_MODULE=library_bus_project.settings
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -36,13 +37,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libjpeg62-turbo \
     zlib1g \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -u 1000 -m -s /bin/bash appuser
 
-# Copy installed wheels from builder
-COPY --from=builder /root/.local /root/.local
+# Copy installed dependencies from builder
+COPY --from=builder /install /install
 
 # Copy application source code
-COPY library_bus_project/ /app/
+COPY --chown=appuser:appuser library_bus_project/ /app/
+
+# Ensure logs, media, static directories exist and are owned by appuser
+RUN mkdir -p /app/logs /app/media /app/staticfiles \
+    && chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8000

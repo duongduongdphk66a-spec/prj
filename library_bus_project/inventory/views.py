@@ -328,10 +328,13 @@ class BookDetailView(LoginRequiredMixin, DetailView):
             try:
                 info['pdf_size'] = f"{self.object.pdf_file.size / 1024 / 1024:.1f} MB"
                 info['pdf_url'] = self.object.pdf_file.url
-            except: info['pdf_size'] = "Có file"
+            except (AttributeError, OSError, ValueError):
+                info['pdf_size'] = "Có file"
         if self.object.cover_image:
-            try: info['image_size'] = f"{self.object.cover_image.size / 1024:.1f} KB"
-            except: info['image_size'] = "Có file"
+            try:
+                info['image_size'] = f"{self.object.cover_image.size / 1024:.1f} KB"
+            except (AttributeError, OSError, ValueError):
+                info['image_size'] = "Có file"
         return info
 
 class BookCreateView(AdminRequiredMixin, CreateView):

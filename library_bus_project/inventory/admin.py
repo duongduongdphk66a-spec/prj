@@ -177,13 +177,13 @@ class BookAdmin(admin.ModelAdmin):
             try:
                 size = obj.pdf_file.size / 1024 / 1024  # MB
                 info.append(f'PDF: {size:.1f} MB')
-            except:
+            except (AttributeError, OSError, ValueError):
                 info.append('PDF: Có file')
         if obj.cover_image:
             try:
                 size = obj.cover_image.size / 1024  # KB
                 info.append(f'Ảnh: {size:.1f} KB')
-            except:
+            except (AttributeError, OSError, ValueError):
                 info.append('Ảnh: Có file')
         return ', '.join(info) if info else 'Chưa có file'
     file_info_display.short_description = 'Thông tin file'
@@ -303,8 +303,10 @@ class BusRouteAdmin(admin.ModelAdmin):
         return super().get_queryset(request).select_related('bus')
     
     def stops_count(self, obj):
-        try: return len(obj.stops) if obj.stops else 0
-        except: return 0
+        try:
+            return len(obj.stops) if obj.stops else 0
+        except (TypeError, ValueError):
+            return 0
     stops_count.short_description = 'Số điểm dừng'
 
 @admin.register(InventoryAlert)

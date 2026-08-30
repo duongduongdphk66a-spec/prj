@@ -82,11 +82,13 @@ def get_user_unread_count(user_id):
         cache.set(cache_key, count, 300)
     return count
 
-from django.core.mail import send_mail
 from django.conf import settings
+import logging
+
+logger = logging.getLogger('notifications')
 
 def create_notification(recipient, title, message, notification_type='info', action_url='', related_object=None, send_email=True, **kwargs):
-    """Tạo thông báo trực tiếp và gửi email (nếu cần)"""
+    """Tạo thông báo trong ứng dụng và gửi email bất đồng bộ qua Celery"""
     try:
         notification = UserNotification.objects.create(
             recipient=recipient,
@@ -97,26 +99,26 @@ def create_notification(recipient, title, message, notification_type='info', act
             related_object=related_object,   
         )
         
-        # Clear cache
+        # Clear cache số đếm thông báo chưa đọc
         cache.delete(f"unread_count_{recipient.id}")
         
-        # Gửi email nếu được yêu cầu và user có email
+        # Gửi email bất đồng bộ qua Celery nếu user có email
         if send_email and recipient.email:
             try:
                 full_url = f"{settings.SITE_URL}{action_url}" if hasattr(settings, 'SITE_URL') and action_url else action_url
                 email_body = f"{message}\n\nXem chi tiết: {full_url}" if full_url else message
-                send_mail(
+                from notifications.tasks import send_async_email_task
+                send_async_email_task.delay(
                     subject=title,
                     message=email_body,
-                    from_email=settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@librarybus.com',
-                    recipient_list=[recipient.email],
-                    fail_silently=True,
+                    recipient_list=[recipient.email]
                 )
-            except Exception as e:
-                pass # Bỏ qua lỗi gửi mail để không ảnh hưởng đến flow chính
+            except Exception as mail_err:
+                logger.warning(f"Không thể kích hoạt Celery email task cho {recipient.email}: {mail_err}")
                 
         return notification
     except Exception as e:
+        logger.error(f"Lỗi khi tạo UserNotification cho user {getattr(recipient, 'id', 'N/A')}: {e}", exc_info=True)
         return None
 
 # Management Commands Helper

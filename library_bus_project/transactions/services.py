@@ -43,6 +43,17 @@ class TransactionService:
             cache.delete(f'user_active_borrows_{user.id}')
             cache.delete(f'book_status_{book.id}')
             
+            # Kích hoạt async task cập nhật Analytics sau khi commit DB thành công
+            borrow_id = borrow.id
+            def trigger_borrow_analytics():
+                try:
+                    from analytics.tasks import update_analytics_on_borrow_task
+                    update_analytics_on_borrow_task.delay(borrow_id, True)
+                except Exception as e:
+                    logger.warning(f"Không thể gọi update_analytics_on_borrow_task: {e}")
+
+            transaction.on_commit(trigger_borrow_analytics)
+
             logger.info(f"Tạo mượn sách thành công: {user.username} - {book.title}")
             return borrow
 
@@ -75,6 +86,17 @@ class TransactionService:
             cache.delete(f'user_active_borrows_{borrow.user.id}')
             cache.delete(f'book_status_{borrow.book.id}')
             
+            # Kích hoạt async task cập nhật Analytics sau khi commit DB thành công
+            borrow_id = borrow.id
+            def trigger_return_analytics():
+                try:
+                    from analytics.tasks import update_analytics_on_borrow_task
+                    update_analytics_on_borrow_task.delay(borrow_id, False)
+                except Exception as e:
+                    logger.warning(f"Không thể gọi update_analytics_on_borrow_task: {e}")
+
+            transaction.on_commit(trigger_return_analytics)
+
             logger.info(f"Trả sách thành công: {borrow.user.username} - {borrow.book.title}")
             return borrow
 

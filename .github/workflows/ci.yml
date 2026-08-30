@@ -29,6 +29,10 @@ jobs:
         run: |
           ruff check .
 
+      - name: Run Dependency Security Audit (pip-audit)
+        run: |
+          pip-audit
+
       - name: Run Taste-Skill Preflight Check
         run: |
           python library_bus_project/scripts/taste_preflight_check.py

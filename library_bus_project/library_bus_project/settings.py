@@ -24,8 +24,8 @@ if not SECRET_KEY:
         "Set it in your .env file. Generate one with: "
         "python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
     )
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h.strip()]
 
 
 # --- APPLICATION DEFINITION ---
@@ -188,9 +188,17 @@ CELERY_TASK_TIME_LIMIT = 300       # Hard limit: 5 phút
 CELERY_TASK_SOFT_TIME_LIMIT = 240  # Soft limit: 4 phút
 
 CELERY_BEAT_SCHEDULE = {
-    'daily_midnight_maintenance': {
+    'daily-midnight-maintenance': {
         'task': 'core.tasks.daily_maintenance',
         'schedule': crontab(hour=0, minute=0),
+    },
+    'generate-daily-stats': {
+        'task': 'generate_daily_stats_task',
+        'schedule': crontab(hour=0, minute=15),
+    },
+    'update-user-streaks': {
+        'task': 'update_user_streaks_task',
+        'schedule': crontab(hour=1, minute=0),
     },
     'recalculate-popularity': {
         'task': 'recalculate_popularity_scores_task',
@@ -211,6 +219,10 @@ CELERY_BEAT_SCHEDULE = {
     'process-reservation-queue': {
         'task': 'transactions.tasks.process_reservation_queue',
         'schedule': crontab(minute='*/30'),
+    },
+    'cleanup-old-activities': {
+        'task': 'cleanup_old_activities_task',
+        'schedule': crontab(hour=2, minute=0, day_of_month=1),
     },
 }
 
