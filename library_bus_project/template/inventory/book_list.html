@@ -240,7 +240,7 @@
     /* Book Grid */
     .book-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
         gap: 28px;
     }
 
@@ -288,12 +288,140 @@
         transform: scale(1.05);
     }
     
-    .book-card-placeholder {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        font-weight: 500;
+    .book-card-fallback-cover {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
         text-align: center;
-        padding: 12px;
+        color: #FFFFFF;
+        position: relative;
+    }
+
+    .book-fallback-icon {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+        opacity: 0.85;
+    }
+
+    .book-fallback-title {
+        font-family: var(--font-display, serif);
+        font-weight: 700;
+        font-size: 0.95rem;
+        line-height: 1.3;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .book-fallback-author {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .book-status-pill {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        font-size: 0.72rem;
+        font-weight: 700;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .status-available {
+        background: rgba(16, 185, 129, 0.92);
+        color: #FFFFFF;
+    }
+
+    .status-borrowed {
+        background: rgba(239, 68, 68, 0.92);
+        color: #FFFFFF;
+    }
+
+    .status-reserved {
+        background: rgba(245, 158, 11, 0.92);
+        color: #FFFFFF;
+    }
+
+    .status-other {
+        background: rgba(107, 114, 128, 0.92);
+        color: #FFFFFF;
+    }
+
+    .book-card-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 14px;
+    }
+
+    .book-category-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 6px;
+        display: inline-block;
+        color: var(--color-roast);
+    }
+
+    .book-card-title {
+        font-family: var(--font-display, serif);
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.35;
+        margin: 0 0 6px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.7em;
+    }
+
+    .book-card-author {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0 0 8px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .book-card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-top: auto;
+        padding-top: 6px;
+        border-top: 1px dashed var(--border-light);
+    }
+
+    .book-card-location {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--color-roast);
+        font-weight: 600;
     }
     
     .btn-detail {
@@ -425,13 +553,56 @@
             <div class="book-card">
                 <div class="book-card-image-wrapper">
                     {% if book.cover_image %}
-                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
                     {% else %}
-                        <span class="book-card-placeholder">Bìa sách</span>
+                        <div class="book-card-fallback-cover" style="background: linear-gradient(135deg, {% if book.category.color_code %}{{ book.category.color_code }}{% else %}var(--color-roast){% endif %} 0%, var(--dark-brown) 100%);">
+                            <i class="fas fa-book-open book-fallback-icon"></i>
+                            <div class="book-fallback-title">{{ book.title }}</div>
+                            <div class="book-fallback-author">{{ book.author }}</div>
+                        </div>
                     {% endif %}
+
+                    <!-- Status Pill -->
+                    <div class="book-status-pill {% if book.status == 'available' %}status-available{% elif book.status == 'checked_out' %}status-borrowed{% elif book.status == 'reserved' %}status-reserved{% else %}status-other{% endif %}">
+                        {% if book.status == 'available' %}
+                            <i class="fas fa-check-circle"></i> Có sẵn
+                        {% elif book.status == 'checked_out' %}
+                            <i class="fas fa-clock"></i> Đang mượn
+                        {% elif book.status == 'reserved' %}
+                            <i class="fas fa-bookmark"></i> Đã đặt
+                        {% else %}
+                            {{ book.get_status_display }}
+                        {% endif %}
+                    </div>
                 </div>
-                
-                <a href="{% url 'inventory:book_detail' book.pk %}" class="btn-detail">Chi tiết</a>
+
+                <div class="book-card-info">
+                    {% if book.category %}
+                    <span class="book-category-tag" {% if book.category.color_code %}style="color: {{ book.category.color_code }};"{% endif %}>
+                        <i class="fas {% if book.category.icon %}{{ book.category.icon }}{% else %}fa-tag{% endif %} me-1"></i>{{ book.category.name }}
+                    </span>
+                    {% endif %}
+
+                    <h3 class="book-card-title" title="{{ book.title }}">{{ book.title }}</h3>
+                    <p class="book-card-author"><i class="fas fa-feather-alt me-1 text-muted"></i>{{ book.author }}</p>
+
+                    <div class="book-card-meta">
+                        {% if book.location %}
+                        <span class="book-card-location" title="Vị trí: {{ book.location.name }}">
+                            <i class="fas fa-bus-alt"></i> {{ book.location.name|truncatechars:18 }}
+                        </span>
+                        {% else %}
+                        <span><i class="fas fa-book me-1"></i> {{ book.page_count|default:"---" }} trang</span>
+                        {% endif %}
+
+                        <span><i class="fas fa-calendar-alt me-1"></i> {{ book.publication_year|default:"" }}</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'inventory:book_detail' book.pk %}" class="btn-detail">
+                    <span>Xem chi tiết</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
             {% empty %}
             <div style="grid-column: 1 / -1; text-align: center; padding: 50px 0;">
