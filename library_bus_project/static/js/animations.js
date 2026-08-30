@@ -127,18 +127,18 @@
                     }
                 });
 
-                // 3. Book Cards & Inventory Grids
-                ScrollTrigger.batch(".book-card, .book-card-item, .inventory-card, .book-item", {
+                // 3. Book Cards & Inventory Grids (Only for home/featured sections, not catalog list)
+                ScrollTrigger.batch(".home-book-card, .featured-book-item, .inventory-stat-card", {
                     start: "top 90%",
                     interval: 0.08,
                     batchMax: 6,
                     once: true,
                     onEnter: (batch) => {
                         gsap.from(batch, {
-                            y: 40,
+                            y: 30,
                             autoAlpha: 0,
-                            duration: 0.75,
-                            stagger: 0.08,
+                            duration: 0.6,
+                            stagger: 0.06,
                             ease: "power2.out",
                             overwrite: "auto"
                         });

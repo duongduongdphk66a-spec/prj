@@ -242,6 +242,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
         gap: 28px;
+        align-items: stretch;
     }
 
     .book-card {
@@ -250,16 +251,20 @@
         border-radius: var(--radius-lg);
         display: flex;
         flex-direction: column;
+        height: 100%;
         padding: 16px;
         box-shadow: var(--shadow-sm);
         text-decoration: none;
-        transition: all var(--transition-spring);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
         position: relative;
         overflow: hidden;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: translate(0, 0) !important;
     }
 
     .book-card:hover {
-        transform: translateY(-6px);
+        transform: translateY(-6px) !important;
         box-shadow: var(--shadow-hover);
         border-color: var(--color-toasty);
     }
@@ -403,6 +408,7 @@
         -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        min-height: 1.25em;
     }
 
     .book-card-meta {
