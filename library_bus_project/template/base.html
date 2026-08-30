@@ -49,9 +49,16 @@
                 <div class="nav-menu" id="nav-menu">
                     <ul>
                         <li><a href="{% url 'about' %}" class="nav-link liquid" style="text-decoration:none;">Giới thiệu</a></li>
-                        <li><a href="{% if user.is_staff %}{% url 'inventory:admin_book_list' %}{% else %}{% url 'inventory:book_list' %}{% endif %}" class="nav-link liquid" style="text-decoration:none;">Tra cứu sách</a></li>
+                        <li><a href="{% url 'inventory:book_list' %}" class="nav-link liquid" style="text-decoration:none;">Tra cứu sách</a></li>
                         <li><a href="{% url 'blog:post_list' %}" class="nav-link liquid" style="text-decoration:none;">Tin tức</a></li>
-                        <li><a href="{% if user.is_staff %}{% url 'inventory:admin_bus_list' %}{% else %}{% url 'inventory:bus_list' %}{% endif %}" class="nav-link liquid" style="text-decoration:none;">Bản đồ xe</a></li>
+                        <li><a href="{% url 'inventory:bus_list' %}" class="nav-link liquid" style="text-decoration:none;">Bản đồ xe</a></li>
+                        {% if user.is_staff %}
+                        <li>
+                            <a href="{% url 'inventory:dashboard' %}" class="nav-link liquid admin-nav-link" style="text-decoration:none; font-weight: 600; color: var(--color-roast);">
+                                <i class="fas fa-sliders-h me-1"></i> Quản lý thư viện
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
 
@@ -93,8 +100,11 @@
                                 </a>
                                 {% if user.is_staff %}
                                     <div class="profile-dropdown-divider"></div>
+                                    <a href="{% url 'inventory:dashboard' %}" class="profile-dropdown-item">
+                                        <i class="fas fa-sliders-h"></i> Quản lý thư viện
+                                    </a>
                                     <a href="{% url 'admin:index' %}" class="profile-dropdown-item">
-                                        <i class="fas fa-shield-alt"></i> Trang quản trị
+                                        <i class="fas fa-shield-alt"></i> Trang quản trị Django
                                     </a>
                                 {% endif %}
                                 <div class="profile-dropdown-divider"></div>
