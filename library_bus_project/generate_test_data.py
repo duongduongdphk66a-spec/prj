@@ -5,6 +5,8 @@ import random
 import datetime
 from faker import Faker
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()
 

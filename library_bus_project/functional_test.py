@@ -6,6 +6,9 @@ import django
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
 
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()

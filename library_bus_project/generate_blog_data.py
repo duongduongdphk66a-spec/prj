@@ -1,8 +1,11 @@
 import os
+import sys
 import django
 import random
 from faker import Faker
 from django.utils import timezone
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()

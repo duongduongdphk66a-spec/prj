@@ -54,8 +54,15 @@ exclude = [
     "mta"
 ]
 
+[tool.pyright]
+include = ["library_bus_project"]
+extraPaths = ["library_bus_project"]
+venvPath = "."
+venv = "mta"
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "library_bus_project.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
+pythonpath = ["library_bus_project"]
 norecursedirs = ["scripts", "mta", ".git", ".agents", "staticfiles", "media"]
 addopts = "--tb=short -ra"
