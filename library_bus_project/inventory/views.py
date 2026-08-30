@@ -25,9 +25,15 @@ staff_required = user_passes_test(is_staff_check)
 from django.db import transaction
 from django.core.cache import cache
 from django.utils import timezone
-from django.core.files.storage import default_storage
-from .models import LibraryBus, Category, Book, BookStatusHistory, BusRoute, InventoryAlert, BookDonation
-from .forms import LibraryBusForm, CategoryForm, BookSearchForm, BookStatusChangeForm, BookForm, BulkBookUploadForm, BusRouteForm, BookDonationForm
+from django.views import View
+from .models import (
+    LibraryBus, Category, Book, BookStatusHistory,
+    BusRoute, InventoryAlert, BookDonation, BookRating
+)
+from .forms import (
+    LibraryBusForm, CategoryForm, BookSearchForm, BookStatusChangeForm,
+    BookForm, BulkBookUploadForm, BusRouteForm, BookDonationForm
+)
 import csv
 import io
 import json
@@ -91,7 +97,6 @@ class AdminLibraryBusListView(AdminRequiredMixin, ListView):
         context['active_buses'] = LibraryBus.objects.filter(operating_status='active').count()
         return context
 
-@method_decorator(cache_page(60 * 5), name='dispatch')
 class LibraryBusListView(LoginRequiredMixin, ListView):
     model = LibraryBus
     template_name = 'inventory/bus_list.html'
@@ -99,13 +104,11 @@ class LibraryBusListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-
-
         return LibraryBus.objects.with_book_counts().order_by('name')
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Prepare buses data for the map
+        # Prepare buses data for the map with caching
         buses_data = []
         for bus in self.object_list:
             if bus.latitude and bus.longitude:
@@ -128,7 +131,7 @@ class LibraryBusDetailView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['books'] = self.object.books_on_bus.with_relations().order_by('title')
+        context['books'] = self.object.books_on_bus.with_list_relations().order_by('title')
         context['alerts'] = self.object.alerts.filter(is_resolved=False).order_by('-created_at')
         context['stats'] = {'total': self.object.current_book_count, 'available': self.object.books_on_bus.filter(status='available').count(), 'digital': self.object.books_on_bus.filter(is_digital_only=True).count()}
         return context
@@ -208,7 +211,7 @@ class AdminBookListView(AdminRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Book.objects.with_relations().order_by('-created_at')
+        queryset = Book.objects.with_list_relations().order_by('-created_at')
         query = self.request.GET.get('query')
         if query:
             queryset = queryset.filter(Q(title__icontains=query) | Q(author__icontains=query))
@@ -237,7 +240,7 @@ class BookListView(LoginRequiredMixin, ListView):
     paginate_by = 25
     
     def get_queryset(self):
-        queryset = Book.objects.with_relations().with_analytics().order_by('title')
+        queryset = Book.objects.with_list_relations().with_analytics().order_by('title')
         form = BookSearchForm(self.request.GET)
         if form.is_valid():
             query = form.cleaned_data.get('query')
@@ -262,11 +265,17 @@ class BookListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search_form'] = BookSearchForm(self.request.GET)
-        context['available_count'] = Book.objects.available().count()
-        context['borrowed_count'] = Book.objects.filter(status='checked_out').count()
-        context['categories_count'] = Category.objects.filter(is_active=True).count()
-        root_categories = Category.objects.filter(is_active=True, parent__isnull=True).with_book_counts().prefetch_related(
-            Prefetch('subcategories', queryset=Category.objects.filter(is_active=True).with_book_counts())
+        context['available_count'] = cache.get_or_set('inv_book_avail_count', lambda: Book.objects.available().count(), 300)
+        context['borrowed_count'] = cache.get_or_set('inv_book_borrow_count', lambda: Book.objects.filter(status='checked_out').count(), 300)
+        context['categories_count'] = cache.get_or_set('inv_cat_active_count', lambda: Category.objects.filter(is_active=True).count(), 600)
+        
+        # Prefetched hierarchical categories cached for 10 minutes
+        root_categories = cache.get_or_set(
+            'inv_root_categories_tree',
+            lambda: list(Category.objects.filter(is_active=True, parent__isnull=True).with_book_counts().prefetch_related(
+                Prefetch('subcategories', queryset=Category.objects.filter(is_active=True).with_book_counts())
+            )),
+            600
         )
         context['categories'] = root_categories
         
@@ -274,10 +283,15 @@ class BookListView(LoginRequiredMixin, ListView):
         active_parent_id = None
         if active_cat_id:
             try:
-                cat_obj = Category.objects.get(id=active_cat_id)
-                if cat_obj.parent_id:
+                import uuid
+                try:
+                    uuid_obj = uuid.UUID(str(active_cat_id))
+                    cat_obj = Category.objects.filter(id=uuid_obj).first()
+                except (ValueError, TypeError):
+                    cat_obj = Category.objects.filter(slug=active_cat_id).first()
+                if cat_obj and cat_obj.parent_id:
                     active_parent_id = str(cat_obj.parent_id)
-            except Category.DoesNotExist:
+            except Exception:
                 pass
         context['active_parent_id'] = active_parent_id
         
@@ -300,7 +314,6 @@ class BookDetailView(LoginRequiredMixin, DetailView):
         
         # Ratings
         from django.db.models import Avg
-        from .models import BookRating
         ratings = self.object.ratings.all()
         context['average_rating'] = ratings.aggregate(Avg('rating'))['rating__avg'] or 0
         context['rating_count'] = ratings.count()
@@ -784,9 +797,6 @@ def autocomplete_books(request):
         results = [{'title': b['title'], 'author': b['author'], 'id': str(b['id'])} for b in books]
         return JsonResponse({'results': results})
     return JsonResponse({'results': []})
-
-from django.views import View
-from .models import BookRating
 
 class RateBookView(LoginRequiredMixin, View):
     def post(self, request, pk):

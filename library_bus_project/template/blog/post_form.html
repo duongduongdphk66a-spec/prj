@@ -40,25 +40,25 @@
 /* ========== Form Section Headers ========== */
 .form-section-title {
     font-size: 1.3rem; font-weight: 700;
-    color: var(--dark-brown);
+    color: var(--color-molasses);
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--warm-100);
-    font-family: 'Playfair Display', serif;
+    border-bottom: 2px solid var(--border-light);
+    font-family: var(--font-display);
     display: flex; align-items: center; gap: 10px;
 }
-.form-section-title i { color: var(--amber-500); font-size: 1rem; }
+.form-section-title i { color: var(--color-roast); font-size: 1rem; }
 
 /* ========== Form Controls ========== */
 .form-group { margin-bottom: 1.5rem; position: relative; }
 .form-label {
     display: block; font-weight: 600;
     margin-bottom: 0.5rem;
-    color: var(--dark-brown);
-    font-size: 0.95rem;
-    font-family: 'Inter', sans-serif;
+    color: var(--color-molasses);
+    font-size: 0.92rem;
+    font-family: var(--font-sans);
 }
-.form-label .required { color: var(--danger); margin-left: 2px; }
+.form-label .required { color: var(--color-danger); margin-left: 2px; }
 .form-control, .form-main input[type="text"], .form-main input[type="url"],
 .form-main input[type="email"], .form-main input[type="date"], .form-main input[type="datetime-local"],
 .form-main textarea, .form-main select,
@@ -67,64 +67,65 @@
 .form-sidebar textarea, .form-sidebar select {
     width: 100%;
     padding: 0.75rem 1rem;
-    border: 2px solid var(--warm-200);
-    border-radius: 12px;
-    font-size: 1rem;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
     outline: none;
-    transition: all 0.3s var(--ease-smooth);
-    font-family: 'Inter', sans-serif;
-    background: var(--white);
-    color: var(--text);
+    transition: all 0.2s ease;
+    font-family: var(--font-sans);
+    background: var(--bg-surface-sunken);
+    color: var(--text-primary);
 }
 .form-control:focus, .form-main input:focus, .form-main textarea:focus, .form-main select:focus,
 .form-sidebar input:focus, .form-sidebar textarea:focus, .form-sidebar select:focus {
-    border-color: var(--amber-400);
-    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.12);
+    border-color: var(--color-roast);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(189, 87, 5, 0.15);
 }
 textarea.form-control, .form-main textarea { resize: vertical; min-height: 120px; line-height: 1.7; }
 .form-help {
-    font-size: 0.82rem; color: var(--warm-400);
+    font-size: 0.82rem; color: var(--text-muted);
     margin-top: 0.4rem; display: block;
 }
 .char-info {
     position: absolute; right: 0; top: 0;
-    font-size: 0.78rem; color: var(--warm-400);
+    font-size: 0.78rem; color: var(--text-muted);
     font-weight: 500;
 }
 
 /* ========== Sidebar Panels ========== */
 .panel {
-    background: var(--white);
+    background: var(--bg-surface);
     padding: 1.5rem;
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    border: 1px solid rgba(0,0,0,0.04);
+    border: 1px solid var(--border-color);
     position: relative;
     overflow: hidden;
 }
 .panel::before {
     content: '';
     position: absolute; top: 0; left: 0; right: 0;
-    height: 4px;
-    background: var(--gradient-gold);
+    height: 3px;
+    background: var(--gradient-accent);
 }
 .panel-title {
     font-size: 1.05rem; font-weight: 700;
     margin-bottom: 1.2rem;
-    color: var(--dark-brown);
+    color: var(--color-molasses);
     display: flex; align-items: center; gap: 8px;
     padding-bottom: 0.75rem;
-    border-bottom: 1px solid var(--warm-100);
-    font-family: 'Playfair Display', serif;
+    border-bottom: 1px solid var(--border-light);
+    font-family: var(--font-display);
 }
-.panel-title i { color: var(--amber-500); font-size: 0.9rem; }
+.panel-title i { color: var(--color-roast); font-size: 0.9rem; }
 .checkbox-group {
     display: flex; align-items: center; gap: 0.6rem;
     margin-bottom: 0.6rem;
-    padding: 0.5rem 0.6rem; border-radius: 8px;
+    padding: 0.5rem 0.6rem; border-radius: var(--radius-sm);
     transition: background 0.2s;
 }
-.checkbox-group:hover { background: var(--warm-50); }
+.checkbox-group:hover { background: var(--bg-surface-sunken); }
 .checkbox-group input[type="checkbox"] {
     width: 18px; height: 18px;
     accent-color: var(--dark-brown);

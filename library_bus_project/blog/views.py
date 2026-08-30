@@ -28,7 +28,7 @@ from .forms import PostForm, NewsletterSubscriptionForm, PostSearchForm, Comment
 
 # ========== HOME & LISTING VIEWS ==========
 class BlogHomeView(ListView):
-    """Trang chá»§ blog vá»›i featured posts vÃ  sidebar"""
+    """Trang chủ blog với featured posts và sidebar tối ưu cache"""
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
@@ -39,15 +39,30 @@ class BlogHomeView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['featured_posts'] = Post.objects.published().featured().with_stats()[:4]
-        context['categories'] = BlogCategory.objects.annotate(post_count=Count('posts', filter=Q(posts__status='published')))[:8]
-        context['popular_tags'] = BlogTag.objects.filter(is_trending=True).order_by('-usage_count')[:10]
-        context['recent_posts'] = Post.objects.published().select_related('author')[:5]
+        context['featured_posts'] = cache.get_or_set(
+            'blog_featured_posts',
+            lambda: list(Post.objects.published().featured().with_stats()[:4]),
+            300
+        )
+        context['categories'] = cache.get_or_set(
+            'blog_active_categories_counts',
+            lambda: list(BlogCategory.objects.annotate(post_count=Count('posts', filter=Q(posts__status='published')))[:8]),
+            600
+        )
+        context['popular_tags'] = cache.get_or_set(
+            'blog_popular_tags',
+            lambda: list(BlogTag.objects.filter(is_trending=True).order_by('-usage_count')[:10]),
+            600
+        )
+        context['recent_posts'] = cache.get_or_set(
+            'blog_recent_posts',
+            lambda: list(Post.objects.published().select_related('author')[:5]),
+            300
+        )
         return context
 
-@method_decorator(cache_page(900), name='dispatch')
 class PostListView(ListView):
-    """Danh sÃ¡ch bÃ i viáº¿t vá»›i filter vÃ  search"""
+    """Danh sách bài viết với filter và search an toàn session"""
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'

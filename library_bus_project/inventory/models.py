@@ -199,8 +199,12 @@ class BookQuerySet(BaseQuerySet):
         """Chỉ lấy sách có sẵn"""
         return self.filter(status='available')
     
+    def with_list_relations(self):
+        """Prefetch nhẹ cho danh sách sách (tránh load status_history thừa)"""
+        return self.select_related('category', 'location')
+    
     def with_relations(self):
-        """Prefetch các relationship thường dùng"""
+        """Prefetch đầy đủ các relationship bao gồm cả lịch sử trạng thái"""
         return self.select_related('category', 'location').prefetch_related(
             Prefetch('status_history', queryset=BookStatusHistory.objects.select_related('changed_by'))
         )

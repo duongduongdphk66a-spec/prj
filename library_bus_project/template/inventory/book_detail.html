@@ -5,23 +5,13 @@
 
 {% block extra_css %}
 <style>
-    :root {
-        --pastel-gold: #FDE68A;
-        --pastel-gold-hover: #FCD34D;
-        --gold-bg: #FDE68A;
-    }
-    
-    body {
-        background-color: #ffffff;
-    }
-    
     .book-detail-container {
-        max-width: 1200px;
-        margin: 40px auto;
-        padding: 0 20px;
+        max-width: 1280px;
+        margin: 40px auto 80px;
+        padding: 0 24px;
         display: grid;
-        grid-template-columns: 350px 1fr;
-        gap: 50px;
+        grid-template-columns: 380px 1fr;
+        gap: 56px;
     }
     
     /* LEFT COLUMN */
@@ -31,55 +21,37 @@
     }
     
     .book-cover {
-        background-color: var(--gold-bg);
-        border-radius: 0;
-        height: 500px;
+        background: var(--bg-surface-sunken);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-xl);
+        aspect-ratio: 3/4;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 25px;
+        margin-bottom: 28px;
         overflow: hidden;
         position: relative;
+        box-shadow: var(--shadow-lg);
     }
     
     .book-cover img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0.9;
-        mix-blend-mode: multiply;
+        transition: transform 0.5s var(--ease-out);
+    }
+
+    .book-cover:hover img {
+        transform: scale(1.03);
     }
     
     .book-cover-placeholder {
-        font-size: 24px;
-        color: #333;
-        font-weight: 500;
-    }
-    
-    .book-title {
-        font-size: 32px;
-        font-weight: 800;
-        margin-bottom: 15px;
-        color: #000;
-    }
-    
-    .book-meta {
-        font-size: 16px;
-        font-weight: 500;
-        color: #333;
-        line-height: 1.6;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    .book-meta-label {
-        font-weight: 700;
-        color: #000;
-        display: block;
-    }
-    .book-meta-value {
-        font-weight: 400;
-        color: #555;
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-align: center;
+        padding: 20px;
     }
 
     /* RIGHT COLUMN */
@@ -88,129 +60,54 @@
         flex-direction: column;
     }
     
-    .description-box {
-        background-color: var(--gold-bg);
-        border-radius: 0;
-        padding: 40px;
-        min-height: 250px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-size: 18px;
-        color: #000;
-        margin-bottom: 30px;
-    }
-    
-    .action-buttons {
-        display: flex;
-        gap: 20px;
-        margin-bottom: 50px;
-    }
-    
-    .btn-action {
-        background-color: var(--gold-bg);
-        border: none;
-        border-radius: 0;
-        padding: 15px 40px;
-        font-size: 18px;
-        font-weight: 500;
-        color: #000;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-        transition: background-color 0.2s;
-        text-align: center;
-    }
-    
-    .btn-action:hover {
-        background-color: var(--pastel-gold-hover);
-        color: #000;
-    }
-    
-    .related-section {
-        margin-top: 20px;
-    }
-    
-    .related-title {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 20px;
-        color: #000;
-    }
-    
-    .related-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 20px;
-    }
-    
-    .related-book {
-        background-color: var(--gold-bg);
-        border-radius: 0;
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        color: #000;
-        text-align: center;
-        padding: 15px;
-        overflow: hidden;
-        position: relative;
-        transition: transform 0.2s;
-    }
-    
-    .related-book:hover {
-        transform: translateY(-5px);
-    }
-    
-    .related-book img {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.9;
-        mix-blend-mode: multiply;
-        z-index: 1;
-    }
-    
-    .related-book span {
-        position: relative;
-        z-index: 2;
-        font-weight: 500;
-        font-size: 14px;
+    .book-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 3.2vw, 2.75rem);
+        font-weight: 800;
+        line-height: 1.18;
+        margin-bottom: 12px;
+        color: var(--text-primary);
     }
 
-    @media (max-width: 900px) {
-        .book-detail-container {
-            grid-template-columns: 1fr;
-        }
+    .book-author-lead {
+        font-size: 1.15rem;
+        color: var(--color-roast);
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    /* Star Rating CSS */
+
+    /* Rating Display */
     .rating-container {
         display: flex;
         align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
+        gap: 16px;
+        margin-bottom: 28px;
+        padding: 12px 18px;
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-pill);
+        width: fit-content;
     }
     .rating-display {
         display: flex;
         align-items: center;
-        gap: 5px;
-        color: #f59e0b;
-        font-size: 20px;
+        gap: 4px;
+        color: #F59E0B;
+        font-size: 1.1rem;
     }
     .rating-display .fa-star {
-        color: #e5e7eb;
+        color: var(--border-medium);
     }
     .rating-display .fa-star.active {
-        color: #f59e0b;
+        color: #F59E0B;
     }
     .rating-text {
-        font-size: 16px;
-        color: #555;
-        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 600;
     }
     
     .rating-form {
@@ -222,35 +119,242 @@
         display: none;
     }
     .rating-form label {
-        color: #e5e7eb;
-        font-size: 24px;
+        color: var(--border-medium);
+        font-size: 1.2rem;
         padding: 0 2px;
         cursor: pointer;
-        transition: color 0.2s;
+        transition: color var(--transition-fast);
     }
     .rating-form label:hover,
     .rating-form label:hover ~ label,
     .rating-form input:checked ~ label {
-        color: #f59e0b;
+        color: #F59E0B;
+    }
+
+    /* Description Box */
+    .description-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-lg);
+        padding: 28px 32px;
+        margin-bottom: 36px;
+        font-size: 1.05rem;
+        line-height: 1.75;
+        color: var(--text-secondary);
+        box-shadow: var(--shadow-xs);
+        position: relative;
+    }
+
+    .description-box h3 {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        font-weight: 700;
+    }
+
+    /* Spec Grid (Taste-Skill §4.9: 2-col card chunk architecture) */
+    .specs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 36px;
+    }
+
+    .spec-card {
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        transition: all var(--transition-fast);
+    }
+
+    .spec-card:hover {
+        border-color: var(--color-toasty);
+        background: var(--bg-surface);
+    }
+
+    .spec-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+    }
+
+    .spec-value {
+        font-size: 0.98rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 48px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-action-primary {
+        background: var(--gradient-primary);
+        color: var(--text-on-accent);
+        padding: 14px 32px;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: var(--radius-pill);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 16px rgba(189, 87, 5, 0.25);
+        transition: all var(--transition-base);
+    }
+    
+    .btn-action-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(189, 87, 5, 0.35);
+        color: var(--color-butter);
+    }
+
+    .btn-action-secondary {
+        background: var(--bg-surface);
+        color: var(--text-primary);
+        border: 1.5px solid var(--border-medium);
+        padding: 14px 28px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: var(--radius-pill);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all var(--transition-base);
+    }
+
+    .btn-action-secondary:hover {
+        background: var(--bg-surface-sunken);
+        border-color: var(--color-roast);
+        color: var(--color-roast);
+        transform: translateY(-2px);
+    }
+    
+    /* Related Section */
+    .related-section {
+        border-top: 1px solid var(--border-medium);
+        padding-top: 36px;
+    }
+    
+    .related-title {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin-bottom: 24px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 20px;
+    }
+    
+    .related-book {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-medium);
+        border-radius: var(--radius-md);
+        aspect-ratio: 3/4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--shadow-xs);
+        transition: all var(--transition-spring);
+    }
+    
+    .related-book:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-hover);
+        border-color: var(--color-toasty);
+    }
+    
+    .related-book img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .related-book span {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-align: center;
+        padding: 8px;
+    }
+
+    @media (max-width: 991px) {
+        .book-detail-container {
+            grid-template-columns: 1fr;
+            gap: 36px;
+            margin-top: 20px;
+        }
+        .book-cover {
+            max-width: 320px;
+            margin: 0 auto 24px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="book-detail-container">
-    <!-- Cột trái -->
+    <!-- Cột trái: Ảnh bìa & Trạng thái xe -->
     <div class="left-col">
         <div class="book-cover">
             {% if book.cover_image %}
                 <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
             {% else %}
-                <span class="book-cover-placeholder">Bìa sách</span>
+                <span class="book-cover-placeholder"><i class="fas fa-book-open fa-2x mb-2 d-block" style="color: var(--color-toasty);"></i>{{ book.title }}</span>
             {% endif %}
         </div>
         
+        <!-- Vị trí xe bus & Trạng thái tồn kho -->
+        <div class="spec-card mb-3">
+            <span class="spec-label"><i class="fas fa-bus-alt text-warning me-1"></i> Vị trí trên xe</span>
+            <span class="spec-value">{{ book.location.name|default:"Kho trung tâm" }}</span>
+        </div>
+
+        <div class="spec-card">
+            <span class="spec-label"><i class="fas fa-info-circle text-info me-1"></i> Tình trạng hiện tại</span>
+            <span class="spec-value">
+                {% if book.status == 'available' %}
+                    <span class="badge bg-success" style="font-size:0.85rem;"><i class="fas fa-check-circle me-1"></i> Có sẵn để mượn</span>
+                {% elif book.status == 'checked_out' %}
+                    <span class="badge bg-warning text-dark" style="font-size:0.85rem;"><i class="fas fa-clock me-1"></i> Đang được mượn</span>
+                {% else %}
+                    <span class="badge bg-secondary" style="font-size:0.85rem;">{{ book.get_status_display }}</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- Cột phải: Thông tin chi tiết & Hành động -->
+    <div class="right-col">
         <h1 class="book-title">{{ book.title }}</h1>
+        <div class="book-author-lead">
+            <i class="fas fa-feather-alt"></i> Tác giả: {{ book.author|default:"Đang cập nhật" }}
+        </div>
         
-        <!-- Hiển thị Rating -->
+        <!-- Đánh giá sao -->
         <div class="rating-container">
             <div class="rating-display" title="Đánh giá trung bình: {{ average_rating|floatformat:1 }} sao">
                 <i class="fas fa-star {% if average_rating >= 1 %}active{% endif %}"></i>
@@ -262,7 +366,7 @@
             <span class="rating-text">{{ average_rating|floatformat:1 }} ({{ rating_count }} đánh giá)</span>
             
             {% if user.is_authenticated %}
-            <form action="{% url 'inventory:book_rate' book.pk %}" method="POST" class="rating-form" style="margin-left: 20px;">
+            <form action="{% url 'inventory:book_rate' book.pk %}" method="POST" class="rating-form" style="margin-left: 16px;">
                 {% csrf_token %}
                 <button type="submit" style="display: none;" id="submit-rating"></button>
                 <input type="radio" id="star5" name="rating" value="5" {% if user_rating.rating == 5 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
@@ -276,84 +380,83 @@
                 <input type="radio" id="star1" name="rating" value="1" {% if user_rating.rating == 1 %}checked{% endif %} onclick="document.getElementById('submit-rating').click();" />
                 <label for="star1" title="1 sao"><i class="fas fa-star"></i></label>
             </form>
-            <span class="rating-text" style="font-size:14px; margin-left: 5px;">
-                {% if user_rating %}Bạn đã đánh giá{% else %}Đánh giá sách{% endif %}
+            <span class="rating-text" style="font-size:0.85rem; margin-left: 6px;">
+                {% if user_rating %}✓ Đã đánh giá{% else %}Đánh giá sách{% endif %}
             </span>
             {% else %}
-            <span class="rating-text" style="font-size:14px; margin-left: 20px;">
-                <a href="{% url 'users:login' %}?next={{ request.path }}">Đăng nhập để đánh giá</a>
+            <span class="rating-text" style="font-size:0.85rem; margin-left: 12px;">
+                <a href="{% url 'users:login' %}?next={{ request.path }}" style="color: var(--color-roast); text-decoration:none;">Đăng nhập để đánh giá</a>
             </span>
             {% endif %}
         </div>
-        
-        <div class="book-meta">
-            {% if book.author %}
-                <span class="book-meta-label">Tác giả: <span class="book-meta-value">{{ book.author }}</span></span>
-            {% endif %}
-            {% if book.category %}
-                <span class="book-meta-label">Thể loại: <span class="book-meta-value">{{ book.category.name }}</span></span>
-            {% endif %}
-            {% if book.publisher %}
-                <span class="book-meta-label">Nhà xuất bản: <span class="book-meta-value">{{ book.publisher }}</span></span>
-            {% endif %}
-            {% if book.publication_year %}
-                <span class="book-meta-label">Năm xuất bản: <span class="book-meta-value">{{ book.publication_year }}</span></span>
-            {% endif %}
-            {% if book.isbn %}
-                <span class="book-meta-label">ISBN: <span class="book-meta-value">{{ book.isbn }}</span></span>
-            {% endif %}
-            {% if book.page_count %}
-                <span class="book-meta-label">Số trang: <span class="book-meta-value">{{ book.page_count }}</span></span>
-            {% endif %}
-            {% if book.language %}
-                <span class="book-meta-label">Ngôn ngữ: <span class="book-meta-value">{{ book.language }}</span></span>
-            {% endif %}
-            {% if book.location %}
-                <span class="book-meta-label">Vị trí hiện tại: <span class="book-meta-value">{{ book.location.name }}</span></span>
-            {% endif %}
-            <span class="book-meta-label">Tình trạng sách: <span class="book-meta-value">{{ book.get_condition_display }}</span></span>
-            <span class="book-meta-label">Trạng thái: <span class="book-meta-value">{{ book.get_status_display }}</span></span>
-            {% if book.is_digital_only %}
-                <span class="book-meta-label">Định dạng: <span class="book-meta-value">Chỉ có bản điện tử</span></span>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Cột phải -->
-    <div class="right-col">
+
+        <!-- Khối Mô Tả -->
         <div class="description-box">
+            <h3><i class="fas fa-align-left me-2 text-warning"></i> Giới thiệu tác phẩm</h3>
             {% if book.description %}
                 {{ book.description|linebreaks }}
             {% else %}
-                Ô này là mô tả và tóm tắt nội dung sách
+                <p class="text-muted fst-italic">Tác phẩm hiện chưa có phần tóm tắt chi tiết. Bạn đọc có thể ghé thăm tuyến xe thư viện lưu động để khám phá trực tiếp cuốn sách.</p>
             {% endif %}
         </div>
         
+        <!-- Bảng Thông Số Kỹ Thuật (Taste-Skill 2-col Chunk Architecture) -->
+        <div class="specs-grid">
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-tag me-1"></i> Thể loại</span>
+                <span class="spec-value">{{ book.category.name|default:"Tổng hợp" }}</span>
+            </div>
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-building me-1"></i> Nhà xuất bản</span>
+                <span class="spec-value">{{ book.publisher|default:"Chưa rõ" }}</span>
+            </div>
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-calendar-alt me-1"></i> Năm xuất bản</span>
+                <span class="spec-value">{{ book.publication_year|default:"--" }}</span>
+            </div>
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-file-alt me-1"></i> Số trang</span>
+                <span class="spec-value">{{ book.page_count|default:"--" }} trang</span>
+            </div>
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-barcode me-1"></i> Mã ISBN</span>
+                <span class="spec-value">{{ book.isbn|default:"Đang cập nhật" }}</span>
+            </div>
+            <div class="spec-card">
+                <span class="spec-label"><i class="fas fa-language me-1"></i> Ngôn ngữ</span>
+                <span class="spec-value">{{ book.language|default:"Tiếng Việt" }}</span>
+            </div>
+        </div>
+
+        <!-- Nút Hành Động -->
         <div class="action-buttons">
-            <a href="{% url 'transactions:reservation_create' book.id %}" class="btn-action">Mượn sách</a>
+            <a href="{% url 'transactions:reservation_create' book.id %}" class="btn-action-primary">
+                <i class="fas fa-bookmark"></i> Đăng ký mượn sách
+            </a>
             {% if file_info.pdf_url %}
-            <a href="{% url 'inventory:book_pdf_viewer' book.pk %}" class="btn-action">Nút tải</a>
-            {% else %}
-            <a href="#" class="btn-action" style="opacity:0.5; cursor:not-allowed;" title="Chưa có bản PDF">Nút tải</a>
+            <a href="{% url 'inventory:book_pdf_viewer' book.pk %}" class="btn-action-secondary">
+                <i class="fas fa-book-reader"></i> Đọc bản điện tử (PDF)
+            </a>
             {% endif %}
+            <a href="{% url 'inventory:book_list' %}" class="btn-action-secondary">
+                <i class="fas fa-arrow-left"></i> Quay lại danh mục
+            </a>
         </div>
         
+        <!-- Sách Cùng Thể Loại -->
         <div class="related-section">
-            <h3 class="related-title">Nội dung liên quan</h3>
+            <h3 class="related-title"><i class="fas fa-layer-group text-warning"></i> Có thể bạn cũng thích</h3>
             <div class="related-grid">
                 {% for rb in related_books %}
-                    <a href="{% url 'inventory:book_detail' rb.pk %}" class="related-book">
+                    <a href="{% url 'inventory:book_detail' rb.pk %}" class="related-book" title="{{ rb.title }}">
                         {% if rb.cover_image %}
                             <img src="{{ rb.cover_image.url }}" alt="{{ rb.title }}">
                         {% else %}
-                            <span>Bìa sách</span>
+                            <span>{{ rb.title|truncatechars:20 }}</span>
                         {% endif %}
                     </a>
                 {% empty %}
-                    <div class="related-book"><span>Bìa sách</span></div>
-                    <div class="related-book"><span>Bìa sách</span></div>
-                    <div class="related-book"><span>Bìa sách</span></div>
-                    <div class="related-book"><span>Bìa sách</span></div>
+                    <p class="text-muted">Chưa có gợi ý sách tương tự.</p>
                 {% endfor %}
             </div>
         </div>

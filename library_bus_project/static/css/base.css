@@ -1,0 +1,222 @@
+/* ==========================================================================
+   BASE & RESET STYLES — LIBRARY BUS PROJECT
+   ========================================================================== */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ========== IMPECCABLE CRAFT FLOOR: BROWSER SURFACES ========== */
+::selection {
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
+}
+
+::-moz-selection {
+    background-color: var(--color-selection-bg);
+    color: var(--color-selection-text);
+}
+
+input, textarea, [contenteditable="true"] {
+    caret-color: var(--color-caret);
+}
+
+/* Custom Themed Scrollbar */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-roast);
+}
+
+/* Accessible & Themed Focus Ring */
+:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* Editorial Underline Offset */
+a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+}
+
+/* Tabular Numerals for metrics */
+.tabular-nums, .stat-number, .badge, .spec-value {
+    font-variant-numeric: tabular-nums;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.65;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+/* ========== TYPOGRAPHY STANDARDS ========== */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    color: var(--color-molasses);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    padding-bottom: 2px; /* Italic descender clearance */
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary);
+}
+
+h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); font-weight: 700; }
+h3 { font-size: clamp(1.3rem, 2.5vw, 1.75rem); font-weight: 700; }
+h4 { font-size: 1.25rem; font-weight: 600; }
+h5 { font-size: 1.1rem; font-weight: 600; }
+h6 { font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+p {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    max-width: 70ch;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}
+
+/* Tabular numbers for all statistics & data metrics */
+.stat-number, .tabular-nums, .price, .badge, .inventory-stat-value, td.number, .metric-value {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.02em;
+}
+
+/* Selection */
+::selection {
+    background-color: var(--color-greasey);
+    color: var(--color-molasses);
+}
+
+::-moz-selection {
+    background-color: var(--color-greasey);
+    color: var(--color-molasses);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-page-alt);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-toasty);
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--bg-page-alt);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-roast);
+}
+
+/* Focus States (Accessibility First) */
+:focus-visible {
+    outline: 2px solid var(--color-roast);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+}
+
+/* Links */
+a {
+    color: var(--color-roast);
+    text-decoration: none;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-wellbrowned);
+}
+
+/* Common Layout Containers */
+.container {
+    width: 100%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Utility Helpers */
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.w-100 { width: 100%; }
+
+.text-gold, .text-accent {
+    color: var(--color-roast);
+}
+
+.text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+}

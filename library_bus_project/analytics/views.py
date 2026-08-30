@@ -352,8 +352,11 @@ class RecommendationsView(CacheAwareMixin, PaginationMixin, ListView):
         
         # Generate recommendations if empty
         if not context['recommendations']:
-            generate_user_recommendations_task.delay(self.request.user.id)
-            context['generating'] = True
+            try:
+                generate_user_recommendations_task.delay(self.request.user.id)
+                context['generating'] = True
+            except Exception:
+                context['generating'] = False
         
         context.update({
             'recommendation_stats': self.get_recommendation_stats(),
@@ -531,10 +534,63 @@ def get_user_activities_json(request):
 
 @staff_member_required
 def get_analytics_summary_json(request):
+    user_stats = get_user_stats_summary() or {}
+    top_readers_data = [
+        {
+            'username': r.user.username if getattr(r, 'user', None) else 'Unknown',
+            'reputation_score': getattr(r, 'reputation_score', 0),
+            'member_level': getattr(r, 'member_level', 'bronze'),
+            'total_books_read': getattr(r, 'total_books_read', 0)
+        } for r in user_stats.get('top_readers', [])
+    ]
+    user_stats_clean = {
+        'total_users': user_stats.get('total_users', 0),
+        'active_users': user_stats.get('active_users', 0),
+        'top_readers': top_readers_data,
+        'level_distribution': list(user_stats.get('level_distribution', []))
+    }
+    
+    book_stats = get_book_stats_summary() or {}
+    popular_books_data = [
+        {
+            'title': b.book.title if getattr(b, 'book', None) else 'Unknown',
+            'total_borrows': getattr(b, 'total_borrows', 0),
+            'popularity_score': float(getattr(b, 'popularity_score', 0))
+        } for b in book_stats.get('popular_books', [])
+    ]
+    trending_books_data = [
+        {
+            'title': b.book.title if getattr(b, 'book', None) else 'Unknown',
+            'total_borrows': getattr(b, 'total_borrows', 0)
+        } for b in book_stats.get('trending_books', [])
+    ]
+    book_stats_clean = {
+        'total_books': book_stats.get('total_books', 0),
+        'total_borrows': book_stats.get('total_borrows', 0),
+        'avg_rating': float(book_stats.get('avg_rating', 0)),
+        'popular_books': popular_books_data,
+        'trending_books': trending_books_data,
+    }
+    
+    sys_health = get_system_health() or {}
+    recent_stats_clean = [
+        {
+            'date': s.date.isoformat() if hasattr(s, 'date') and s.date else str(s),
+            'total_borrows': getattr(s, 'total_borrows', 0),
+            'total_returns': getattr(s, 'total_returns', 0),
+            'active_users': getattr(s, 'active_users', 0)
+        } for s in sys_health.get('recent_stats', [])
+    ]
+    sys_health_clean = {
+        'cache_version': sys_health.get('cache_version', {}),
+        'recent_stats': recent_stats_clean,
+        'active_users_today': sys_health.get('active_users_today', 0)
+    }
+
     data = {
-        'user_stats': get_user_stats_summary(),
-        'book_stats': get_book_stats_summary(),
-        'system_health': get_system_health(),
+        'user_stats': user_stats_clean,
+        'book_stats': book_stats_clean,
+        'system_health': sys_health_clean,
         'timestamp': timezone.now().isoformat(),
     }
     return JsonResponse(data)

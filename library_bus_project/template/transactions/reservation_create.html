@@ -9,8 +9,9 @@
     .reservation-form {
         background: #fff;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 20px rgba(64, 31, 18, 0.05);
         padding: 40px;
+        border: 2px solid #ddceae;
     }
 
     .book-info {
@@ -19,29 +20,31 @@
         gap: 20px;
         margin-bottom: 30px;
         padding-bottom: 20px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #ddceae;
     }
 
     .book-cover {
         width: 80px;
         height: 120px;
-        background-color: #FDE68A;
+        background-color: #f2e9e1;
+        border: 1px solid #ddceae;
         border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #000;
+        color: #401f12;
         font-size: 2rem;
     }
 
     .book-details h3 {
         margin-bottom: 10px;
         font-weight: 700;
+        color: #401f12;
     }
 
     .book-details p {
         margin: 0;
-        color: #666;
+        color: #2d1f14;
     }
 
     .form-section {
@@ -50,68 +53,50 @@
 
     .form-section-title {
         font-size: 1.2rem;
-        font-weight: 600;
+        font-weight: 700;
         margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 10px;
+        color: #401f12;
     }
     
     .form-section-title i {
-        color: #000;
+        color: #b8691a;
     }
 
     .btn-submit {
-        background-color: #FDE68A;
-        color: #000;
-        font-weight: 600;
+        background: linear-gradient(135deg, #401f12 0%, #b8691a 100%);
+        color: #f2e9e1;
+        font-weight: 700;
         padding: 12px 30px;
         border: none;
-        border-radius: 0;
+        border-radius: 8px;
         transition: all 0.3s;
     }
 
     .btn-submit:hover {
-        background-color: #FCD34D;
-        color: #000;
-    }
-
-    /* Wave effect for buttons */
-    .btn-submit {
-        position: relative;
-        overflow: hidden;
-        z-index: 1;
-    }
-    .btn-submit::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: -100%;
-        width: 200%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.1);
-        border-radius: 40%;
-        z-index: -1;
-        transition: transform 0.4s ease;
-    }
-    .btn-submit:hover::after {
-        transform: translateX(50%) translateY(-10%);
+        background: linear-gradient(135deg, #b8691a 0%, #401f12 100%);
+        color: #daae5d;
+        transform: translateY(-2px);
     }
 
     .shipping-fields {
         display: none;
-        background: #f8f9fa;
+        background: #f2e9e1;
         padding: 20px;
         border-radius: 8px;
         margin-top: 15px;
+        border: 1px solid #ddceae;
     }
     
     .pickup-fields {
         display: block;
-        background: #f8f9fa;
+        background: #f2e9e1;
         padding: 20px;
         border-radius: 8px;
         margin-top: 15px;
+        border: 1px solid #ddceae;
     }
 </style>
 {% endblock %}

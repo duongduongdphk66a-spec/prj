@@ -10,32 +10,21 @@
 
 <style>
     /* ==============================================
-       CSS CẢI TIẾN CHO TRANG CÁ NHÂN
+       CSS CẢI TIẾN CHO TRANG CÁ NHÂN (6-TONE DESIGN SYSTEM)
     ============================================== */
 
     :root {
-        --user-bg-color: #f8f9fa;
-        --sidebar-bg-color: #ffffff;
-        --card-bg-color: #ffffff;
-        --primary-accent-color: #c5a47e; /* Vàng đồng thanh lịch */
-        --primary-accent-light: #f5f1ea;
-        --text-dark-color: #212529;
-        --text-light-color: #6c757d;
-        --border-color: #dee2e6;
-        --sidebar-width: 260px;
+        --user-bg-color: var(--bg-page);
+        --sidebar-bg-color: var(--bg-surface);
+        --card-bg-color: var(--bg-surface);
+        --primary-accent-color: var(--color-roast);
+        --primary-accent-light: var(--bg-surface-sunken);
+        --text-dark-color: var(--text-primary);
+        --text-light-color: var(--text-secondary);
+        --border-color: var(--border-color);
+        --sidebar-width: 270px;
         --sidebar-width-collapsed: 80px;
-        --header-height: 75px; /* Giả định chiều cao header từ base.html */
-    }
-
-    [data-theme="dark"] {
-        --user-bg-color: #121212;
-        --sidebar-bg-color: #1e1e1e;
-        --card-bg-color: #1e1e1e;
-        --primary-accent-color: #c5a47e;
-        --primary-accent-light: #3a3227;
-        --text-dark-color: #e0e0e0;
-        --text-light-color: #a0a0a0;
-        --border-color: #333333;
+        --header-height: 74px;
     }
 
     /* --- BỐ CỤC CHÍNH --- */
@@ -51,13 +40,13 @@
     .dashboard-sidebar {
         background-color: var(--sidebar-bg-color);
         border-right: 1px solid var(--border-color);
-        padding: 1.5rem 0;
+        padding: 1.75rem 0;
         display: flex;
         flex-direction: column;
         position: sticky;
         top: var(--header-height);
         height: calc(100vh - var(--header-height));
-        transition: width 0.3s ease-in-out;
+        transition: width var(--transition-base);
         overflow-y: auto;
         overflow-x: hidden;
     }
@@ -71,32 +60,35 @@
     }
 
     .sidebar-avatar {
-        width: 90px;
-        height: 90px;
+        width: 88px;
+        height: 88px;
         border-radius: 50%;
         object-fit: cover;
-        border: 4px solid var(--primary-accent-light);
+        border: 3px solid var(--color-greasey);
         margin-bottom: 1rem;
-        background-color: var(--primary-accent-color);
-        color: white;
+        background: var(--gradient-primary);
+        color: var(--color-butter);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
-        font-weight: 600;
+        font-size: 2.2rem;
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
     }
 
     .sidebar-profile h4 {
         font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text-dark-color);
+        font-weight: 700;
+        color: var(--color-molasses);
         margin: 0;
         white-space: nowrap;
+        font-family: var(--font-display);
     }
+    [data-theme="dark"] .sidebar-profile h4 { color: var(--text-primary); }
 
     .sidebar-profile p {
         font-size: 0.85rem;
-        color: var(--text-light-color);
+        color: var(--text-muted);
         margin-top: 0.25rem;
         white-space: nowrap;
     }
@@ -115,37 +107,40 @@
     .sidebar-nav a, .sidebar-nav-link {
         display: flex;
         align-items: center;
-        padding: 0.9rem 1.5rem;
-        color: var(--text-dark-color);
+        padding: 0.85rem 1.5rem;
+        color: var(--text-secondary);
         text-decoration: none;
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
+        transition: all var(--transition-fast);
+        font-size: 0.92rem;
         font-weight: 500;
-        border-left: 4px solid transparent;
+        border-left: 3.5px solid transparent;
         white-space: nowrap;
     }
 
     .sidebar-nav a:hover, .sidebar-nav-link:hover {
-        color: var(--primary-accent-color);
+        color: var(--color-roast);
+        background: var(--bg-surface-sunken);
     }
 
     .sidebar-nav li.active > a {
-        color: var(--primary-accent-color);
-        border-left-color: var(--primary-accent-color);
-        font-weight: 600;
+        color: var(--color-roast);
+        border-left-color: var(--color-roast);
+        background: var(--bg-surface-sunken);
+        font-weight: 700;
     }
 
     .sidebar-nav .nav-icon {
-        margin-right: 1rem;
+        margin-right: 0.9rem;
         width: 20px;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         text-align: center;
         transition: color 0.2s ease;
+        color: var(--color-roast);
     }
 
     .sidebar-nav a:hover .nav-icon, .sidebar-nav-link:hover .nav-icon,
     .sidebar-nav li.active a .nav-icon {
-        color: var(--primary-accent-color);
+        color: var(--color-wellbrowned);
     }
 
     /* Nút đăng xuất */
@@ -163,23 +158,32 @@
 
     .content-header h1 {
         font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+        color: var(--color-molasses);
+        font-family: var(--font-display);
     }
+    [data-theme="dark"] .content-header h1 { color: var(--text-primary); }
 
     .content-header p {
-        color: var(--text-light-color);
+        color: var(--text-secondary);
         margin-bottom: 2rem;
+        font-size: 0.95rem;
     }
 
     /* Card component */
     .card {
         background-color: var(--card-bg-color);
-        border-radius: 12px;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.05);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
         padding: 2rem;
         margin-bottom: 2rem;
+        transition: all var(--transition-spring);
+    }
+    .card:hover {
+        box-shadow: var(--shadow-hover);
+        border-color: var(--border-medium);
     }
     .card-header {
         padding-bottom: 1rem;
@@ -188,13 +192,16 @@
     }
     .card-title {
         font-size: 1.25rem;
-        font-weight: 600;
+        font-weight: 700;
         margin: 0;
+        color: var(--color-molasses);
+        font-family: var(--font-display);
     }
+    [data-theme="dark"] .card-title { color: var(--text-primary); }
 
     /* --- RESPONSIVE DESIGN --- */
     .mobile-sidebar-toggle {
-        display: none; /* Sẽ được hiển thị trên mobile */
+        display: none;
         position: fixed;
         top: calc(var(--header-height) + 15px);
         left: 15px;
@@ -202,10 +209,11 @@
         background-color: var(--sidebar-bg-color);
         border: 1px solid var(--border-color);
         border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        font-size: 1.2rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+        box-shadow: var(--shadow-md);
+        color: var(--color-roast);
     }
 
     .sidebar-overlay {
@@ -223,7 +231,7 @@
             bottom: 0;
             transform: translateX(-100%);
             z-index: 1100;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+            box-shadow: 10px 0 30px rgba(78, 7, 5, 0.2);
             border-right: 1px solid var(--border-color);
             transition: transform 0.3s ease-in-out;
             height: 100vh;
@@ -240,7 +248,7 @@
             padding: 2rem 1.5rem;
         }
         .content-header {
-            padding-top: 60px; /* Thêm khoảng trống cho nút toggle */
+            padding-top: 60px;
         }
         .sidebar-overlay {
             display: block;
@@ -249,7 +257,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(78, 7, 5, 0.5);
             z-index: 1099;
             opacity: 0;
             visibility: hidden;

@@ -1,7 +1,7 @@
-from .models import UserNotification
+from .models import get_user_unread_count
 
 def unread_notifications(request):
     if request.user.is_authenticated:
-        count = UserNotification.objects.filter(recipient=request.user, is_read=False).count()
-        return {'unread_notifications_count': count}
+        return {'unread_notifications_count': get_user_unread_count(request.user.id)}
     return {'unread_notifications_count': 0}
+

@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --primary-color: #5C4033; /* Dark brown for text/buttons to match theme */
-    --primary-bg: #FDE68A; /* Pastel gold */
-    --primary-hover: #FCD34D;
-    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --primary-color: #401f12; /* Dark espresso brown */
+    --primary-bg: #daae5d; /* Golden ochre */
+    --primary-hover: #b8691a; /* Bronze amber */
+    --bg-gradient: linear-gradient(135deg, #f2e9e1 0%, #ddceae 100%);
     --radius-md: 12px;
 }
 
 body {
     font-family: 'Inter', sans-serif !important;
     background: var(--bg-gradient) !important;
-    color: #0f172a !important;
+    color: #2d1f14 !important;
 }
 
 .content-wrapper {

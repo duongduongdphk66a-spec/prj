@@ -1,0 +1,198 @@
+/* ==========================================================================
+   ANIMATIONS & MICRO-INTERACTIONS — LIBRARY BUS PROJECT
+   Built with GSAP 3.12+ and Taste-Skill Standards
+   ========================================================================== */
+
+/* 1. Tactile Active Push for Interactive Elements */
+button:active,
+.btn:active,
+.nav-link:active,
+.social-links a:active,
+.book-card:active,
+.profile-trigger:active,
+.inventory-btn:active {
+    transform: scale(0.98) translateY(1px) !important;
+}
+
+/* 2. Reading Progress Bar (Top of Viewport for Articles) */
+.reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--color-roast, #BD5705), var(--color-toasty, #ED9040), var(--color-greasey, #FFC270));
+    transform-origin: left center;
+    transform: scaleX(0);
+    z-index: 9999;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* 3. Fleet Live Status Pulsing */
+.status-pulse-active {
+    position: relative;
+    display: inline-block;
+}
+.status-pulse-active::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10B981;
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+    animation: pulseGreen 2s infinite;
+}
+
+.status-pulse-moving {
+    position: relative;
+    display: inline-block;
+}
+.status-pulse-moving::before {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-roast, #BD5705);
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 0 0 rgba(189, 87, 5, 0.6);
+    animation: pulseAmber 2s infinite;
+}
+
+@keyframes pulseGreen {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+@keyframes pulseAmber {
+    0% {
+        box-shadow: 0 0 0 0 rgba(189, 87, 5, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(189, 87, 5, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(189, 87, 5, 0);
+    }
+}
+
+/* 4. 3D Perspective Card Container */
+.card-3d-wrap {
+    perspective: 1000px;
+}
+.card-3d-tilt {
+    transform-style: preserve-3d;
+    transition: box-shadow 0.3s ease;
+    will-change: transform;
+}
+
+/* 5. Keyframes */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes floatSoft {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton-box {
+    display: inline-block;
+    height: 1em;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--bg-surface-sunken);
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-box::after {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.4) 20%,
+        rgba(255, 255, 255, 0.6) 60%,
+        rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+    content: '';
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Spinner */
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid rgba(189, 87, 5, 0.2);
+    border-top-color: var(--color-roast);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+}
+
+/* Performance hint for GSAP animated targets */
+.stat-card,
+.metric-card,
+.book-card,
+.post-card-home,
+.blog-card,
+.category-pill,
+.route-card,
+.bus-card {
+    will-change: transform, opacity;
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

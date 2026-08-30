@@ -545,7 +545,7 @@ from django.utils import timezone
 from django.forms import ModelForm, CharField, Textarea, Select, CheckboxInput, NumberInput, DateInput, EmailInput
 from django.forms.widgets import HiddenInput
 from .models import (
-    BookReview, Comment, ReviewHelpfulness, Report
+    Comment, Report
 )
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Fieldset, Div, Submit, Button, Row, Column
@@ -554,68 +554,6 @@ from datetime import date, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
-
-class BookReviewForm(ModelForm):
-    """Form đánh giá sách với validation và UI được tối ưu"""
-    rating = forms.ChoiceField(choices=[(i/2, f'{i/2} ⭐') for i in range(1, 11)], widget=forms.RadioSelect(attrs={'class': 'rating-radio'}))
-    review_text = forms.CharField(widget=forms.Textarea(attrs={'rows': 6, 'placeholder': 'Chia sẻ cảm nhận của bạn về cuốn sách này...', 'class': 'form-control'}), required=False)
-    title = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'placeholder': 'Tiêu đề cho đánh giá của bạn', 'class': 'form-control'}), required=False)
-    
-    class Meta:
-        model = BookReview
-        fields = ['rating', 'title', 'review_text', 'reading_progress', 'is_spoiler']
-        widgets = {
-            'reading_progress': forms.Select(attrs={'class': 'form-select'}),
-            'is_spoiler': forms.CheckboxInput(attrs={'class': 'form-check-input'})
-        }
-    
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        self.book = kwargs.pop('book', None)
-        super().__init__(*args, **kwargs)
-        
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Fieldset('Đánh giá sách', 
-                Row(Column('rating', css_class='col-md-6'), Column('reading_progress', css_class='col-md-6')),
-                Field('title'),
-                Field('review_text'),
-                Field('is_spoiler', wrapper_class='form-check')
-            ),
-            FormActions(Submit('submit', 'Gửi đánh giá', css_class='btn btn-primary'), Button('cancel', 'Hủy', css_class='btn btn-secondary'))
-        )
-        
-        if self.instance.pk:
-            self.helper.layout.append(Button('delete', 'Xóa đánh giá', css_class='btn btn-danger'))
-    
-    def clean_review_text(self):
-        text = self.cleaned_data.get('review_text', '')
-        if text and len(text.strip()) < 10:
-            raise ValidationError('Nội dung đánh giá phải có ít nhất 10 ký tự.')
-        return text.strip()
-    
-    def clean_rating(self):
-        rating = self.cleaned_data.get('rating')
-        try:
-            rating = float(rating)
-            if rating < 0.5 or rating > 5.0:
-                raise ValidationError('Đánh giá phải từ 0.5 đến 5.0 sao.')
-        except (ValueError, TypeError):
-            raise ValidationError('Đánh giá không hợp lệ.')
-        return rating
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        if not cleaned_data.get('title') and cleaned_data.get('review_text'):
-            cleaned_data['title'] = f"Đánh giá về {self.book.title if self.book else 'cuốn sách'}"
-        return cleaned_data
-    
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if self.user: instance.user = self.user
-        if self.book: instance.book = self.book
-        if commit: instance.save()
-        return instance
 
 class CommentForm(ModelForm):
     """Form comment với threading và validation"""
@@ -659,26 +597,11 @@ class CommentForm(ModelForm):
         if commit: instance.save()
         return instance
 
-
-class BookReviewForm(forms.ModelForm):
-    class Meta:
-        model = BookReview
-        fields = ['rating', 'title', 'review_text', 'is_spoiler', 'reading_progress']
-        
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        self.book = kwargs.pop('book', None)
-        super().__init__(*args, **kwargs)
-
 class ReportForm(forms.ModelForm):
     class Meta:
         model = Report
         fields = ['reason', 'description']
 
-class ReviewHelpfulnessForm(forms.ModelForm):
-    class Meta:
-        model = ReviewHelpfulness
-        fields = ['is_helpful']
-
 class SearchForm(forms.Form):
     q = forms.CharField(required=False)
+

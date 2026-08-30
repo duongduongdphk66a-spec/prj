@@ -15,8 +15,7 @@ from unittest.mock import patch
 
 from blog.models import (
     Post, BlogCategory, BlogTag, Comment, CommentLike,
-    PostLike, PostRating, PostView, BookReview,
-    ReviewHelpfulness, Newsletter
+    PostLike, PostRating, PostView, Newsletter
 )
 from inventory.models import Book, Category as InvCategory, LibraryBus
 
@@ -289,60 +288,6 @@ class PostLikeSignalTest(TestCase):
         PostLike.objects.create(post=self.post, user=self.user)
         with self.assertRaises(IntegrityError):
             PostLike.objects.create(post=self.post, user=self.user)
-
-
-class BookReviewModelTest(TestCase):
-    """Test BookReview model"""
-
-    def setUp(self):
-        self.user = User.objects.create_user(username='revuser', password='pass')
-        self.inv_category = InvCategory.objects.create(name='Review Cat')
-        self.bus = LibraryBus.objects.create(
-            name='Review Bus', license_plate='29A-REVW', capacity=100
-        )
-        self.book = Book.objects.create(
-            title='Review Book', author='Author',
-            publication_year=2023, page_count=200,
-            category=self.inv_category, location=self.bus,
-            status='available'
-        )
-
-    @patch('blog.tasks.update_book_rating')
-    def test_create_review(self, mock_task):
-        """Tạo review thành công"""
-        mock_task.delay = lambda *args: None
-        review = BookReview.objects.create(
-            user=self.user, book=self.book,
-            rating=Decimal('4.5'),
-            review_text='Sách rất hay, nội dung phong phú và bổ ích cho người đọc.',
-            title='Review tuyệt vời'
-        )
-        self.assertEqual(float(review.rating), 4.5)
-
-    @patch('blog.tasks.update_book_rating')
-    def test_helpfulness_ratio_no_votes(self, mock_task):
-        """helpfulness_ratio = 0 khi chưa có votes"""
-        mock_task.delay = lambda *args: None
-        review = BookReview.objects.create(
-            user=self.user, book=self.book,
-            rating=Decimal('3.0'),
-            review_text='Sách bình thường, không có gì đặc biệt lắm.',
-        )
-        self.assertEqual(review.helpfulness_ratio, 0)
-
-    @patch('blog.tasks.update_book_rating')
-    def test_helpfulness_ratio_with_votes(self, mock_task):
-        """helpfulness_ratio tính đúng khi có votes"""
-        mock_task.delay = lambda *args: None
-        review = BookReview.objects.create(
-            user=self.user, book=self.book,
-            rating=Decimal('4.0'),
-            review_text='Sách rất hay, nội dung phong phú và bổ ích cho người đọc.',
-        )
-        review.helpful_votes = 8
-        review.unhelpful_votes = 2
-        review.save()
-        self.assertEqual(review.helpfulness_ratio, 80.0)
 
 
 class NewsletterModelTest(TestCase):

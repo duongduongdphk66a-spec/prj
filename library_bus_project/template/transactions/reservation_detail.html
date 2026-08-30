@@ -6,40 +6,40 @@
 {% block extra_css %}
 {{ block.super }}
 <style>
-    .reservation-detail { background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%); border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(255, 193, 7, 0.15); border: 1px solid #fff3cd; position: relative; overflow: hidden; }
-    .reservation-detail::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #ffc107, #ff9800, #ffc107); }
+    .reservation-detail { background: #fff; border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(64, 31, 18, 0.08); border: 2px solid #ddceae; position: relative; overflow: hidden; }
+    .reservation-detail::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #401f12, #b8691a, #daae5d); }
     .detail-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
-    .detail-header h1 { color: #f57c00; margin: 0; font-weight: 700; }
-    .detail-header .reservation-id { background: rgba(255, 193, 7, 0.1); color: #f57c00; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.875rem; font-weight: 600; }
-    .reservation-card { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid #fff3cd; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1); }
-    .reservation-card .card-header { background: linear-gradient(135deg, #fff8e1, #fffde7); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #fff3cd; }
-    .reservation-card .card-header h5 { color: #f57c00; margin: 0; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-    .reservation-card .card-header h5 i { color: #ffc107; }
+    .detail-header h1 { color: #401f12; margin: 0; font-weight: 800; }
+    .detail-header .reservation-id { background: #f2e9e1; color: #401f12; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.875rem; font-weight: 700; border: 1px solid #ddceae; }
+    .reservation-card { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 2px solid #ddceae; box-shadow: 0 4px 15px rgba(64, 31, 18, 0.05); }
+    .reservation-card .card-header { background: #f2e9e1; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #ddceae; }
+    .reservation-card .card-header h5 { color: #401f12; margin: 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .reservation-card .card-header h5 i { color: #b8691a; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-    .info-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(255, 248, 225, 0.5); border-radius: 12px; border: 1px solid #fff9db; }
-    .info-icon { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #ffc107, #ff9800); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .info-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f2e9e1; border-radius: 12px; border: 1px solid #ddceae; }
+    .info-icon { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #401f12, #b8691a); color: #f2e9e1; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
     .info-content { flex: 1; }
-    .info-label { font-size: 0.875rem; color: #6c757d; margin-bottom: 0.25rem; }
-    .info-value { font-weight: 600; color: #f57c00; font-size: 1rem; }
-    .queue-status { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 1px solid #fff3cd; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1); }
-    .queue-status h5 { color: #f57c00; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-    .queue-status h5 i { color: #ffc107; }
+    .info-label { font-size: 0.875rem; color: #401f12; opacity: 0.8; margin-bottom: 0.25rem; font-weight: 600; }
+    .info-value { font-weight: 700; color: #401f12; font-size: 1rem; }
+    .queue-status { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 2rem; border: 2px solid #ddceae; box-shadow: 0 4px 15px rgba(64, 31, 18, 0.05); }
+    .queue-status h5 { color: #401f12; margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .queue-status h5 i { color: #b8691a; }
     .queue-position { display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
-    .position-badge { background: linear-gradient(135deg, #ffc107, #ff9800); color: white; padding: 1rem 2rem; border-radius: 50px; font-size: 1.5rem; font-weight: 700; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
-    .position-text { color: #6c757d; font-size: 0.875rem; text-align: center; }
-    .queue-visual { background: linear-gradient(135deg, #fff8e1, #fffde7); border-radius: 12px; padding: 1.5rem; }
+    .position-badge { background: linear-gradient(135deg, #401f12, #b8691a); color: #f2e9e1; padding: 1rem 2rem; border-radius: 50px; font-size: 1.5rem; font-weight: 800; box-shadow: 0 4px 15px rgba(64, 31, 18, 0.2); }
+    .position-text { color: #401f12; opacity: 0.8; font-size: 0.875rem; text-align: center; font-weight: 600; }
+    .queue-visual { background: #f2e9e1; border-radius: 12px; padding: 1.5rem; border: 1px solid #ddceae; }
     .queue-progress { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-    .progress-bar { flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #ffc107, #ff9800); transition: width 0.3s ease; }
-    .progress-text { font-size: 0.875rem; color: #6c757d; font-weight: 500; }
-    .status-badge { padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .status-badge.status-waiting { background: linear-gradient(135deg, #17a2b8, #20c997); color: white; }
-    .status-badge.status-fulfilled { background: linear-gradient(135deg, #28a745, #20c997); color: white; }
+    .progress-bar { flex: 1; height: 8px; background: #ddceae; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #401f12, #b8691a); transition: width 0.3s ease; }
+    .progress-text { font-size: 0.875rem; color: #401f12; font-weight: 600; }
+    .status-badge { padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .status-badge.status-waiting { background: #daae5d; color: #401f12; }
+    .status-badge.status-fulfilled { background: #b8691a; color: #f2e9e1; }
     .action-section { display: flex; gap: 1rem; margin-top: 2rem; }
-    .btn-danger { background: linear-gradient(135deg, #dc3545, #c82333); border: none; border-radius: 10px; padding: 0.875rem 2rem; font-weight: 600; color: white; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
-    .btn-danger:hover { background: linear-gradient(135deg, #c82333, #bd2130); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4); }
-    .btn-secondary { background: white; border: 2px solid #ffc107; color: #ffc107; border-radius: 10px; padding: 0.875rem 2rem; font-weight: 600; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
-    .btn-secondary:hover { background: #ffc107; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4); }
+    .btn-danger { background: #401f12; border: none; border-radius: 10px; padding: 0.875rem 2rem; font-weight: 700; color: #f2e9e1; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+    .btn-danger:hover { background: #b8691a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(64, 31, 18, 0.3); }
+    .btn-secondary { background: #f2e9e1; border: 2px solid #ddceae; color: #401f12; border-radius: 10px; padding: 0.875rem 2rem; font-weight: 700; transition: all 0.3s ease; display: flex; align-items: center; gap: 0.5rem; }
+    .btn-secondary:hover { background: #ddceae; color: #401f12; transform: translateY(-2px); border-color: #b8691a; }
     .cancel-form { display: inline; }
     @media (max-width: 768px) {
         .reservation-detail { padding: 1.5rem; }
@@ -142,7 +142,7 @@
         <div class="queue-visual">
             <div class="queue-progress">
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width: {{ progress_percentage|default:10 }}%;"></div>
+                    <div class="progress-fill" style="--progress-val: {{ progress_percentage|default:10 }}%; width: var(--progress-val, 10%);"></div>
                 </div>
                 <div class="progress-text">{{ queue_ahead }} người đang chờ</div>
             </div>

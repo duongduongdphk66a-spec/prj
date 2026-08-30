@@ -26,7 +26,7 @@ class BorrowRecordForm(forms.ModelForm):
         self.request_user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         # Chỉ hiển thị sách available và user active
-        self.fields['book'].queryset = Book.objects.filter(status='available').select_related('author', 'category')
+        self.fields['book'].queryset = Book.objects.filter(status='available').select_related('category')
         self.fields['user'].queryset = User.objects.filter(is_active=True).order_by('username')
         self.fields['pickup_location'].queryset = LibraryBus.objects.filter(is_active=True)
     

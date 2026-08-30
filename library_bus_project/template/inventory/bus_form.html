@@ -6,35 +6,34 @@
 {% block extra_css %}
 {{ block.super }}
 <style>
-.bus-form-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-.bus-form-header::before { content: ''; position: absolute; top: -50%; right: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: pulse 3s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-.bus-form-header h1 { font-size: 2.2rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 15px; }
-.bus-form-header .form-icon { font-size: 2rem; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 50%; backdrop-filter: blur(10px); }
-.bus-form-card { background: white; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); overflow: hidden; transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.05); }
-.bus-form-card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.15); transform: translateY(-5px); }
+.bus-form-header { background: var(--gradient-dark); color: #FFFDF9; padding: 28px 32px; border-radius: var(--radius-lg); margin-bottom: 28px; position: relative; overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
+.bus-form-header h1 { font-size: 2rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 14px; color: var(--color-butter); font-family: var(--font-display); }
+.bus-form-header .form-icon { font-size: 1.8rem; background: rgba(253, 233, 113, 0.15); color: var(--color-butter); padding: 12px; border-radius: 50%; backdrop-filter: blur(10px); display: inline-flex; }
+.bus-form-card { background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; transition: all var(--transition-spring); border: 1px solid var(--border-color); }
+.bus-form-card:hover { box-shadow: var(--shadow-hover); border-color: var(--color-roast); }
 .bus-form-body { padding: 30px; }
-.bus-form-group { margin-bottom: 24px; }
-.bus-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-.bus-form-label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-.bus-form-input, .bus-form-select, .bus-form-textarea { width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; transition: all 0.3s ease; background: #fafafa; }
-.bus-form-input:focus, .bus-form-select:focus, .bus-form-textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); background: white; }
+.bus-form-group { margin-bottom: 22px; }
+.bus-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
+.bus-form-label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--color-molasses); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+[data-theme="dark"] .bus-form-label { color: var(--text-primary); }
+.bus-form-input, .bus-form-select, .bus-form-textarea { width: 100%; padding: 11px 16px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem; transition: all 0.2s ease; background: var(--bg-surface-sunken); color: var(--text-primary); }
+.bus-form-input:focus, .bus-form-select:focus, .bus-form-textarea:focus { outline: none; border-color: var(--color-roast); box-shadow: 0 0 0 3px rgba(189, 87, 5, 0.15); background: #FFFFFF; }
 .bus-form-textarea { resize: vertical; min-height: 100px; }
-.bus-form-error { color: #ef4444; font-size: 0.85rem; margin-top: 5px; display: block; }
-.bus-form-actions { display: flex; gap: 15px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
-.bus-form-btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 0.3s ease; border: none; display: inline-flex; align-items: center; gap: 8px; }
-.bus-form-btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; }
-.bus-form-btn-primary:hover { background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); }
-.bus-form-btn-secondary { background: #6b7280; color: white; }
-.bus-form-btn-secondary:hover { background: #4b5563; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(107, 114, 128, 0.4); }
-.bus-form-alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid; }
-.bus-form-alert-danger { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+.bus-form-error { color: var(--color-danger); font-size: 0.85rem; margin-top: 5px; display: block; font-weight: 500; }
+.bus-form-actions { display: flex; gap: 14px; padding-top: 20px; border-top: 1px solid var(--border-light); }
+.bus-form-btn { padding: 11px 24px; border-radius: var(--radius-pill); font-weight: 600; text-decoration: none; cursor: pointer; transition: all var(--transition-spring); border: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.92rem; }
+.bus-form-btn-primary { background: var(--gradient-primary); color: #FFFDF9; border: 1px solid var(--color-wellbrowned); }
+.bus-form-btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.bus-form-btn-secondary { background: var(--bg-surface-sunken); color: var(--text-primary); border: 1px solid var(--border-color); }
+.bus-form-btn-secondary:hover { background: var(--color-greasey); color: var(--color-molasses); transform: translateY(-2px); }
+.bus-form-alert { padding: 14px 18px; border-radius: var(--radius-md); margin-bottom: 20px; border-left: 4px solid; font-size: 0.92rem; }
+.bus-form-alert-danger { background: var(--color-danger-bg); border-color: var(--color-danger); color: var(--color-danger); }
 .bus-form-field-icon { position: relative; }
-.bus-form-field-icon i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; }
-.bus-form-field-icon input { padding-left: 40px; }
+.bus-form-field-icon i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-roast); font-size: 0.95rem; }
+.bus-form-field-icon input { padding-left: 42px; }
 @media (max-width: 768px) {
     .bus-form-row { grid-template-columns: 1fr; }
-    .bus-form-header h1 { font-size: 1.8rem; }
+    .bus-form-header h1 { font-size: 1.6rem; }
     .bus-form-body { padding: 20px; }
     .bus-form-actions { flex-direction: column; }
 }

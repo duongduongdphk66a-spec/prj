@@ -366,41 +366,74 @@ Ghi chú: {shipping_request.delivery_notes}"""
 
 
 class ReportService:
-    """Service for generating reports and statistics"""
+    """Service for generating reports and statistics with caching"""
     
     @staticmethod
     def get_user_statistics(user: User) -> Dict[str, Any]:
-        """Thống kê người dùng"""
-        active_borrows = BorrowRecord.objects.filter(user=user, return_date__isnull=True)
-        all_borrows = BorrowRecord.objects.filter(user=user)
-        
-        return {'user': user.username, 'active_borrows': active_borrows.count(), 'total_borrows': all_borrows.count(), 'overdue_count': active_borrows.filter(due_date__lt=timezone.now().date()).count(), 'total_fines': FinePayment.objects.filter(borrow_record__user=user, payment_status='completed').aggregate(total=Sum('final_amount'))['total'] or 0, 'reservation_count': BookReservation.objects.filter(user=user, is_fulfilled=False).count()}
+        """Thống kê người dùng với cache"""
+        cache_key = f'trans_user_stats_{user.id}'
+        def _fetch():
+            active_borrows = BorrowRecord.objects.filter(user=user, return_date__isnull=True)
+            all_borrows = BorrowRecord.objects.filter(user=user)
+            return {
+                'user': user.username,
+                'active_borrows': active_borrows.count(),
+                'total_borrows': all_borrows.count(),
+                'overdue_count': active_borrows.filter(due_date__lt=timezone.now().date()).count(),
+                'total_fines': FinePayment.objects.filter(borrow_record__user=user, payment_status='completed').aggregate(total=Sum('final_amount'))['total'] or 0,
+                'reservation_count': BookReservation.objects.filter(user=user, is_fulfilled=False).count()
+            }
+        return cache.get_or_set(cache_key, _fetch, 300)
 
     @staticmethod
     def get_book_statistics(book: Book) -> Dict[str, Any]:
         """Thống kê sách"""
         all_borrows = BorrowRecord.objects.filter(book=book)
-        
-        return {'book': book.title, 'total_borrows': all_borrows.count(), 'current_borrower': all_borrows.filter(return_date__isnull=True).first(), 'reservation_queue': BookReservation.objects.filter(book=book, is_fulfilled=False).count(), 'average_borrow_days': all_borrows.filter(return_date__isnull=False).aggregate(avg_days=Avg(F('return_date') - F('borrow_date')))['avg_days'] or 0}
+        return {
+            'book': book.title,
+            'total_borrows': all_borrows.count(),
+            'current_borrower': all_borrows.filter(return_date__isnull=True).first(),
+            'reservation_queue': BookReservation.objects.filter(book=book, is_fulfilled=False).count(),
+            'average_borrow_days': all_borrows.filter(return_date__isnull=False).aggregate(avg_days=Avg(F('return_date') - F('borrow_date')))['avg_days'] or 0
+        }
 
     @staticmethod
     def get_monthly_report(year: int, month: int) -> Dict[str, Any]:
-        """Báo cáo tháng"""
-        start_date = datetime(year, month, 1).date()
-        end_date = (start_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-        
-        borrows = BorrowRecord.objects.filter(borrow_date__range=[start_date, end_date])
-        returns = BorrowRecord.objects.filter(return_date__range=[start_date, end_date])
-        fines = FinePayment.objects.filter(payment_date__range=[start_date, end_date], payment_status='completed')
-        
-        return {'period': f"{month:02d}/{year}", 'total_borrows': borrows.count(), 'total_returns': returns.count(), 'overdue_books': BorrowRecord.objects.filter(return_date__isnull=True, due_date__lt=end_date).count(), 'fine_collected': fines.aggregate(total=Sum('final_amount'))['total'] or 0, 'popular_books': borrows.values('book__title').annotate(count=Count('id')).order_by('-count')[:10], 'active_users': borrows.values('user__username').distinct().count()}
+        """Báo cáo tháng với cache"""
+        cache_key = f'trans_monthly_report_{year}_{month}'
+        def _fetch():
+            start_date = datetime(year, month, 1).date()
+            end_date = (start_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+            
+            borrows = BorrowRecord.objects.filter(borrow_date__range=[start_date, end_date])
+            returns = BorrowRecord.objects.filter(return_date__range=[start_date, end_date])
+            fines = FinePayment.objects.filter(payment_date__range=[start_date, end_date], payment_status='completed')
+            
+            return {
+                'period': f"{month:02d}/{year}",
+                'total_borrows': borrows.count(),
+                'total_returns': returns.count(),
+                'overdue_books': BorrowRecord.objects.filter(return_date__isnull=True, due_date__lt=end_date).count(),
+                'fine_collected': fines.aggregate(total=Sum('final_amount'))['total'] or 0,
+                'popular_books': borrows.values('book__title').annotate(count=Count('id')).order_by('-count')[:10],
+                'active_users': borrows.values('user__username').distinct().count()
+            }
+        return cache.get_or_set(cache_key, _fetch, 300)
 
     @staticmethod
     def get_overdue_report() -> Dict[str, Any]:
         """Báo cáo sách quá hạn"""
         overdue_records = BorrowRecord.objects.filter(return_date__isnull=True, due_date__lt=timezone.now().date()).select_related('user', 'book')
-        
-        return {'total_overdue': overdue_records.count(), 'total_fine_amount': sum(record.fine_amount for record in overdue_records), 'overdue_by_days': {'1_7_days': overdue_records.filter(due_date__gte=timezone.now().date() - timedelta(days=7)).count(), '8_30_days': overdue_records.filter(due_date__range=[timezone.now().date() - timedelta(days=30), timezone.now().date() - timedelta(days=8)]).count(), 'over_30_days': overdue_records.filter(due_date__lt=timezone.now().date() - timedelta(days=30)).count()}, 'top_offenders': overdue_records.values('user__username').annotate(count=Count('id')).order_by('-count')[:10]}
+        return {
+            'total_overdue': overdue_records.count(),
+            'total_fine_amount': sum(record.fine_amount for record in overdue_records),
+            'overdue_by_days': {
+                '1_7_days': overdue_records.filter(due_date__gte=timezone.now().date() - timedelta(days=7)).count(),
+                '8_30_days': overdue_records.filter(due_date__range=[timezone.now().date() - timedelta(days=30), timezone.now().date() - timedelta(days=8)]).count(),
+                'over_30_days': overdue_records.filter(due_date__lt=timezone.now().date() - timedelta(days=30)).count()
+            },
+            'top_offenders': overdue_records.values('user__username').annotate(count=Count('id')).order_by('-count')[:10]
+        }
 
 
 class AnalyticsService:

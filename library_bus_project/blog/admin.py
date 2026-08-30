@@ -297,142 +297,18 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from .models import (
-    BookReview, ReviewHelpfulness, Comment, CommentLike, 
-    
-    Report,
+    Comment, CommentLike, Report,
 )
-from .tasks import batch_update_helpfulness_scores, moderate_reviews_batch
 import logging
 
 logger = logging.getLogger(__name__)
-# ================== CUSTOM FILTERS ==================
-
-class RatingFilter(SimpleListFilter):
-    title = 'Đánh giá'
-    parameter_name = 'rating'
-    
-    def lookups(self, request, model_admin):
-        return [('high', '4-5 sao'), ('medium', '2-3 sao'), ('low', '1 sao')]
-    
-    def queryset(self, request, queryset):
-        if self.value() == 'high': return queryset.filter(rating__gte=4)
-        elif self.value() == 'medium': return queryset.filter(rating__gte=2, rating__lt=4)
-        elif self.value() == 'low': return queryset.filter(rating=1)
-        return queryset
-
-class ModerationStatusFilter(SimpleListFilter):
-    title = 'Trạng thái duyệt'
-    parameter_name = 'moderation'
-    
-    def lookups(self, request, model_admin):
-        return [('pending', 'Chờ duyệt'), ('approved', 'Đã duyệt'), ('rejected', 'Bị từ chối')]
-    
-    def queryset(self, request, queryset):
-        if self.value(): return queryset.filter(moderation_status=self.value())
-        return queryset
-
-class ChallengeStatusFilter(SimpleListFilter):
-    title = 'Trạng thái thử thách'
-    parameter_name = 'status'
-    
-    def lookups(self, request, model_admin):
-        return [('active', 'Đang hoạt động'), ('upcoming', 'Sắp diễn ra'), ('ended', 'Đã kết thúc')]
-    
-    def queryset(self, request, queryset):
-        today = timezone.now().date()
-        if self.value() == 'active': return queryset.filter(start_date__lte=today, end_date__gte=today, is_active=True)
-        elif self.value() == 'upcoming': return queryset.filter(start_date__gt=today)
-        elif self.value() == 'ended': return queryset.filter(end_date__lt=today)
-        return queryset
-
-def approve_reviews(modeladmin, request, queryset):
-    """Duyệt reviews hàng loạt"""
-    review_ids = list(queryset.filter(moderation_status='pending').values_list('id', flat=True))
-    if review_ids:
-        moderate_reviews_batch.delay(review_ids, 'approved', request.user.id)
-        messages.success(request, f'Đã duyệt {len(review_ids)} đánh giá')
-approve_reviews.short_description = "Duyệt các đánh giá đã chọn"
-
-def reject_reviews(modeladmin, request, queryset):
-    """Từ chối reviews hàng loạt"""
-    review_ids = list(queryset.filter(moderation_status='pending').values_list('id', flat=True))
-    if review_ids:
-        moderate_reviews_batch.delay(review_ids, 'rejected', request.user.id)
-        messages.success(request, f'Đã từ chối {len(review_ids)} đánh giá')
-reject_reviews.short_description = "Từ chối các đánh giá đã chọn"
-
-def update_helpfulness_scores(modeladmin, request, queryset):
-    """Cập nhật điểm hữu ích"""
-    review_ids = list(queryset.values_list('id', flat=True))
-    if review_ids:
-        batch_update_helpfulness_scores.delay(review_ids)
-        messages.success(request, f'Đã cập nhật điểm hữu ích cho {len(review_ids)} đánh giá')
-update_helpfulness_scores.short_description = "Cập nhật điểm hữu ích"
+# ================== CUSTOM ACTIONS ==================
 
 def approve_comments(modeladmin, request, queryset):
     """Duyệt comments hàng loạt"""
     updated = queryset.filter(is_approved=False).update(is_approved=True)
     messages.success(request, f'Đã duyệt {updated} bình luận')
 approve_comments.short_description = "Duyệt các bình luận đã chọn"
-
-def deactivate_challenges(modeladmin, request, queryset):
-    """Vô hiệu hóa thử thách"""
-    updated = queryset.filter(is_active=True).update(is_active=False)
-    messages.success(request, f'Đã vô hiệu hóa {updated} thử thách')
-deactivate_challenges.short_description = "Vô hiệu hóa thử thách"
-
-@admin.register(BookReview)
-class BookReviewAdmin(admin.ModelAdmin):
-    list_display = ['user', 'book_title', 'rating', 'helpfulness_display', 'moderation_status', 'is_published', 'created_at']
-    list_filter = [RatingFilter, ModerationStatusFilter, 'is_published', 'is_verified', 'is_spoiler', 'reading_progress']
-    search_fields = ['user__username', 'book__title', 'title', 'review_text']
-    list_editable = ['is_published', 'moderation_status']
-    readonly_fields = ['helpful_votes', 'unhelpful_votes', 'helpfulness_score', 'report_count']
-    # date_hierarchy = 'created_at'
-    actions = [approve_reviews, reject_reviews, update_helpfulness_scores]
-    list_per_page = 50
-    
-    fieldsets = (
-        ('Thông tin cơ bản', {'fields': ('user', 'book', 'rating', 'title', 'review_text')}),
-        ('Trạng thái', {'fields': ('is_published', 'is_verified', 'is_spoiler', 'reading_progress')}),
-        ('Moderation', {'fields': ('moderation_status', 'moderated_by')}),
-        ('Thống kê', {'fields': ('helpful_votes', 'unhelpful_votes', 'helpfulness_score', 'report_count'), 'classes': ('collapse',)}),
-    )
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'book', 'moderated_by')
-    
-    def book_title(self, obj): return obj.book.title
-    book_title.short_description = 'Sách'
-    book_title.admin_order_field = 'book__title'
-    
-    def helpfulness_display(self, obj):
-        ratio = obj.helpfulness_ratio
-        color = 'green' if ratio > 70 else 'orange' if ratio > 40 else 'red'
-        return format_html('<span style="color: {};">{}</span>', color, f"{ratio:.1f}%")
-    helpfulness_display.short_description = 'Hữu ích'
-    helpfulness_display.admin_order_field = 'helpfulness_score'
-    
-    def get_readonly_fields(self, request, obj=None):
-        readonly = list(self.readonly_fields)
-        if obj and obj.moderation_status != 'pending':
-            readonly.append('moderation_status')
-        return readonly
-
-@admin.register(ReviewHelpfulness)
-class ReviewHelpfulnessAdmin(admin.ModelAdmin):
-    list_display = ['user', 'review_title', 'is_helpful', 'created_at']
-    list_filter = ['is_helpful', 'created_at']
-    search_fields = ['user__username', 'review__title', 'review__book__title']
-    readonly_fields = ['created_at', 'updated_at']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'review', 'review__book')
-    
-    def review_title(self, obj): return f"{obj.review.title or obj.review.book.title}"
-    review_title.short_description = 'Đánh giá'
-    
-    def has_add_permission(self, request): return False
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
@@ -475,8 +351,6 @@ class CommentLikeAdmin(admin.ModelAdmin):
     
     def has_add_permission(self, request): return False
 
-
-
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
     list_display = ('reporter', 'content_object_link', 'reason', 'status', 'created_at')
@@ -501,9 +375,6 @@ class ReportAdmin(admin.ModelAdmin):
         updated = queryset.update(status='reviewed', moderator=request.user)
         messages.success(request, f'Đã đánh dấu {updated} báo cáo là đã xử lý.')
     mark_as_reviewed.short_description = 'Đánh dấu là đã xử lý'
-
-# NotificationAdmin removed - Notification model merged into notifications app (UserNotification)
-
 
 class CommunityAdminMixin:
     """Mixin để thêm các tính năng chung cho admin"""
@@ -531,11 +402,9 @@ class CommunityAdminMixin:
         
         return super().changelist_view(request, extra_context)
 
-BookReviewAdmin.__bases__ = (CommunityAdminMixin,) + BookReviewAdmin.__bases__
-
-admin.site.site_header = 'Quản trị Community'
-admin.site.site_title = 'Community Admin'
-admin.site.index_title = 'Quản lý cộng đồng'
+admin.site.site_header = 'Quản trị Thư viện Di động'
+admin.site.site_title = 'Library Bus Admin'
+admin.site.index_title = 'Quản trị hệ thống'
 
 def admin_index_context(request):
     """Context cho trang admin index"""
@@ -543,11 +412,9 @@ def admin_index_context(request):
     
     today = timezone.now().date()
     context.update({
-        'pending_reviews': BookReview.objects.filter(moderation_status='pending').count(),
         'pending_comments': Comment.objects.filter(is_approved=False).count(),
-                'today_reviews': BookReview.objects.filter(created_at__date=today).count(),
         'today_comments': Comment.objects.filter(created_at__date=today).count(),
-        'pending_reports': Report.objects.filter(status='pending').count(), # Thêm thống kê báo cáo
+        'pending_reports': Report.objects.filter(status='pending').count(),
     })
     
     return context
@@ -560,3 +427,4 @@ try:
         admin.site.each_context = lambda req: {**admin.site._original_each_context(req), **admin_index_context(req)}
 except ImportError:
     pass
+

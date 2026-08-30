@@ -13,40 +13,40 @@
 
 {% block analytics_extra_css %}
 <style>
-.report-filters { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+.report-filters { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; }
 .filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; }
 .filter-group { display: flex; flex-direction: column; gap: 6px; }
-.filter-label { font-size: 0.9rem; font-weight: 500; color: #374151; }
-.filter-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; transition: border-color 0.3s ease; }
-.filter-input:focus { outline: none; border-color: var(--analytics-primary); }
-.filter-btn { background: var(--analytics-primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; }
-.filter-btn:hover { background: var(--analytics-accent); }
-.chart-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
-.chart-header { display: flex; justify-content: between; align-items: center; margin-bottom: 20px; }
-.chart-title { font-size: 1.2rem; font-weight: 600; color: #111827; margin: 0; }
+.filter-label { font-size: 0.9rem; font-weight: 700; color: #401f12; }
+.filter-input { padding: 8px 12px; border: 2px solid #ddceae; border-radius: 6px; font-size: 0.9rem; transition: border-color 0.3s ease; background: #f2e9e1; color: #2d1f14; }
+.filter-input:focus { outline: none; border-color: var(--analytics-primary); background: #fff; }
+.filter-btn { background: var(--analytics-primary); color: #f2e9e1; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+.filter-btn:hover { background: var(--analytics-dark); color: #daae5d; }
+.chart-card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.chart-title { font-size: 1.2rem; font-weight: 700; color: #401f12; margin: 0; }
 .export-buttons { display: flex; gap: 8px; }
-.export-btn { background: transparent; border: 1px solid var(--analytics-primary); color: var(--analytics-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s ease; }
-.export-btn:hover { background: var(--analytics-primary); color: white; }
+.export-btn { background: transparent; border: 1px solid var(--analytics-primary); color: var(--analytics-primary); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+.export-btn:hover { background: var(--analytics-primary); color: #f2e9e1; }
 .chart-container { position: relative; height: 400px; }
 .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 24px; }
-.summary-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; border-left: 4px solid var(--analytics-primary); }
+.summary-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; border-left: 4px solid var(--analytics-primary); }
 .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.summary-title { font-size: 0.9rem; font-weight: 500; color: #6b7280; margin: 0; }
-.summary-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--analytics-light); display: flex; align-items: center; justify-content: center; color: var(--analytics-dark); }
-.summary-value { font-size: 2rem; font-weight: 700; color: #111827; margin: 0 0 8px 0; }
-.summary-change { font-size: 0.8rem; font-weight: 500; }
-.summary-change.positive { color: #059669; }
-.summary-change.negative { color: #dc2626; }
+.summary-title { font-size: 0.9rem; font-weight: 700; color: #401f12; margin: 0; }
+.summary-icon { width: 40px; height: 40px; border-radius: 50%; background: #f2e9e1; display: flex; align-items: center; justify-content: center; color: var(--analytics-primary); }
+.summary-value { font-size: 2rem; font-weight: 800; color: #b8691a; margin: 0 0 8px 0; }
+.summary-change { font-size: 0.8rem; font-weight: 700; color: #401f12; }
+.summary-change.positive { color: #b8691a; }
+.summary-change.negative { color: #401f12; }
 .reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; }
-.report-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
-.table-header { padding: 20px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.table-title { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 0; }
+.report-table { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; }
+.table-header { padding: 20px; background: #f2e9e1; border-bottom: 1px solid #ddceae; }
+.table-title { font-size: 1.1rem; font-weight: 700; color: #401f12; margin: 0; }
 .table-body { padding: 0; }
 .custom-table { width: 100%; border-collapse: collapse; }
-.custom-table th, .custom-table td { padding: 12px 20px; text-align: left; border-bottom: 1px solid #e5e7eb; }
-.custom-table th { background: #f9fafb; font-weight: 600; color: #374151; font-size: 0.9rem; }
-.custom-table tbody tr:hover { background: #f9fafb; }
-.progress-indicator { width: 100px; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.custom-table th, .custom-table td { padding: 12px 20px; text-align: left; border-bottom: 1px solid #f2e9e1; }
+.custom-table th { background: #f2e9e1; font-weight: 700; color: #401f12; font-size: 0.9rem; }
+.custom-table tbody tr:hover { background: #f2e9e1; }
+.progress-indicator { width: 100px; height: 6px; background: #ddceae; border-radius: 3px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--analytics-gradient); transition: width 0.3s ease; }
 .user-info { display: flex; flex-direction: column; gap: 2px; }
 .user-name { font-weight: 500; color: #111827; }
@@ -193,7 +193,7 @@
                         <td>{{ book.borrow_count }}</td>
                         <td>
                             <div class="progress-indicator">
-                                <div class="progress-fill" style="width: {{ book.percentage }}%;"></div>
+                                <div class="progress-fill" style="--perc: {{ book.percentage|default:0 }}%; width: var(--perc, 0%);"></div>
                             </div>
                         </td>
                     </tr>
@@ -249,30 +249,35 @@
 {% block analytics_extra_js %}
 <script>
 // Reports chart data
+const reportsLabels = [{% for data in chart_data %}"{{ data.date|date:'d/m' }}",{% endfor %}];
+const reportsBorrows = [{% for data in chart_data %}{{ data.borrows }},{% endfor %}];
+const reportsReturns = [{% for data in chart_data %}{{ data.returns }},{% endfor %}];
+const reportsNewUsers = [{% for data in chart_data %}{{ data.new_users }},{% endfor %}];
+
 const reportsData = {
-    labels: [{% for data in chart_data %}"{{ data.date|date:'d/m' }}",{% endfor %}],
+    labels: reportsLabels,
     datasets: [
         {
             label: 'Lượt mượn',
-            data: [{% for data in chart_data %}{{ data.borrows }},{% endfor %}],
-            borderColor: 'rgba(245, 158, 11, 1)',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            data: reportsBorrows,
+            borderColor: '#b8691a',
+            backgroundColor: 'rgba(184, 105, 26, 0.1)',
             fill: true,
             tension: 0.4
         },
         {
             label: 'Lượt trả',
-            data: [{% for data in chart_data %}{{ data.returns }},{% endfor %}],
-            borderColor: 'rgba(16, 185, 129, 1)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            data: reportsReturns,
+            borderColor: '#401f12',
+            backgroundColor: 'rgba(64, 31, 18, 0.1)',
             fill: true,
             tension: 0.4
         },
         {
             label: 'Người dùng mới',
-            data: [{% for data in chart_data %}{{ data.new_users }},{% endfor %}],
-            borderColor: 'rgba(217, 119, 6, 1)',
-            backgroundColor: 'rgba(217, 119, 6, 0.1)',
+            data: reportsNewUsers,
+            borderColor: '#daae5d',
+            backgroundColor: 'rgba(218, 174, 93, 0.1)',
             fill: true,
             tension: 0.4
         }

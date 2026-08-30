@@ -11,11 +11,12 @@
 .map-container {
     height: calc(100vh - 120px);
     width: 100%;
-    border-radius: 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
     position: relative;
     z-index: 1;
+    border: 1px solid var(--border-color);
 }
 
 #bus-map {
@@ -29,64 +30,77 @@
     top: 20px;
     left: 20px;
     z-index: 1000;
-    width: 350px;
-    background: white;
-    border-radius: 0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    width: 360px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    padding: 5px 15px;
+    padding: 4px 18px;
 }
 
 .map-search-input {
     border: none;
     outline: none;
-    padding: 10px;
+    padding: 10px 12px;
     width: 100%;
-    font-size: 15px;
-    border-radius: 0;
+    font-size: 14.5px;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 .map-search-icon {
-    color: #64748b;
+    color: var(--color-roast);
     font-size: 1.1rem;
 }
 
 .leaflet-popup-content-wrapper {
-    border-radius: 0;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+    background: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
 }
 .leaflet-popup-content {
-    margin: 15px;
+    margin: 16px !important;
 }
 .bus-popup-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #1e293b;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--color-molasses);
+    font-family: var(--font-display);
 }
+[data-theme="dark"] .bus-popup-title { color: var(--text-primary); }
 .bus-popup-status {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     margin-bottom: 10px;
     display: inline-block;
-    padding: 3px 8px;
-    border-radius: 0;
-    background: #dcfce7;
-    color: #16a34a;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 .bus-popup-btn {
     display: block;
     text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white !important;
+    background: var(--gradient-primary);
+    color: #FFFDF9 !important;
     text-decoration: none;
-    padding: 8px 15px;
-    border-radius: 0;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
     font-weight: 600;
-    margin-top: 10px;
-    transition: all 0.3s;
+    margin-top: 12px;
+    transition: all var(--transition-spring);
+    box-shadow: var(--shadow-xs);
 }
 .bus-popup-btn:hover {
-    box-shadow: 0 4px 10px rgba(102,126,234,0.4);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
 }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -125,13 +139,13 @@
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Custom icon cho xe bus
+        // Custom marker icon cho xe bus (Taste-Skill Accent Pin)
         const busIcon = L.divIcon({
-            html: '<i class="fas fa-bus" style="color: #4f46e5; font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"></i>',
+            html: '<div style="background: #BD5705; color: #FFFDF9; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(189,87,5,0.45); border: 2px solid #FFFDF9;"><i class="fas fa-bus" style="font-size: 16px;"></i></div>',
             className: 'custom-bus-icon',
-            iconSize: [24, 24],
-            iconAnchor: [12, 24],
-            popupAnchor: [0, -24]
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
         });
 
         // Array lưu các marker để thao tác tìm kiếm
@@ -143,8 +157,8 @@
                 const popupContent = `
                     <div class="bus-popup-title">${bus.name}</div>
                     <div class="bus-popup-status">${bus.status}</div>
-                    <div style="font-size: 0.9rem; color: #64748b; margin-bottom: 5px;">
-                        <i class="fas fa-map-marker-alt"></i> ${bus.location_name || 'Đang cập nhật'}
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">
+                        <i class="fas fa-map-marker-alt text-warning me-1"></i> ${bus.location_name || 'Đang cập nhật'}
                     </div>
                     <a href="${bus.detail_url}" class="bus-popup-btn">Xem chi tiết</a>
                 `;

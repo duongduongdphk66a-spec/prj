@@ -8,27 +8,27 @@
 <!-- Featured Posts -->
 {% if featured_posts %}
 <section style="margin-bottom: 3rem;">
-    <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 1.5rem;">
-        <i class="fas fa-star" style="color: var(--gold);"></i> Bài viết nổi bật
+    <h2 style="font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; font-family: var(--font-display);">
+        <i class="fas fa-star text-warning"></i> Bài viết nổi bật
     </h2>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
         {% for post in featured_posts %}
-        <div style="background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: transform 0.3s;">
+        <div style="background: var(--bg-surface); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); border: 1px solid var(--border-medium); transition: all var(--transition-spring);">
             {% if post.featured_image %}
             <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width: 100%; height: 200px; object-fit: cover;">
             {% else %}
-            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--dark-brown), #3a2820); display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-newspaper" style="font-size: 3rem; color: var(--gold);"></i>
+            <div style="width: 100%; height: 200px; background: var(--gradient-primary); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-newspaper" style="font-size: 3rem; color: var(--color-butter);"></i>
             </div>
             {% endif %}
             <div style="padding: 1.25rem;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">
-                    <a href="{{ post.get_absolute_url }}" style="color: var(--dark-brown); text-decoration: none;">{{ post.title }}</a>
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-display);">
+                    <a href="{{ post.get_absolute_url }}" style="color: var(--text-primary); text-decoration: none;">{{ post.title }}</a>
                 </h3>
-                <p style="font-size: 0.9rem; color: #666; margin-bottom: 0.75rem;">{{ post.excerpt|default:post.content|truncatewords:20 }}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #999;">
-                    <span><i class="fas fa-user"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
-                    <span><i class="fas fa-eye"></i> {{ post.view_count }}</span>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">{{ post.excerpt|default:post.content|truncatewords:20 }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);">
+                    <span><i class="fas fa-user me-1"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
+                    <span><i class="fas fa-eye me-1"></i> {{ post.view_count }}</span>
                 </div>
             </div>
         </div>
@@ -41,24 +41,24 @@
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
     <!-- Recent Posts -->
     <section>
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 1.5rem;">
-            <i class="fas fa-clock"></i> Bài viết mới
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; font-family: var(--font-display);">
+            <i class="fas fa-clock text-warning"></i> Bài viết mới
         </h2>
         {% for post in posts %}
-        <article style="background: var(--white); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-            <h3 style="font-size: 1.2rem; margin-bottom: 0.5rem;">
-                <a href="{{ post.get_absolute_url }}" style="color: var(--dark-brown); text-decoration: none;">{{ post.title }}</a>
+        <article style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-xs); border: 1px solid var(--border-medium);">
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; font-family: var(--font-display);">
+                <a href="{{ post.get_absolute_url }}" style="color: var(--text-primary); text-decoration: none;">{{ post.title }}</a>
             </h3>
-            <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.75rem;">{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
-            <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: #999;">
-                <span><i class="fas fa-user"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
-                <span><i class="fas fa-calendar"></i> {{ post.publish_date|date:"d/m/Y" }}</span>
-                <span><i class="fas fa-eye"></i> {{ post.view_count }}</span>
-                <span><i class="fas fa-heart"></i> {{ post.like_count }}</span>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
+            <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                <span><i class="fas fa-user me-1"></i> {{ post.author.get_full_name|default:post.author.username }}</span>
+                <span><i class="fas fa-calendar me-1"></i> {{ post.publish_date|date:"d/m/Y" }}</span>
+                <span><i class="fas fa-eye me-1"></i> {{ post.view_count }}</span>
+                <span><i class="fas fa-heart me-1"></i> {{ post.like_count }}</span>
             </div>
         </article>
         {% empty %}
-        <p style="text-align: center; color: #999; padding: 2rem;">Chưa có bài viết nào.</p>
+        <p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có bài viết nào.</p>
         {% endfor %}
 
         {% if is_paginated %}
@@ -69,14 +69,14 @@
     <!-- Sidebar -->
     <aside>
         {% if categories %}
-        <div style="background: var(--white); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 1rem;">Chuyên mục</h3>
+        <div style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-xs); border: 1px solid var(--border-medium);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; font-family: var(--font-display);">Chuyên mục</h3>
             <ul style="list-style: none; padding: 0; margin: 0;">
                 {% for category in categories %}
-                <li style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
-                    <a href="{% url 'blog:category_detail' category.slug %}" style="color: #555; text-decoration: none; display: flex; justify-content: space-between;">
+                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-light);">
+                    <a href="{% url 'blog:category_detail' category.slug %}" style="color: var(--text-secondary); text-decoration: none; display: flex; justify-content: space-between;">
                         {{ category.name }}
-                        <span class="badge badge-gold">{{ category.post_count }}</span>
+                        <span class="badge bg-warning text-dark">{{ category.post_count }}</span>
                     </a>
                 </li>
                 {% endfor %}
@@ -85,11 +85,13 @@
         {% endif %}
 
         {% if popular_tags %}
-        <div style="background: var(--white); border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark-brown); margin-bottom: 1rem;">Tags phổ biến</h3>
+        <div style="background: var(--bg-surface); border-radius: var(--radius-md); padding: 1.5rem; box-shadow: var(--shadow-xs); border: 1px solid var(--border-medium);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; font-family: var(--font-display);">Tags phổ biến</h3>
             <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                 {% for tag in popular_tags %}
-                <a href="{% url 'blog:tag_detail' tag.slug %}" class="badge badge-dark" style="text-decoration: none;">{{ tag.name }}</a>
+                <a href="{% url 'blog:tag_detail' tag.slug %}" class="badge bg-light text-dark" style="text-decoration: none; padding: 6px 12px; border-radius: var(--radius-pill); border: 1px solid var(--border-medium);">
+                    #{{ tag.name }}
+                </a>
                 {% endfor %}
             </div>
         </div>
