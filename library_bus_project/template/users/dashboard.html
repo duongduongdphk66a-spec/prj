@@ -73,12 +73,12 @@
     .activity-content{flex:1;min-width:0;}
     .activity-text{color:#2d1f14;font-size:0.9rem;margin-bottom:0.25rem;}
     .activity-time{color:#401f12;font-size:0.8rem;opacity:0.7;}
-    .dashboard-actions{display:flex;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;}
-    .btn-dashboard{padding:0.75rem 1.5rem;border-radius:10px;font-weight:700;text-decoration:none;transition:all 0.3s ease;display:inline-flex;align-items:center;gap:0.5rem;border:none;cursor:pointer;}
-    .btn-dashboard-primary{background:linear-gradient(135deg,#401f12 0%,#b8691a 100%);color:#f2e9e1;}
-    .btn-dashboard-primary:hover{background:linear-gradient(135deg,#b8691a 0%,#401f12 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(64,31,18,0.25);color:#daae5d;}
-    .btn-dashboard-secondary{background:#f2e9e1;color:#401f12;border:1px solid #ddceae;}
-    .btn-dashboard-secondary:hover{background:#ddceae;transform:translateY(-2px);border-color:#b8691a;}
+    .dashboard-actions{display:flex;align-items:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap;}
+    .btn-dashboard{padding:0.75rem 1.5rem;border-radius:var(--radius-pill, 10px);font-weight:700;text-decoration:none;transition:all 0.3s ease;display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;border:2px solid transparent;box-sizing:border-box;cursor:pointer;line-height:1.2;}
+    .btn-dashboard-primary{background:var(--gradient-primary);color:var(--text-on-accent);border:2px solid transparent;}
+    .btn-dashboard-primary:hover{background:linear-gradient(135deg,var(--color-molasses) 0%,var(--color-wellbrowned) 100%);transform:translateY(-2px);box-shadow:0 4px 12px rgba(64,31,18,0.25);color:var(--color-butter);}
+    .btn-dashboard-secondary{background:var(--bg-surface-sunken);color:var(--color-molasses);border:2px solid var(--border-medium);}
+    .btn-dashboard-secondary:hover{background:var(--color-greasey);transform:translateY(-2px);border-color:var(--color-toasty);}
     .quick-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.5rem;}
     .quick-stat{background:#f2e9e1;padding:1rem;border-radius:12px;text-align:center;border:1px solid #ddceae;transition:all 0.3s ease;}
     .quick-stat:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(64,31,18,0.1);border-color:#b8691a;}

@@ -74,7 +74,7 @@
         margin-left: auto;
         margin-right: auto;
     }
-    .hero-buttons { display: flex; gap: 1.25rem; justify-content: center; flex-wrap: wrap; }
+    .hero-buttons { display: flex; align-items: center; gap: 1.25rem; justify-content: center; flex-wrap: wrap; }
 
     /* ========== Stats Section ========== */
     .stats-section {
@@ -372,10 +372,10 @@
         </p>
         <div class="hero-buttons">
             <a href="{% url 'inventory:book_list' %}" class="btn-hero primary">
-                <i class="fas fa-book-reader"></i> Khám phá sách ngay
+                <i class="fas fa-book-reader"></i> <span>Khám phá sách ngay</span>
             </a>
             <a href="{% url 'inventory:bus_list' %}" class="btn-hero secondary">
-                <i class="fas fa-bus"></i> Tìm xe gần bạn
+                <i class="fas fa-bus"></i> <span>Tìm xe gần bạn</span>
             </a>
         </div>
     </div>
@@ -539,10 +539,10 @@
                 <p>Khám phá kho sách khổng lồ hoặc kiểm tra các hoạt động gần đây tại bảng điều khiển của bạn.</p>
                 <div class="hero-buttons">
                     <a href="{% url 'inventory:book_list' %}" class="btn-hero primary">
-                        <i class="fas fa-search"></i> Tra cứu sách
+                        <i class="fas fa-search"></i> <span>Tra cứu sách</span>
                     </a>
                     <a href="{% url 'users:dashboard' %}" class="btn-hero secondary">
-                        <i class="fas fa-columns"></i> Vào Dashboard
+                        <i class="fas fa-columns"></i> <span>Vào Dashboard</span>
                     </a>
                 </div>
             {% else %}
@@ -550,10 +550,10 @@
                 <p>Tham gia cộng đồng hơn 50.000 độc giả đang trải nghiệm dịch vụ thư viện lưu động hàng đầu Việt Nam.</p>
                 <div class="hero-buttons">
                     <a href="{% url 'users:register' %}" class="btn-hero primary">
-                        <i class="fas fa-user-plus"></i> Đăng ký miễn phí
+                        <i class="fas fa-user-plus"></i> <span>Đăng ký miễn phí</span>
                     </a>
                     <a href="{% url 'about' %}" class="btn-hero secondary">
-                        <i class="fas fa-info-circle"></i> Tìm hiểu thêm
+                        <i class="fas fa-info-circle"></i> <span>Tìm hiểu thêm</span>
                     </a>
                 </div>
             {% endif %}

@@ -195,6 +195,7 @@
     /* Action Buttons */
     .action-buttons {
         display: flex;
+        align-items: center;
         gap: 16px;
         margin-bottom: 48px;
         flex-wrap: wrap;
@@ -203,10 +204,13 @@
     .btn-action-primary {
         background: var(--gradient-primary);
         color: var(--text-on-accent);
-        padding: 14px 32px;
+        padding: 13px 32px;
         font-size: 1rem;
         font-weight: 700;
+        line-height: 1.2;
         border-radius: var(--radius-pill);
+        border: 2px solid transparent;
+        box-sizing: border-box;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -224,10 +228,12 @@
     .btn-action-secondary {
         background: var(--bg-surface);
         color: var(--text-primary);
-        border: 1.5px solid var(--border-medium);
-        padding: 14px 28px;
+        border: 2px solid var(--border-medium);
+        box-sizing: border-box;
+        padding: 13px 28px;
         font-size: 1rem;
         font-weight: 600;
+        line-height: 1.2;
         border-radius: var(--radius-pill);
         text-decoration: none;
         display: inline-flex;

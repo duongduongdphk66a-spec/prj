@@ -221,14 +221,19 @@
         color: var(--text-on-accent);
         font-size: 0.95rem;
         font-weight: 700;
+        line-height: 1.2;
         padding: 10px 24px;
         border-radius: var(--radius-pill);
+        border: 2px solid transparent;
+        box-sizing: border-box;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 8px;
         box-shadow: var(--shadow-sm);
         transition: all var(--transition-base);
+        vertical-align: middle;
     }
     
     .btn-donate:hover {
@@ -545,10 +550,16 @@
                 </div>
             </div>
             
-            <div>
-                <a href="{% url 'inventory:book_donate' %}" class="btn-donate">Đóng góp</a>
+            <div style="display: inline-flex; align-items: center; gap: 10px;">
+                <a href="{% url 'inventory:book_donate' %}" class="btn-donate">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span>Đóng góp</span>
+                </a>
                 {% if user.is_staff %}
-                <a href="{% url 'inventory:admin_book_list' %}" class="btn-donate btn-manage" style="margin-left: 10px; background: var(--gradient-accent); color: var(--text-on-accent);">Quản lý</a>
+                <a href="{% url 'inventory:admin_book_list' %}" class="btn-donate btn-manage" style="background: var(--gradient-accent); color: var(--text-on-accent);">
+                    <i class="fas fa-tasks"></i>
+                    <span>Quản lý</span>
+                </a>
                 {% endif %}
             </div>
         </div>

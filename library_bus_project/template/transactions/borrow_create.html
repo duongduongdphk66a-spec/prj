@@ -24,12 +24,12 @@
     .invalid-feedback { display: block; color: #401f12; font-size: 0.875rem; margin-top: 0.5rem; font-weight: 600; }
     .alert { border-radius: 12px; border: none; padding: 1rem 1.5rem; margin-bottom: 2rem; font-weight: 600; }
     .alert-danger { background: #f2e9e1; color: #401f12; border-left: 4px solid #401f12; }
-    .btn-group { display: flex; gap: 1rem; margin-top: 2rem; justify-content: center; }
-    .btn { padding: 0.875rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease; border: none; cursor: pointer; }
-    .btn-primary { background: linear-gradient(135deg, #401f12, #b8691a); color: #f2e9e1; }
-    .btn-primary:hover { background: linear-gradient(135deg, #b8691a, #401f12); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(64, 31, 18, 0.25); color: #daae5d; }
-    .btn-secondary { background: #f2e9e1; border: 2px solid #ddceae; color: #401f12; }
-    .btn-secondary:hover { background: #ddceae; color: #401f12; transform: translateY(-2px); border-color: #b8691a; }
+    .btn-group { display: flex; align-items: center; gap: 1rem; margin-top: 2rem; justify-content: center; }
+    .btn { padding: 0.875rem 2rem; border-radius: var(--radius-pill, 10px); font-weight: 700; font-size: 1rem; line-height: 1.2; transition: all 0.3s ease; border: 2px solid transparent; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+    .btn-primary { background: var(--gradient-primary); color: var(--text-on-accent); border: 2px solid transparent; }
+    .btn-primary:hover { background: linear-gradient(135deg, var(--color-molasses), var(--color-wellbrowned)); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(64, 31, 18, 0.25); color: var(--color-butter); }
+    .btn-secondary { background: var(--bg-surface-sunken); border: 2px solid var(--border-medium); color: var(--color-molasses); }
+    .btn-secondary:hover { background: var(--color-greasey); color: var(--color-molasses); transform: translateY(-2px); border-color: var(--color-toasty); }
     .row { margin-left: -0.5rem; margin-right: -0.5rem; }
     .col-md-6 { padding-left: 0.5rem; padding-right: 0.5rem; }
     .form-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #b8691a; font-size: 1.1rem; }
