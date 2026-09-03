@@ -1,0 +1,17 @@
+Xin chào {{ shipping.user.get_full_name|default:shipping.user.username }},
+
+Yêu cầu giao sách "{{ shipping.book.title }}" của bạn đã được cập nhật trạng thái mới.
+
+Thông tin đơn vận chuyển:
+- Mã vận đơn: {{ shipping.tracking_code }}
+- Người nhận: {{ shipping.recipient_name }}
+- Số điện thoại: {{ shipping.phone_number }}
+- Địa chỉ nhận: {{ shipping.shipping_address }}
+- Trạng thái đơn hàng: {{ shipping.get_status_display }}
+{% if shipping.delivery_partner %}- Đơn vị vận chuyển: {{ shipping.delivery_partner }}{% endif %}
+{% if shipping.estimated_delivery %}- Ngày giao dự kiến: {{ shipping.estimated_delivery|date:"d/m/Y" }}{% endif %}
+
+Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ với ban quản trị qua trang Liên hệ.
+
+Trân trọng,
+Đội ngũ Thư viện Di động

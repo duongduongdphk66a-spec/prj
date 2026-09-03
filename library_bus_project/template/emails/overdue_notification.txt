@@ -1,0 +1,14 @@
+Xin chào {{ record.user.get_full_name|default:record.user.username }},
+
+Hệ thống Tủ Sách Lưu Động xin thông báo cuốn sách "{{ record.book.title }}" của bạn đã quá hạn trả.
+
+Thông tin chi tiết:
+- Tên sách: {{ record.book.title }}
+- Ngày hết hạn: {{ record.due_date|date:"d/m/Y" }}
+- Số ngày quá hạn: {{ record.days_overdue }} ngày
+- Phí phạt hiện tại: {{ record.fine_amount|floatformat:0 }} VNĐ
+
+Vui lòng nhanh chóng mang sách đến trạm xe buýt gần nhất để hoàn tất thủ tục trả sách và thanh toán phí phạt (nếu có), tránh phát sinh thêm phí phạt theo ngày.
+
+Trân trọng,
+Đội ngũ Thư viện Di động

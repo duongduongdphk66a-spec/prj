@@ -1,0 +1,14 @@
+Xin chào {{ record.user.get_full_name|default:record.user.username }},
+
+Đây là thông báo nhắc nhở từ Hệ thống Tủ Sách Lưu Động (Library Bus System).
+Cuốn sách "{{ record.book.title }}" bạn mượn sẽ đến hạn trả vào ngày {{ record.due_date|date:"d/m/Y" }}.
+
+Vui lòng hoàn trả sách đúng hạn tại trạm dừng xe buýt gần nhất hoặc thực hiện gia hạn trên website của hệ thống.
+
+Thông tin chi tiết:
+- Tên sách: {{ record.book.title }}
+- Ngày mượn: {{ record.borrow_date|date:"d/m/Y" }}
+- Hạn trả: {{ record.due_date|date:"d/m/Y" }}
+
+Trân trọng,
+Đội ngũ Thư viện Di động

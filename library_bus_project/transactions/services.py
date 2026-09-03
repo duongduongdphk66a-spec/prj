@@ -1,8 +1,10 @@
 # File: transactions/services.py
 from datetime import timedelta, datetime
 from decimal import Decimal
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, cast
 from django.db import transaction
+
+atomic = cast(Any, transaction.atomic)
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -23,9 +25,9 @@ class TransactionService:
     
     # --- BORROW OPERATIONS ---
     @staticmethod
-    def create_borrow(user: User, book: Book, due_days: int = 14, pickup_location: Optional[LibraryBus] = None, staff_member: Optional[User] = None) -> BorrowRecord:
+    def create_borrow(user: User, book: Book, due_days: int = 14, pickup_location: Optional[LibraryBus] = None, staff_member: Optional[User] = None, notes: str = "") -> BorrowRecord:
         """Tạo mượn sách với validation đầy đủ"""
-        with transaction.atomic():
+        with atomic():
             book = Book.objects.select_for_update().get(pk=book.pk)
             if not book.is_available:
                 raise ValidationError(f"Sách '{book.title}' không khả dụng để mượn")
@@ -36,7 +38,14 @@ class TransactionService:
             if hasattr(user, 'profile') and active_count >= getattr(user.profile, 'borrow_limit', 5):
                 raise ValidationError(f"Người dùng đã đạt giới hạn mượn sách ({active_count} cuốn)")
             
-            borrow = BorrowRecord.objects.create(user=user, book=book, due_date=timezone.now().date() + timedelta(days=due_days), pickup_location=pickup_location, staff_processed=staff_member)
+            borrow = BorrowRecord.objects.create(
+                user=user,
+                book=book,
+                due_date=timezone.now().date() + timedelta(days=due_days),
+                pickup_location=pickup_location,
+                staff_processed=staff_member,
+                notes=notes
+            )
             book.change_status('checked_out', user=staff_member or user)
             
             # Clear cache
@@ -48,7 +57,7 @@ class TransactionService:
             def trigger_borrow_analytics():
                 try:
                     from analytics.tasks import update_analytics_on_borrow_task
-                    update_analytics_on_borrow_task.delay(borrow_id, True)
+                    cast(Any, update_analytics_on_borrow_task).delay(borrow_id, True)
                 except Exception as e:
                     logger.warning(f"Không thể gọi update_analytics_on_borrow_task: {e}")
 
@@ -60,7 +69,7 @@ class TransactionService:
     @staticmethod
     def return_book(borrow_record_id: int, condition_notes: str = "", returned_by: Optional[User] = None, return_location: Optional[LibraryBus] = None) -> BorrowRecord:
         """Trả sách với validation và xử lý phạt"""
-        with transaction.atomic():
+        with atomic():
             borrow = BorrowRecord.objects.select_for_update().get(pk=borrow_record_id)
             if borrow.return_date:
                 raise ValidationError("Sách đã được trả trước đó")
@@ -91,7 +100,7 @@ class TransactionService:
             def trigger_return_analytics():
                 try:
                     from analytics.tasks import update_analytics_on_borrow_task
-                    update_analytics_on_borrow_task.delay(borrow_id, False)
+                    cast(Any, update_analytics_on_borrow_task).delay(borrow_id, False)
                 except Exception as e:
                     logger.warning(f"Không thể gọi update_analytics_on_borrow_task: {e}")
 
@@ -103,7 +112,7 @@ class TransactionService:
     @staticmethod
     def renew_book(borrow_record_id: int, days: int = 14) -> BorrowRecord:
         """Gia hạn sách với validation"""
-        with transaction.atomic():
+        with atomic():
             borrow = BorrowRecord.objects.select_for_update().get(pk=borrow_record_id)
             if not borrow.can_renew:
                 raise ValidationError("Không thể gia hạn sách này")
@@ -120,7 +129,7 @@ class TransactionService:
     @staticmethod
     def create_reservation(user: User, book: Book, preferred_location: Optional[LibraryBus] = None) -> BookReservation:
         """Tạo đặt trước sách"""
-        with transaction.atomic():
+        with atomic():
             # Lock the book to prevent race conditions on queue_position
             locked_book = Book.objects.select_for_update().get(pk=book.pk)
             
@@ -138,13 +147,14 @@ class TransactionService:
     @staticmethod
     def cancel_reservation(reservation_id: int) -> bool:
         """Hủy đặt trước và sắp xếp lại queue"""
-        with transaction.atomic():
-            reservation = BookReservation.objects.get(id=reservation_id)
+        with atomic():
+            reservation = BookReservation.objects.select_for_update().get(id=reservation_id)
             if reservation.is_fulfilled:
                 raise ValidationError("Không thể hủy đặt trước đã hoàn thành")
             
+            # Lock the book to synchronize queue reordering under high concurrency
+            book = Book.objects.select_for_update().get(pk=reservation.book_id)
             queue_position = reservation.queue_position
-            book = reservation.book
             reservation.delete()
             
             # Reorder queue
@@ -182,7 +192,7 @@ class TransactionService:
     @staticmethod
     def process_shipping(shipping_id: int, partner: str, estimated_delivery: Optional[datetime] = None) -> ShippingRequest:
         """Xử lý giao hàng"""
-        with transaction.atomic():
+        with atomic():
             shipping = ShippingRequest.objects.get(id=shipping_id)
             if not shipping.is_deliverable:
                 raise ValidationError("Yêu cầu giao hàng không thể xử lý")
@@ -199,7 +209,7 @@ class TransactionService:
             return Decimal('0')
         
         base_fine = Decimal('5000')  # 5k per day
-        days_overdue = borrow_record.days_overdue
+        days_overdue: int = cast(int, borrow_record.days_overdue)
         
         # Progressive fine calculation
         if days_overdue <= 7:
@@ -318,7 +328,7 @@ class NotificationService:
         """Gửi thông báo sách đã có sẵn"""
         try:
             send_mail(subject=f'Thông báo: Sách "{reservation.book.title}" đã có sẵn!', message=render_to_string('emails/book_available.txt', {'reservation': reservation}), from_email='library@system.com', recipient_list=[reservation.user.email], fail_silently=False)
-            reservation.notification_sent = True
+            setattr(reservation, 'notification_sent', True)
             reservation.save(update_fields=['notification_sent'])
             return True
         except Exception as e:
@@ -495,4 +505,4 @@ class AnalyticsService:
                 return borrow_record.borrow_date + avg_days
         
         # Default to due date if no history
-        return datetime.combine(borrow_record.due_date, datetime.min.time())
+        return datetime.combine(cast(Any, borrow_record.due_date), datetime.min.time())

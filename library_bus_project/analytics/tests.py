@@ -3,7 +3,8 @@
 # Test cases cho Analytics App — Models, Stats, Recommendations
 # ==============================================================================
 
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.cache import cache
@@ -248,3 +249,30 @@ class DailyStatsTest(TestCase):
 
     def tearDown(self):
         cache.clear()
+
+
+class PaginationMixinTest(TestCase):
+    """Test PaginationMixin in analytics views for safe parsing and bounds clamping"""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='pag_test_user', password='pass123')
+        self.client = Client()
+        self.client.login(username='pag_test_user', password='pass123')
+
+    def test_pagination_mixin_invalid_param_safe(self):
+        """per_page=abc không gây crash 500 và trả về 200 với default page_size"""
+        response = self.client.get(reverse('analytics:user_activities'), {'per_page': 'abc'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_pagination_mixin_clamps_to_max_100(self):
+        """per_page=999999 được giới hạn ở tối đa 100"""
+        response = self.client.get(reverse('analytics:user_activities'), {'per_page': '999999'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['paginator'].per_page, 100)
+
+    def test_pagination_mixin_clamps_to_min_1(self):
+        """per_page=-5 được giới hạn ở tối thiểu 1"""
+        response = self.client.get(reverse('analytics:user_activities'), {'per_page': '-5'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['paginator'].per_page, 1)
+

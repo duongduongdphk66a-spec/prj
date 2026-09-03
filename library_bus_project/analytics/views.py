@@ -1,4 +1,5 @@
 # analytics/views.py
+from typing import Any, cast
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -47,9 +48,16 @@ class StatsContextMixin:
         }
 
 class PaginationMixin:
-    """Mixin xử lý pagination với custom page size"""
+    """Mixin xử lý pagination với custom page size an toàn chống crash và DoS bộ nhớ"""
     def get_paginate_by(self, queryset):
-        return int(self.request.GET.get('per_page', self.paginate_by or 20))
+        raw_val = self.request.GET.get('per_page')
+        if not raw_val:
+            return self.paginate_by or 20
+        try:
+            per_page = int(raw_val)
+            return max(1, min(per_page, 100))
+        except (ValueError, TypeError):
+            return self.paginate_by or 20
 
 # =============================================================================
 # DASHBOARD VIEWS
@@ -111,7 +119,7 @@ class UserStatsView(CacheAwareMixin, DetailView):
     template_name = 'analytics/user_stats.html'
     context_object_name = 'user_stats'
     
-    def get_object(self):
+    def get_object(self, queryset=None):
         stats, _ = UserReadingStats.objects.get_or_create(user=self.request.user)
         return stats
     
@@ -192,11 +200,10 @@ class BookAnalyticsView(CacheAwareMixin, PaginationMixin, ListView):
         # Filter logic
         search = self.request.GET.get('search', '')
         if search:
-            queryset = queryset.filter(
-                Q(book__title__icontains=search) |
-                Q(book__author__icontains=search) |
-                Q(book__isbn__icontains=search)
-            )
+            search_q = Q(book__title__icontains=search)
+            search_q.add(Q(book__author__icontains=search), Q.OR)
+            search_q.add(Q(book__isbn__icontains=search), Q.OR)
+            queryset = queryset.filter(search_q)
         
         category = self.request.GET.get('category', '')
         if category:
@@ -268,7 +275,7 @@ class BookDetailAnalyticsView(CacheAwareMixin, DetailView):
     context_object_name = 'book_analytics'
     pk_url_kwarg = 'book_id'
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         book_id = self.kwargs['book_id']
         analytics, created = BookAnalytics.objects.get_or_create(
             book_id=book_id,
@@ -276,7 +283,7 @@ class BookDetailAnalyticsView(CacheAwareMixin, DetailView):
                 'total_borrows': 0, 'total_views': 0, 'total_reviews': 0,
                 'average_rating': 0, 'popularity_score': 0
             })
-        return super().get_object()
+        return super().get_object(queryset=queryset)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -353,7 +360,7 @@ class RecommendationsView(CacheAwareMixin, PaginationMixin, ListView):
         # Generate recommendations if empty
         if not context['recommendations']:
             try:
-                generate_user_recommendations_task.delay(self.request.user.id)
+                cast(Any, generate_user_recommendations_task).delay(self.request.user.id)
                 context['generating'] = True
             except Exception:
                 context['generating'] = False
@@ -489,7 +496,7 @@ class ReportsView(CacheAwareMixin, TemplateView):
 @login_required
 def track_book_view(request, book_id):
     if request.method == 'POST':
-        update_book_view_analytics.delay(book_id, request.user.id)
+        cast(Any, update_book_view_analytics).delay(book_id, request.user.id)
         return JsonResponse({'status': 'tracked'})
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -598,7 +605,7 @@ def get_analytics_summary_json(request):
 @login_required
 def track_bus_visit(request, bus_id):
     if request.method == 'POST':
-        update_bus_analytics_task.delay(bus_id, visit_count=1)
+        cast(Any, update_bus_analytics_task).delay(bus_id, visit_count=1)
         UserActivity.objects.create(
             user=request.user, activity_type='bus_visit', bus_id=bus_id,
             description=f"Ghé thăm xe bus", created_by=request.user, modified_by=request.user

@@ -445,3 +445,58 @@ class TransactionViewTest(TestCase):
         """Trang danh sách đặt trước yêu cầu login"""
         response = self.client.get(reverse('transactions:reservation_list'))
         self.assertEqual(response.status_code, 302)
+
+    def test_borrow_create_view_post_with_notes(self):
+        """Thủ thư submit BorrowCreateView kèm notes phải thành công không bị TypeError"""
+        staff = User.objects.create_user(username='staff_test_view', password='pass', is_staff=True)
+        borrower = User.objects.create_user(username='borrower_view', password='pass')
+        cat = Category.objects.create(name='Cat View')
+        bus = LibraryBus.objects.create(name='Bus View', license_plate='29A-VIEW')
+        book = Book.objects.create(
+            title='Book View', author='Author', publication_year=2024,
+            page_count=150, category=cat, location=bus, status='available'
+        )
+
+        self.client.login(username='staff_test_view', password='pass')
+        response = self.client.post(reverse('transactions:borrow_create'), {
+            'user': borrower.id,
+            'book': book.id,
+            'due_days': 14,
+            'pickup_location': bus.id,
+            'notes': 'Ghi chú kiểm thử tạo phiếu mượn'
+        })
+        self.assertEqual(response.status_code, 302)
+        borrow = BorrowRecord.objects.get(user=borrower, book=book)
+        self.assertEqual(borrow.notes, 'Ghi chú kiểm thử tạo phiếu mượn')
+        self.assertEqual(borrow.book.status, 'checked_out')
+
+    def test_email_templates_render_successfully(self):
+        """Kiểm tra 4 email template của transactions được render đầy đủ không lỗi TemplateDoesNotExist"""
+        from django.template.loader import render_to_string
+        cat = Category.objects.create(name='Email Cat')
+        bus = LibraryBus.objects.create(name='Email Bus', license_plate='29A-EML')
+        book = Book.objects.create(
+            title='Email Book', author='Author', publication_year=2024,
+            page_count=120, category=cat, location=bus, status='available'
+        )
+        borrow = BorrowRecord.objects.create(
+            user=self.user, book=book, due_date=timezone.now().date() + timedelta(days=7)
+        )
+        res = BookReservation.objects.create(user=self.user, book=book)
+        shipping = ShippingRequest.objects.create(
+            user=self.user, book=book, shipping_address='123 Test St',
+            phone_number='0987654321', recipient_name='Tester', tracking_code='LBTEST123'
+        )
+
+        due_txt = render_to_string('emails/due_reminder.txt', {'record': borrow})
+        self.assertIn('Email Book', due_txt)
+
+        overdue_txt = render_to_string('emails/overdue_notification.txt', {'record': borrow})
+        self.assertIn('Email Book', overdue_txt)
+
+        avail_txt = render_to_string('emails/book_available.txt', {'reservation': res})
+        self.assertIn('Email Book', avail_txt)
+
+        ship_txt = render_to_string('emails/shipping_update.txt', {'shipping': shipping})
+        self.assertIn('LBTEST123', ship_txt)
+

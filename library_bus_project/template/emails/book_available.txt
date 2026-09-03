@@ -1,0 +1,13 @@
+Xin chào {{ reservation.user.get_full_name|default:reservation.user.username }},
+
+Tin vui! Cuốn sách bạn đã đặt trước "{{ reservation.book.title }}" hiện đã có sẵn tại hệ thống Tủ Sách Lưu Động.
+
+Thông tin đặt trước:
+- Tên sách: {{ reservation.book.title }}
+- Ngày yêu cầu: {{ reservation.reservation_date|date:"d/m/Y" }}
+- Vị trí hàng đợi: Đã hoàn tất
+
+Vui lòng đến trạm xe buýt hoặc đăng nhập website để nhận sách trong vòng 48 giờ. Sau thời gian này, sách sẽ tự động được chuyển cho độc giả tiếp theo trong danh sách chờ.
+
+Trân trọng,
+Đội ngũ Thư viện Di động
