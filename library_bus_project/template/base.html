@@ -23,6 +23,9 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Accessibility Skip Link (UI/UX Pro Max) -->
+    <a href="#main-content" class="skip-link">Chuyển đến nội dung chính</a>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
@@ -131,7 +134,7 @@
     </header>
     
     <!-- Main Content -->
-    <main role="main">
+    <main id="main-content" role="main">
         {% block content %}
         <!-- Content will be inserted here -->
         {% endblock %}

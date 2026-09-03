@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Luồng Dữ Liệu Phân Tích & Gợi Ý Sách Thông Minh (Analytics Dataflow)",
+    "subtitle": "Thu thập sự kiện mượn trả, tổng hợp điểm uy tín đọc giả, định vị xe và gợi ý qua Gemini 1.5",
+    "output": "analytics-dataflow.html",
+    "viewBox": [1080, 760],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "ingest-pipeline",
+        "label": "Luồng thu thập & Xử lý sự kiện",
+        "focus": ["borrow_ops", "bus_telemetry", "redis_broker", "celery_analytics", "stats_tables", "librarian_dash"],
+        "note": "Giao dịch mượn trả kích hoạt Celery cập nhật tức thì điểm uy tín và thống kê trạm xe."
+      },
+      {
+        "id": "ai-recommendations",
+        "label": "Gợi ý thông minh với Gemini AI",
+        "focus": ["user_clicks", "cache_layer", "gemini_pipeline", "vector_recs", "reader_app"],
+        "note": "Dữ liệu thói quen đọc được AI phân tích để đưa ra gợi ý sách cá nhân hóa trên app."
+      },
+      {
+        "id": "reporting-flow",
+        "label": "Báo cáo quản trị & Lưu trữ",
+        "focus": ["daily_archive", "scheduled_reports"],
+        "note": "Lưu trữ bức tranh tổng thể về hiệu quả tuyến xe và gửi email báo cáo định kỳ."
+      }
+    ]
+  },
+  "stages": [
+    { "label": "Nguồn Dữ Liệu" },
+    { "label": "Hàng Đợi & Đệm" },
+    { "label": "Xử Lý Bất Đồng Bộ" },
+    { "label": "Kho Lưu Trữ" },
+    { "label": "Phục Vụ Độc Giả & BI" }
+  ],
+  "nodes": [
+    { "id": "borrow_ops", "type": "frontend", "label": "Phiếu Mượn Trả", "sublabel": "giao dịch mượn", "stage": 0, "row": 0, "tag": "Transactional" },
+    { "id": "bus_telemetry", "type": "cloud", "label": "GPS Xe Buýt", "sublabel": "lộ trình & trạm", "stage": 0, "row": 2, "tag": "Fleet Telemetry" },
+    { "id": "user_clicks", "type": "frontend", "label": "Hành Vi Bạn Đọc", "sublabel": "tìm kiếm sách", "stage": 0, "row": 4, "tag": "Interaction" },
+
+    { "id": "redis_broker", "type": "messagebus", "label": "Redis Broker", "sublabel": "hàng đợi DB0", "stage": 1, "row": 1, "tag": "Task Queue" },
+    { "id": "cache_layer", "type": "database", "label": "Redis Cache", "sublabel": "bộ đệm DB1", "stage": 1, "row": 3, "tag": "In-Memory" },
+
+    { "id": "celery_analytics", "type": "backend", "label": "Celery Worker", "sublabel": "update task", "stage": 2, "row": 1, "tag": "Async Worker" },
+    { "id": "gemini_pipeline", "type": "backend", "label": "Gemini AI Flash", "sublabel": "gợi ý tác phẩm", "stage": 2, "row": 3, "tag": "GenAI Model" },
+
+    { "id": "stats_tables", "type": "database", "label": "MySQL Analytics", "sublabel": "thống kê đọc", "stage": 3, "row": 0, "tag": "Aggregated" },
+    { "id": "daily_archive", "type": "database", "label": "Kho Lịch Sử", "sublabel": "nhật ký ngày", "stage": 3, "row": 2, "tag": "Archive" },
+    { "id": "vector_recs", "type": "database", "label": "Bảng Gợi Ý AI", "sublabel": "danh mục đề xuất", "stage": 3, "row": 4, "tag": "Ranked" },
+
+    { "id": "librarian_dash", "type": "backend", "label": "Dashboard Quản Trị", "sublabel": "hiệu suất tuyến", "stage": 4, "row": 0, "tag": "Admin BI" },
+    { "id": "scheduled_reports", "type": "security", "label": "Báo Cáo Tự Động", "sublabel": "email định kỳ", "stage": 4, "row": 2, "tag": "SMTP / PDF" },
+    { "id": "reader_app", "type": "frontend", "label": "Cổng Bạn Đọc", "sublabel": "điểm uy tín", "stage": 4, "row": 4, "tag": "Gamification" }
+  ],
+  "flows": [
+    { "id": "borrow-event", "from": "borrow_ops", "to": "redis_broker", "label": "sự kiện mượn", "classification": "transaction", "variant": "emphasis" },
+    { "id": "telemetry-event", "from": "bus_telemetry", "to": "redis_broker", "label": "tọa độ trạm", "classification": "gps" },
+    { "id": "clickstream-event", "from": "user_clicks", "to": "cache_layer", "label": "thói quen đọc", "classification": "logs" },
+
+    { "id": "queue-consume", "from": "redis_broker", "to": "celery_analytics", "label": "dequeue", "classification": "celery", "variant": "emphasis", "route": "straight" },
+    { "id": "cache-ai-feed", "from": "cache_layer", "to": "gemini_pipeline", "label": "ngữ cảnh đọc", "classification": "prompt", "route": "straight" },
+
+    { "id": "stats-persist", "from": "celery_analytics", "to": "stats_tables", "label": "tính điểm", "classification": "metrics", "variant": "emphasis" },
+    { "id": "archive-persist", "from": "celery_analytics", "to": "daily_archive", "label": "chốt sổ ngày", "classification": "history", "variant": "dashed" },
+    { "id": "recs-persist", "from": "gemini_pipeline", "to": "vector_recs", "label": "gợi ý mới", "classification": "ai output", "variant": "emphasis" },
+
+    { "id": "bi-query", "from": "stats_tables", "to": "librarian_dash", "label": "truy vấn BI", "classification": "reporting", "variant": "emphasis", "route": "straight" },
+    { "id": "digest-export", "from": "daily_archive", "to": "scheduled_reports", "label": "xuất báo cáo", "classification": "digest", "route": "straight" },
+    { "id": "feed-serve", "from": "vector_recs", "to": "reader_app", "label": "hiển thị gợi ý", "classification": "personalized", "variant": "emphasis", "route": "straight" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Thu Thập & Phân Tích Bất Đồng Bộ",
+      "items": [
+        "Sự kiện mượn trả được đẩy vào Redis Broker ngay sau khi giao dịch commit",
+        "Celery Worker tổng hợp UserReadingStats và cập nhật huy hiệu độc giả",
+        "Dữ liệu vị trí xe buýt lưu động giúp tối ưu hóa lịch trình và tần suất đỗ xe"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Trí Tuệ Nhân Tạo & Cá Nhân Hóa",
+      "items": [
+        "Gemini 1.5 Flash phân tích sở thích đọc và đưa ra danh mục sách gợi ý",
+        "Bộ đệm Redis Cache DB1 phục vụ tức thì các truy vấn danh mục hot",
+        "Cơ chế tự động làm mới bảng gợi ý định kỳ mỗi khi có hoạt động đọc mới"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Quản Trị Vận Hành & Báo Cáo Định Kỳ",
+      "items": [
+        "Dashboard dành cho thủ thư trực quan hóa tỷ lệ hoàn thành sách và nợ phạt",
+        "Bảng DailyStats lưu trữ bức tranh tổng thể về hiệu quả của từng chuyến xe",
+        "Hệ thống tự động kết xuất báo cáo tuần và gửi email đến ban quản lý thư viện"
+      ]
+    }
+  ]
+}

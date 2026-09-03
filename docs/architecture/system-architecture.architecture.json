@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kiến Trúc Hệ Thống Tủ Sách Lưu Động (Library Bus System)",
+    "subtitle": "Django 5.2 Modular Monolith, MySQL 8.0, Redis 7, Celery & Gemini 1.5 Flash AI",
+    "output": "system-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "request-path",
+        "label": "Luồng yêu cầu chính",
+        "focus": ["readers", "nginx", "django", "mysql"],
+        "note": "Bạn đọc truy cập qua Nginx, Django Monolith xử lý và lưu trữ bền vững tại MySQL."
+      },
+      {
+        "id": "librarian-path",
+        "label": "Thủ thư & kiểm kho",
+        "focus": ["librarians", "nginx", "django", "mysql"],
+        "note": "Thủ thư thao tác mượn trả tại trạm xe buýt sử dụng khóa select_for_update chống race-condition."
+      },
+      {
+        "id": "ai-cache",
+        "label": "Trợ lý AI & Bộ đệm",
+        "focus": ["django", "gemini", "redis"],
+        "note": "Tích hợp Gemini 1.5 Flash tư vấn sách và Redis tăng tốc danh mục cùng quản lý phiên."
+      },
+      {
+        "id": "async-workers",
+        "label": "Hàng đợi & Tác vụ nền",
+        "focus": ["django", "redis", "celery_worker", "celery_beat", "smtp"],
+        "note": "Celery Broker điều phối tác vụ gửi email thông báo và Celery Beat lập lịch phạt lúc nửa đêm."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "readers",
+      "type": "frontend",
+      "label": "Độc Giả (Web/App)",
+      "sublabel": "Neo-Bakery UI / GSAP",
+      "pos": [40, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "librarians",
+      "type": "frontend",
+      "label": "Thủ Thư Xe Bus",
+      "sublabel": "Scanner & Quản Trị",
+      "pos": [40, 380],
+      "size": [130, 60]
+    },
+    {
+      "id": "nginx",
+      "type": "cloud",
+      "label": "Nginx Gateway",
+      "sublabel": "Reverse Proxy :80/:443",
+      "brand": "docker",
+      "pos": [240, 310],
+      "size": [130, 60]
+    },
+    {
+      "id": "gemini",
+      "type": "external",
+      "label": "Gemini 1.5 Flash",
+      "sublabel": "Trợ Lý AI Đọc Sách",
+      "brand": "google-gemini",
+      "tag": "Generative AI",
+      "pos": [450, 160],
+      "size": [150, 60]
+    },
+    {
+      "id": "django",
+      "type": "backend",
+      "label": "Django Monolith",
+      "sublabel": "7 Phân Hệ Nghiệp Vụ",
+      "brand": "django",
+      "tag": "Python 3.12",
+      "pos": [450, 310],
+      "size": [150, 64]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis 7 Server",
+      "sublabel": "Cache DB1 & Broker DB0",
+      "brand": "redis",
+      "tag": ":6379",
+      "pos": [450, 460],
+      "size": [150, 60]
+    },
+    {
+      "id": "mysql",
+      "type": "database",
+      "label": "MySQL 8.0 Primary",
+      "sublabel": "InnoDB select_for_update",
+      "brand": "mysql",
+      "tag": "ACID / Locking",
+      "pos": [680, 310],
+      "size": [140, 64]
+    },
+    {
+      "id": "celery_worker",
+      "type": "backend",
+      "label": "Celery Workers",
+      "sublabel": "Tác Vụ Bất Đồng Bộ",
+      "tag": "Async Pool",
+      "pos": [680, 460],
+      "size": [140, 60]
+    },
+    {
+      "id": "smtp",
+      "type": "external",
+      "label": "Email Gateway",
+      "sublabel": "SMTP / Thông Báo",
+      "pos": [890, 310],
+      "size": [130, 60]
+    },
+    {
+      "id": "celery_beat",
+      "type": "backend",
+      "label": "Celery Beat",
+      "sublabel": "Lập Lịch Quá Hạn",
+      "tag": "Cron 0h",
+      "pos": [890, 460],
+      "size": [130, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Docker Compose Services",
+      "wraps": ["django", "redis", "mysql", "celery_worker", "celery_beat"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Transactional Core",
+      "wraps": ["django", "mysql"]
+    }
+  ],
+  "connections": [
+    { "from": "readers", "to": "nginx", "label": "HTTPS", "variant": "emphasis" },
+    { "from": "librarians", "to": "nginx", "label": "Quản trị" },
+    { "from": "nginx", "to": "django", "label": "WSGI" },
+    { "from": "django", "to": "gemini", "label": "Tư vấn AI", "fromSide": "top", "toSide": "bottom", "labelDy": -68 },
+    { "from": "django", "to": "redis", "label": "Cache/Queue", "fromSide": "bottom", "toSide": "top", "labelDy": 58 },
+    { "from": "django", "to": "mysql", "label": "ORM / Lock", "variant": "emphasis" },
+    { "from": "redis", "to": "celery_worker", "label": "Dequeue" },
+    { "from": "celery_beat", "to": "celery_worker" },
+    { "from": "celery_worker", "to": "mysql", "label": "Cập nhật nợ", "fromSide": "top", "toSide": "bottom", "labelDy": -68 },
+    { "from": "celery_worker", "to": "smtp", "label": "Gửi email", "fromSide": "right", "toSide": "left", "via": [[845, 490], [845, 340]] }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Cổng Tiếp Nhận & Giao Diện",
+      "items": [
+        "Nginx reverse proxy quản lý kết nối SSL và phân phối lưu lượng",
+        "Giao diện chuẩn Neo-Bakery tối ưu tương phản và chuyển động GSAP",
+        "Thủ thư quét mã vạch và cập nhật trạng thái sách ngay trên xe"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Lõi Ứng Dụng & Cơ Sở Dữ Liệu",
+      "items": [
+        "Django 5.2 Modular Monolith phân tách 7 phân hệ nghiệp vụ rõ ràng",
+        "Khóa bi quan select_for_update ngăn chặn hoàn toàn race condition",
+        "MySQL 8.0 đảm bảo tính toàn vẹn dữ liệu giao dịch mượn trả"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Bất Đồng Bộ & Tích Hợp AI",
+      "items": [
+        "Redis 7 phục vụ song song cache truy vấn và broker cho Celery",
+        "Celery Beat quét tự động 0h hằng ngày tính tiền phạt sách trễ hạn",
+        "Gemini 1.5 Flash gợi ý tác phẩm dựa trên lịch sử và thể loại yêu thích"
+      ]
+    }
+  ]
+}

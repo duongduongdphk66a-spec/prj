@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Quy Trình Mượn Sách & Phục Vụ Xe Buýt Lưu Động",
+    "subtitle": "Khóa bi quan select_for_update, xác thực tồn kho xe, giao nhận GPS & xử lý quá hạn",
+    "output": "borrowing-workflow.html",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "happy-path",
+        "label": "Luồng mượn sách thành công",
+        "focus": ["search", "request_borrow", "check_stock", "lock_create", "bus_handover", "complete_borrow"],
+        "note": "Hành trình từ tra cứu, khóa bản ghi, bàn giao tại xe đến khi độc giả nhận sách."
+      },
+      {
+        "id": "locking-mechanism",
+        "label": "Cơ chế khóa select_for_update",
+        "focus": ["check_stock", "lock_create", "bus_handover"],
+        "note": "Bảo vệ kho sách chống tình trạng 2 người mượn cùng lúc cuốn sách cuối cùng."
+      },
+      {
+        "id": "exception-paths",
+        "label": "Đặt trước & Xử lý quá hạn",
+        "focus": ["check_stock", "reserve_queue", "complete_borrow", "overdue_scan"],
+        "note": "Xếp hàng đợi khi hết sách và hệ thống quét phạt nợ định kỳ 0h qua Celery Beat."
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "reader", "label": "Độc Giả (Portal)" },
+    { "id": "service", "label": "Dịch Vụ Mượn Trả" },
+    { "id": "database", "label": "Lưu Trữ MySQL & Cache" },
+    { "id": "inventory", "label": "Kho Xe Buýt (Fleet)" },
+    { "id": "async", "label": "Tác Vụ Nền Celery" },
+    { "id": "exceptions", "label": "Hàng Đợi & Quá Hạn", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "request", "label": "Yêu cầu", "fromCol": 0, "toCol": 1 },
+    { "id": "validate", "label": "Khóa & Xác thực", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "fulfillment", "label": "Bàn giao & Hậu kỳ", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "groups": [
+    { "id": "atomic_ops", "label": "Giao dịch ACID", "lane": "database", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "fallback_ops", "label": "Biệt lệ & Nợ phạt", "lane": "exceptions", "fromCol": 3, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": ["search", "request_borrow", "check_stock", "lock_create", "bus_handover", "complete_borrow"],
+  "nodes": [
+    { "id": "search", "lane": "reader", "col": 0, "type": "frontend", "label": "Tra Cứu Sách", "sublabel": "vị trí & lộ trình" },
+    { "id": "request_borrow", "lane": "reader", "col": 1, "type": "frontend", "label": "Tạo Yêu Cầu", "sublabel": "chọn trạm xe bus" },
+    { "id": "check_stock", "lane": "service", "col": 2, "width": 84, "type": "backend", "label": "Kiểm Tra Kho", "sublabel": "hạn mức mượn" },
+    { "id": "lock_create", "lane": "database", "col": 3, "width": 84, "type": "database", "label": "Khóa Ghi Sổ", "sublabel": "select_for_update", "tag": "ACID" },
+    { "id": "reserve_queue", "lane": "exceptions", "col": 3, "width": 84, "type": "messagebus", "label": "Vào Hàng Đợi", "sublabel": "tạm hết bản in", "tag": "Reserve" },
+    { "id": "bus_handover", "lane": "inventory", "col": 4, "width": 84, "type": "external", "label": "Giao Tại Xe", "sublabel": "quét mã thủ thư", "tag": "GPS Bus" },
+    { "id": "complete_borrow", "lane": "reader", "col": 5, "type": "frontend", "label": "Nhận Sách", "sublabel": "theo dõi hạn trả" },
+    { "id": "analytics_task", "lane": "async", "col": 5, "width": 84, "type": "backend", "label": "Thống Kê Đọc", "sublabel": "on_commit hook", "tag": "Celery" },
+    { "id": "overdue_scan", "lane": "exceptions", "col": 5, "type": "security", "label": "Quét Phạt Trễ", "sublabel": "Celery Beat 0h", "tag": "5k/ngày" }
+  ],
+  "edges": [
+    { "from": "search", "to": "request_borrow" },
+    { "from": "request_borrow", "to": "check_stock", "label": "mượn", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "check_stock", "to": "lock_create", "label": "hợp lệ", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "check_stock", "to": "reserve_queue", "label": "hết sách", "variant": "security", "role": "error", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "lock_create", "to": "bus_handover", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "bus_handover", "to": "complete_borrow", "variant": "emphasis", "route": "drop", "fromSide": "top", "toSide": "bottom" },
+    { "from": "bus_handover", "to": "analytics_task", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "complete_borrow", "to": "overdue_scan", "label": "quá hạn", "variant": "security", "role": "error", "route": "outside-right", "fromSide": "right", "toSide": "right" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Bảo Toàn Kho Sách Tuyệt Đối",
+      "items": [
+        "Sử dụng transaction.atomic kết hợp Book.objects.select_for_update()",
+        "Khóa đồng thời hồ sơ độc giả để chống gian lận vượt giới hạn mượn",
+        "Tự động giải phóng khóa ngay sau khi commit và xóa cache Redis tương ứng"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Tiếp Nhận & Bàn Giao Linh Hoạt",
+      "items": [
+        "Độc giả theo dõi vị trí xe buýt lưu động theo thời gian thực qua bản đồ GPS",
+        "Thủ thư quét mã vạch xác nhận bàn giao tận tay khi xe dừng tại trạm",
+        "Email thông báo đính kèm thời hạn trả sách và địa điểm xe đỗ tiếp theo"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Hàng Đợi & Quản Lý Nợ Phạt",
+      "items": [
+        "Tự động chuyển vào hàng đợi BookReservation khi sách tạm thời hết bản cứng",
+        "Celery Beat quét toàn bộ phiếu mượn lúc 0h để tính nợ phạt quá hạn",
+        "Độc giả trả sách lập tức kích hoạt thông báo cho người kế tiếp trong hàng đợi"
+      ]
+    }
+  ]
+}

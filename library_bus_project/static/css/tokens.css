@@ -136,6 +136,26 @@
     --transition-fast:    0.15s var(--ease-smooth);
     --transition-base:    0.25s var(--ease-smooth);
     --transition-spring:  0.4s var(--ease-spring);
+    /* ========== UI/UX PRO MAX CANONICAL 16-TOKEN SEMANTIC PALETTE ========== */
+    --color-primary:          var(--color-roast);
+    --color-on-primary:       #FFFFFF;
+    --color-secondary:        var(--color-wellbrowned);
+    --color-on-secondary:     #FFFDF9;
+    --color-accent:           var(--color-toasty);
+    --color-on-accent:        var(--color-molasses);
+    --color-background:       var(--bg-page);
+    --color-foreground:       var(--text-primary);
+    --color-card:             var(--bg-surface);
+    --color-card-foreground:  var(--text-primary);
+    --color-muted:            var(--bg-surface-sunken);
+    --color-muted-foreground: var(--text-muted);
+    --color-border:           var(--border-medium);
+    --color-destructive:      #A31B18;
+    --color-on-destructive:   #FFFFFF;
+    --color-ring:             var(--color-roast);
+
+    /* ========== TOUCH ACCESSIBILITY (UI/UX PRO MAX PRE-DELIVERY) ========== */
+    --touch-target-min:       44px;
 }
 
 /* ========== DARK THEME OVERRIDES ========== */
@@ -160,4 +180,22 @@
     --shadow-hover:       0 20px 48px rgba(0, 0, 0, 0.7);
 
     --gradient-surface:   linear-gradient(180deg, #2B100E 0%, #230C0A 100%);
+
+    /* UI/UX Pro Max Canonical Semantic Tokens (Dark Theme) */
+    --color-primary:          var(--color-toasty);
+    --color-on-primary:       #170706;
+    --color-secondary:        var(--color-greasey);
+    --color-on-secondary:     #170706;
+    --color-accent:           var(--color-butter);
+    --color-on-accent:        #170706;
+    --color-background:       #170706;
+    --color-foreground:       #FFF5EB;
+    --color-card:             #2B100E;
+    --color-card-foreground:  #FFF5EB;
+    --color-muted:            #1D0908;
+    --color-muted-foreground: #B88675;
+    --color-border:           rgba(255, 194, 112, 0.18);
+    --color-destructive:      #E53E3E;
+    --color-on-destructive:   #FFFFFF;
+    --color-ring:             var(--color-toasty);
 }

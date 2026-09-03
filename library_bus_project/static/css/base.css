@@ -68,6 +68,31 @@ a {
     font-variant-numeric: tabular-nums;
 }
 
+/* ========== ACCESSIBILITY SKIP LINK (UI/UX PRO MAX) ========== */
+.skip-link {
+    position: absolute;
+    top: -9999px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-roast);
+    color: #FFFFFF !important;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 10000;
+    text-decoration: none;
+    transition: top 0.2s var(--ease-spring);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 0;
+    outline: 3px solid var(--color-butter);
+    outline-offset: 2px;
+}
+
 body {
     font-family: var(--font-sans);
     background-color: var(--bg-page);
@@ -81,8 +106,26 @@ body {
     flex-direction: column;
 }
 
-main {
+main, #main-content {
     flex: 1 0 auto;
+    outline: none;
+}
+
+/* ========== TOUCH TARGET SIZE: 44PX MINIMUM (UI/UX PRO MAX) ========== */
+@media (pointer: coarse), (max-width: 768px) {
+    button,
+    .btn,
+    .nav-link,
+    .notification-btn,
+    .profile-trigger,
+    .theme-toggle-btn,
+    .pagination a,
+    .pagination span,
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"] {
+        min-height: var(--touch-target-min, 44px);
+    }
 }
 
 /* ========== TYPOGRAPHY STANDARDS ========== */

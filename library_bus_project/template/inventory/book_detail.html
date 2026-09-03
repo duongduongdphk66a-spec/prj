@@ -387,7 +387,7 @@
                 <label for="star1" title="1 sao"><i class="fas fa-star"></i></label>
             </form>
             <span class="rating-text" style="font-size:0.85rem; margin-left: 6px;">
-                {% if user_rating %}✓ Đã đánh giá{% else %}Đánh giá sách{% endif %}
+                {% if user_rating %}<i class="fas fa-check text-success"></i> Đã đánh giá{% else %}Đánh giá sách{% endif %}
             </span>
             {% else %}
             <span class="rating-text" style="font-size:0.85rem; margin-left: 12px;">

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bản Đồ Kiến Trúc & Luồng Nghiệp Vụ — Tủ Sách Lưu Động</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,400&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --molasses: #4E0705;
+      --well-browned: #812203;
+      --roast: #BD5705;
+      --toasty: #ED9040;
+      --greasey: #FFC270;
+      --butter: #FDE971;
+      --bg-page: #FFFDF9;
+      --bg-page-alt: #FAF4EC;
+      --bg-surface: #FFFFFF;
+      --bg-surface-raised: #FAF5EF;
+      --border-subtle: rgba(78, 7, 5, 0.12);
+      --border-accent: rgba(189, 87, 5, 0.35);
+      --shadow-sm: 0 2px 8px rgba(78, 7, 5, 0.06);
+      --shadow-md: 0 8px 24px rgba(78, 7, 5, 0.09);
+      --shadow-hover: 0 20px 48px -10px rgba(78, 7, 5, 0.18);
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--molasses);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: linear-gradient(180deg, var(--bg-surface-raised) 0%, var(--bg-page) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 2.5rem 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background: var(--greasey);
+      color: var(--molasses);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 2.25rem;
+      font-weight: 600;
+      color: var(--molasses);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--well-browned);
+      max-width: 800px;
+      margin: 0 auto;
+      font-weight: 400;
+    }
+
+    /* Tabs Bar */
+    .tab-container {
+      max-width: 1380px;
+      margin: 1.5rem auto 0;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .tab-btn {
+      appearance: none;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--molasses);
+      padding: 0.85rem 1.75rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn:hover {
+      background: var(--bg-surface-raised);
+      border-color: var(--toasty);
+      transform: translateY(-2px);
+    }
+
+    .tab-btn.active {
+      background: var(--molasses);
+      color: var(--butter);
+      border-color: var(--molasses);
+      box-shadow: var(--shadow-md);
+    }
+
+    .tab-btn span.tag {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    .tab-btn.active span.tag {
+      background: rgba(253, 233, 113, 0.25);
+      color: var(--butter);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1400px;
+      margin: 1.5rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    .meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .meta-info h2 {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      color: var(--molasses);
+      margin-bottom: 0.25rem;
+    }
+
+    .meta-info p {
+      font-size: 0.9rem;
+      color: var(--well-browned);
+    }
+
+    .external-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--roast);
+      color: #FFF;
+      text-decoration: none;
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .external-btn:hover {
+      background: var(--well-browned);
+    }
+
+    /* Viewer Frame */
+    .frame-wrapper {
+      position: relative;
+      width: 100%;
+      height: 780px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-md);
+      background: #FFFFFF;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Technical Highlights Grid */
+    .highlights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--border-accent);
+    }
+
+    .card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--roast);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .card h3 {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--molasses);
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--well-browned);
+      background: var(--bg-page-alt);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">Neo-Bakery Architecture Documentation</div>
+    <h1>Trung Tâm Kiến Trúc Hệ Thống Tủ Sách Lưu Động</h1>
+    <p class="subtitle">Tập hợp sơ đồ kiến trúc, quy trình mượn sách ACID và luồng phân tích dữ liệu AI được biên dịch bằng Archify Typed JSON IR</p>
+  </header>
+
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="switchDiagram('system', this)">
+      <span>Kiến Trúc Hệ Thống</span>
+      <span class="tag">Architecture</span>
+    </button>
+    <button class="tab-btn" onclick="switchDiagram('workflow', this)">
+      <span>Quy Trình Mượn Sách</span>
+      <span class="tag">Workflow</span>
+    </button>
+    <button class="tab-btn" onclick="switchDiagram('dataflow', this)">
+      <span>Luồng Dữ Liệu & AI</span>
+      <span class="tag">Dataflow</span>
+    </button>
+  </div>
+
+  <main>
+    <div class="meta-bar">
+      <div class="meta-info">
+        <h2 id="diagram-title">Kiến Trúc Tổng Thể Hệ Thống (System Architecture)</h2>
+        <p id="diagram-desc">Mô hình Django 5.2 Modular Monolith, Nginx Proxy, MySQL 8.0, Redis 7 Broker & Bộ đôi Celery Worker/Beat cùng Gemini 1.5 Flash</p>
+      </div>
+      <a id="diagram-link" class="external-btn" href="system-architecture.html" target="_blank">
+        Mở Cửa Sổ Đầy Đủ ↗
+      </a>
+    </div>
+
+    <div class="frame-wrapper">
+      <iframe id="diagram-frame" src="system-architecture.html"></iframe>
+    </div>
+
+    <div class="highlights">
+      <div class="card">
+        <div class="card-tag">Toàn Vẹn Dữ Liệu</div>
+        <h3>Khóa Bi Quan (select_for_update)</h3>
+        <p>Bảo vệ số lượng sách tồn kho tại trạm xe buýt và hạn mức mượn của bạn đọc, loại trừ 100% race-condition khi nhiều người mượn cùng lúc cuốn sách cuối cùng.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">Xử Lý Nền & Định Kỳ</div>
+        <h3>Celery Workers & Beat 0h</h3>
+        <p>Tác vụ gửi email thông báo và cập nhật analytics được kích hoạt bất đồng bộ qua hook on_commit, kết hợp cronjob nửa đêm quét tính phạt trễ hạn tự động.</p>
+      </div>
+      <div class="card">
+        <div class="card-tag">Trí Tuệ Nhân Tạo</div>
+        <h3>Gemini 1.5 Flash AI</h3>
+        <p>Mô hình AI tích hợp trực tiếp hỗ trợ độc giả tóm tắt nội dung, tra cứu chủ đề và gợi ý tác phẩm dựa trên sở thích đọc cùng bảng xếp hạng đọc giả uy tín.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Dự án Tủ Sách Lưu Động (Library Bus System) • Chuẩn thiết kế Neo-Bakery & Archify Typed IR • Xuất bản tự động</p>
+  </footer>
+
+  <script>
+    const diagrams = {
+      system: {
+        file: 'system-architecture.html',
+        title: 'Kiến Trúc Tổng Thể Hệ Thống (System Architecture)',
+        desc: 'Mô hình Django 5.2 Modular Monolith, Nginx Proxy, MySQL 8.0, Redis 7 Broker & Bộ đôi Celery Worker/Beat cùng Gemini 1.5 Flash'
+      },
+      workflow: {
+        file: 'borrowing-workflow.html',
+        title: 'Quy Trình Mượn Sách & Xe Buýt Lưu Động (Borrowing Workflow)',
+        desc: 'Luồng thao tác từ tra cứu, khóa bi quan select_for_update, xác thực trạm dừng GPS, bàn giao tại xe đến quét quá hạn'
+      },
+      dataflow: {
+        file: 'analytics-dataflow.html',
+        title: 'Luồng Dữ Liệu Phân Tích & Gợi Ý AI (Analytics Dataflow)',
+        desc: 'Thu thập sự kiện mượn trả, cập nhật điểm uy tín bạn đọc, tổng hợp báo cáo tuyến xe và cấp dữ liệu cho mô hình gợi ý'
+      }
+    };
+
+    function switchDiagram(key, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const data = diagrams[key];
+      document.getElementById('diagram-frame').src = data.file;
+      document.getElementById('diagram-title').textContent = data.title;
+      document.getElementById('diagram-desc').textContent = data.desc;
+      document.getElementById('diagram-link').href = data.file;
+    }
+  </script>
+</body>
+</html>

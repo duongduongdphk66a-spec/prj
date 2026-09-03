@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ Đồ Kiến Trúc Hệ Thống — Tủ Sách Lưu Động</title>
+  <style>
+    :root {
+      --bg: #170706;
+      --card-bg: #240C0B;
+      --card-border: #4E0705;
+      --accent: #ED9040;
+      --accent-hover: #FFC270;
+      --text: #FFFDF9;
+      --text-muted: #D1BDB7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-hover);
+      letter-spacing: 0.5px;
+    }
+    .badge {
+      font-size: 0.8rem;
+      background: rgba(237, 144, 64, 0.15);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(237, 144, 64, 0.3);
+      font-weight: 500;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .search-box {
+      padding: 8px 14px;
+      background: #170706;
+      border: 1px solid #4E0705;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      width: 220px;
+      outline: none;
+    }
+    .search-box:focus {
+      border-color: var(--accent);
+    }
+    .btn {
+      padding: 8px 14px;
+      background: #4E0705;
+      border: 1px solid #812203;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #812203;
+      border-color: var(--accent);
+    }
+    .main-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 64px);
+      position: relative;
+      overflow: hidden;
+    }
+    #canvas-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background: radial-gradient(circle at center, #240C0B 0%, #170706 100%);
+      overflow: hidden;
+    }
+    #graph-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+    #graph-canvas:active {
+      cursor: grabbing;
+    }
+    #sidebar {
+      width: 360px;
+      background: var(--card-bg);
+      border-left: 1px solid var(--card-border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      flex-shrink: 0;
+      z-index: 5;
+    }
+    .panel-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #4E0705;
+      padding-bottom: 8px;
+    }
+    .legend-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    .legend-item:hover, .legend-item.active {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--accent);
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .node-detail {
+      background: #170706;
+      border: 1px solid #4E0705;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .node-detail h3 {
+      color: var(--accent-hover);
+      margin-bottom: 6px;
+      font-size: 1.05rem;
+    }
+    .node-type-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      color: var(--accent);
+      background: rgba(237, 144, 64, 0.15);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .node-detail p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .conn-title {
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    .conn-list {
+      list-style: none;
+      font-size: 0.8rem;
+      color: #fff;
+    }
+    .conn-list li {
+      padding: 4px 6px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 4px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    .conn-list li:hover {
+      color: var(--accent);
+      background: rgba(255,255,255,0.08);
+    }
+    .hint-dock {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(36, 12, 11, 0.9);
+      border: 1px solid #4E0705;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>📚 Tủ Sách Lưu Động</h1>
+      <span class="badge">Django Modular Monolith</span>
+      <span class="badge" style="border-color:#34d399; color:#34d399;">30 Nodes • 38 Edges</span>
+    </div>
+    <div class="controls">
+      <input type="text" id="search-input" class="search-box" placeholder="Tìm kiếm model, app, service...">
+      <button class="btn" onclick="resetView()">Căn Giữa</button>
+      <button class="btn" id="toggle-sim-btn" onclick="toggleSimulation()">Tạm Dừng Physics</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <div id="canvas-container">
+      <canvas id="graph-canvas"></canvas>
+      <div class="hint-dock">
+        💡 Kéo chuột để di chuyển • Cuộn để phóng to/thu nhỏ • Click node để xem chi tiết
+      </div>
+    </div>
+
+    <div id="sidebar">
+      <div>
+        <div class="panel-title">Phân Hệ (Lọc Theo Module)</div>
+        <div class="legend-list" id="legend-list" style="margin-top: 10px;"></div>
+      </div>
+
+      <div class="node-detail" id="node-info">
+        <h3>💡 Hướng Dẫn Tương Tác</h3>
+        <p>Đồ thị thể hiện kiến trúc hệ thống phân hệ cao cấp của dự án Tủ Sách Lưu Động.</p>
+        <p>Click vào bất kỳ Node nào trên đồ thị để kiểm tra chi tiết chức năng, trách nhiệm và các mối liên kết.</p>
+      </div>
+
+      <div style="margin-top: auto; font-size: 0.75rem; color: #888; text-align: center; line-height: 1.5;">
+        100% Offline Standalone Canvas Engine<br>
+        Django 5.2 • MySQL 8.0 • Redis 7 • Celery 5.5
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rawNodes = [{"id": "app:core", "name": "core (Shared App)", "type": "app", "group": "core", "desc": "Nền tảng hạ tầng dùng chung: AuditMixin, TimestampedModel, SoftDelete, BaseQuerySet, custom error handlers"}, {"id": "model:AuditMixin", "name": "AuditMixin", "type": "model", "group": "core", "desc": "Theo dõi người tạo (created_by), người cập nhật (updated_by) và mốc thời gian"}, {"id": "model:TimestampedModel", "name": "TimestampedModel", "type": "model", "group": "core", "desc": "Tự động quản lý trường created_at và updated_at cho mọi bảng CSDL"}, {"id": "model:SoftDeleteModel", "name": "SoftDeleteModel", "type": "model", "group": "core", "desc": "Xóa mềm an toàn qua trường is_deleted và SoftDeleteManager lọc bản ghi"}, {"id": "app:users", "name": "users (Auth & Identity)", "type": "app", "group": "users", "desc": "Quản lý độc giả, phân quyền, xác thực Argon2, thẻ hội viên VIP, lịch sử đăng nhập"}, {"id": "model:Profile", "name": "Profile (Độc giả / VIP)", "type": "model", "group": "users", "desc": "Hồ sơ người dùng mở rộng: lưu cấp bậc thẻ, điểm thưởng, avatar, sđt, hạn mức mượn"}, {"id": "model:UserRole", "name": "UserRole (Phân quyền)", "type": "model", "group": "users", "desc": "Định nghĩa vai trò người dùng: Reader, Librarian, Driver, Admin"}, {"id": "model:LoginHistory", "name": "LoginHistory", "type": "model", "group": "users", "desc": "Ghi vết lịch sử IP, User-Agent phát hiện hành vi truy cập lạ"}, {"id": "model:UserPreference", "name": "UserPreference", "type": "model", "group": "users", "desc": "Cài đặt sở thích đọc sách, thông báo và cấu hình giao diện"}, {"id": "app:inventory", "name": "inventory (Fleet & Catalog)", "type": "app", "group": "inventory", "desc": "Quản lý đội xe buýt lưu động, trạm dừng định vị GPS, kho sách giấy & đọc PDF"}, {"id": "model:LibraryBus", "name": "LibraryBus (Xe buýt lưu động)", "type": "model", "group": "inventory", "desc": "Thông tin biển số, tải trọng, tài xế phụ trách, sức chứa kệ sách trên xe"}, {"id": "model:BusRoute", "name": "BusRoute (Lộ trình & Trạm GPS)", "type": "model", "group": "inventory", "desc": "Tọa độ GPS các trạm dừng tại trường học, khu dân cư và lịch trình tuần"}, {"id": "model:Category", "name": "Category (Thể loại)", "type": "model", "group": "inventory", "desc": "Danh mục phân loại sách đa tầng (Văn học, Kỹ năng, Khoa học...)"}, {"id": "model:Book", "name": "Book (Kho Sách & PDF)", "type": "model", "group": "inventory", "desc": "Đầu sách giấy trên xe & sách điện tử PDF viewer, ISBN, tác giả, trạng thái"}, {"id": "model:BookDonation", "name": "BookDonation (Quyên góp)", "type": "model", "group": "inventory", "desc": "Tiếp nhận và thẩm định sách được cộng đồng quyên góp cho thư viện"}, {"id": "app:transactions", "name": "transactions (Borrow & Queue)", "type": "app", "group": "transactions", "desc": "Nghiệp vụ mượn trả sách, đặt trước hàng đợi FIFO, cơ chế khóa bi quan, nộp phạt"}, {"id": "model:BorrowRecord", "name": "BorrowRecord (Phiếu mượn)", "type": "model", "group": "transactions", "desc": "Bản ghi mượn sách, ngày mượn, ngày hẹn trả, theo dõi quá hạn"}, {"id": "model:BookReservation", "name": "BookReservation (Hàng đợi FIFO)", "type": "model", "group": "transactions", "desc": "Hàng đợi tự động khi sách hết, kích hoạt ngay khi sách được trả về kho"}, {"id": "model:FinePayment", "name": "FinePayment (Tiền phạt trễ)", "type": "model", "group": "transactions", "desc": "Tính toán và xử lý nộp tiền phạt khi trả sách quá hạn"}, {"id": "model:ShippingRequest", "name": "ShippingRequest (Giao tận nơi)", "type": "model", "group": "transactions", "desc": "Dịch vụ chuyển phát sách tận nhà cho độc giả hội viên VIP"}, {"id": "service:TransLock", "name": "select_for_update (Lock)", "type": "service", "group": "transactions", "desc": "Cơ chế khóa hàng CSDL chống race-condition tuyệt đối khi nhiều người mượn cùng lúc"}, {"id": "app:analytics", "name": "analytics (Stats & AI)", "type": "app", "group": "analytics", "desc": "Thống kê thói quen đọc sách, bảng vàng độc giả, gợi ý sách thông minh bằng Gemini AI"}, {"id": "model:UserReadingStats", "name": "UserReadingStats", "type": "model", "group": "analytics", "desc": "Tổng hợp số trang sách đã đọc, số lượng sách mượn theo từng tháng"}, {"id": "model:BusAnalytics", "name": "BusAnalytics", "type": "model", "group": "analytics", "desc": "Đo lường hiệu suất điểm dừng, mật độ bạn đọc theo tuyến đường"}, {"id": "service:GeminiAI", "name": "Google Gemini AI (Recommender)", "type": "service", "group": "analytics", "desc": "Trích xuất tóm tắt sách, nhận diện bìa tự động và thuật toán gợi ý cá nhân hóa"}, {"id": "app:notifications", "name": "notifications (In-app & Mail)", "type": "app", "group": "notifications", "desc": "Thông báo đa kênh: In-app badge và email thông báo xe buýt tới trạm, nhắc hẹn trả"}, {"id": "model:UserNotification", "name": "UserNotification", "type": "model", "group": "notifications", "desc": "Bản ghi thông báo gửi tới độc giả (chưa đọc / đã đọc)"}, {"id": "app:blog", "name": "blog (Community & News)", "type": "app", "group": "blog", "desc": "Cổng thông tin văn hóa đọc, bài review sách, sự kiện xe buýt, bản tin email"}, {"id": "model:Post", "name": "Post (Bài viết)", "type": "model", "group": "blog", "desc": "Tin tức, bài giới thiệu sách hay, thông báo lịch trình tuần"}, {"id": "model:Comment", "name": "Comment & Rating", "type": "model", "group": "blog", "desc": "Bình luận trao đổi và chấm điểm bài viết từ cộng đồng"}, {"id": "infra:Docker", "name": "Docker Compose (5 Services)", "type": "infra", "group": "infra", "desc": "Điều phối dịch vụ: web, db, redis, celery_worker, celery_beat"}, {"id": "infra:MySQL", "name": "MySQL 8.0 Primary DB", "type": "infra", "group": "infra", "desc": "Hệ quản trị CSDL quan hệ chính xác thực dữ liệu chuẩn 3NF"}, {"id": "infra:Redis", "name": "Redis 7 Cache & Broker", "type": "infra", "group": "infra", "desc": "Bộ nhớ đệm tốc độ cao và broker hàng đợi cho Celery"}, {"id": "infra:Celery", "name": "Celery & Beat (Tasks)", "type": "infra", "group": "infra", "desc": "Xử lý ngầm gửi mail, phân tích AI và cron job quét quá hạn nửa đêm"}, {"id": "ui:NeoBakery", "name": "Neo-Bakery & GSAP 60FPS", "type": "ui", "group": "ui", "desc": "Bảng mã màu 6 tông Molasses-Butter, hoạt cảnh mượt mà 60 FPS, 3D Micro-tilt"}];
+    const rawEdges = [{"source": "app:core", "target": "model:AuditMixin"}, {"source": "app:core", "target": "model:TimestampedModel"}, {"source": "app:core", "target": "model:SoftDeleteModel"}, {"source": "app:users", "target": "model:Profile"}, {"source": "app:users", "target": "model:UserRole"}, {"source": "app:users", "target": "model:LoginHistory"}, {"source": "app:users", "target": "model:UserPreference"}, {"source": "model:TimestampedModel", "target": "model:Profile"}, {"source": "app:inventory", "target": "model:LibraryBus"}, {"source": "app:inventory", "target": "model:BusRoute"}, {"source": "app:inventory", "target": "model:Category"}, {"source": "app:inventory", "target": "model:Book"}, {"source": "app:inventory", "target": "model:BookDonation"}, {"source": "model:LibraryBus", "target": "model:BusRoute"}, {"source": "model:LibraryBus", "target": "model:Book"}, {"source": "model:Category", "target": "model:Book"}, {"source": "model:SoftDeleteModel", "target": "model:Book"}, {"source": "app:transactions", "target": "model:BorrowRecord"}, {"source": "app:transactions", "target": "model:BookReservation"}, {"source": "app:transactions", "target": "model:FinePayment"}, {"source": "app:transactions", "target": "model:ShippingRequest"}, {"source": "app:transactions", "target": "service:TransLock"}, {"source": "model:Profile", "target": "model:BorrowRecord"}, {"source": "model:Book", "target": "model:BorrowRecord"}, {"source": "model:Book", "target": "model:BookReservation"}, {"source": "model:BorrowRecord", "target": "model:FinePayment"}, {"source": "model:BorrowRecord", "target": "model:ShippingRequest"}, {"source": "service:TransLock", "target": "model:BorrowRecord"}, {"source": "app:analytics", "target": "model:UserReadingStats"}, {"source": "app:analytics", "target": "model:BusAnalytics"}, {"source": "app:analytics", "target": "service:GeminiAI"}, {"source": "model:Profile", "target": "model:UserReadingStats"}, {"source": "service:GeminiAI", "target": "model:Book"}, {"source": "app:notifications", "target": "model:UserNotification"}, {"source": "model:Profile", "target": "model:UserNotification"}, {"source": "model:BorrowRecord", "target": "model:UserNotification"}, {"source": "app:blog", "target": "model:Post"}, {"source": "app:blog", "target": "model:Comment"}, {"source": "model:Profile", "target": "model:Comment"}, {"source": "model:Post", "target": "model:Comment"}, {"source": "infra:Docker", "target": "infra:MySQL"}, {"source": "infra:Docker", "target": "infra:Redis"}, {"source": "infra:Docker", "target": "infra:Celery"}, {"source": "infra:Celery", "target": "app:transactions"}, {"source": "infra:Celery", "target": "app:notifications"}, {"source": "infra:Celery", "target": "app:analytics"}, {"source": "ui:NeoBakery", "target": "app:inventory"}, {"source": "ui:NeoBakery", "target": "app:blog"}];
+    const groupColors = {"core": {"bg": "#3f1e1d", "border": "#ED9040", "text": "#FDE971"}, "users": {"bg": "#1e293b", "border": "#60a5fa", "text": "#ffffff"}, "inventory": {"bg": "#14532d", "border": "#4ade80", "text": "#ffffff"}, "transactions": {"bg": "#7c2d12", "border": "#fb923c", "text": "#ffffff"}, "analytics": {"bg": "#4c1d95", "border": "#c084fc", "text": "#ffffff"}, "notifications": {"bg": "#0f766e", "border": "#2dd4bf", "text": "#ffffff"}, "blog": {"bg": "#831843", "border": "#f472b6", "text": "#ffffff"}, "infra": {"bg": "#1f2937", "border": "#9ca3af", "text": "#ffffff"}, "ui": {"bg": "#78350f", "border": "#f59e0b", "text": "#ffffff"}};
+
+    const canvas = document.getElementById('graph-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+
+    let width = 0;
+    let height = 0;
+
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      draw();
+    }
+
+    // Camera state
+    const camera = {
+      x: 0,
+      y: 0,
+      zoom: 0.95
+    };
+
+    // Setup initial node positions in circles grouped by module
+    const groups = Object.keys(groupColors);
+    const groupAngleStep = (Math.PI * 2) / groups.length;
+    
+    const nodeMap = {};
+    const simNodes = rawNodes.map((n, idx) => {
+      const gIndex = groups.indexOf(n.group);
+      const angle = gIndex * groupAngleStep + (Math.random() - 0.5) * 0.4;
+      const isApp = n.type === 'app';
+      const isInfra = n.type === 'infra';
+      const radius = isApp ? 180 : (isInfra ? 360 : 280 + Math.random() * 80);
+      
+      const nodeObj = {
+        id: n.id,
+        name: n.name,
+        type: n.type,
+        group: n.group,
+        desc: n.desc,
+        radius: isApp ? 26 : (n.type === 'service' ? 20 : 16),
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+        vx: 0,
+        vy: 0,
+        color: groupColors[n.group] || { bg: '#333', border: '#666', text: '#fff' }
+      };
+      nodeMap[n.id] = nodeObj;
+      return nodeObj;
+    });
+
+    const simEdges = rawEdges.map(e => ({
+      source: nodeMap[e.source],
+      target: nodeMap[e.target]
+    })).filter(e => e.source && e.target);
+
+    // Setup Legend UI
+    const legendContainer = document.getElementById('legend-list');
+    let activeFilterGroup = null;
+
+    groups.forEach(g => {
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = `<span class="legend-color" style="background:${groupColors[g].bg}; border:1px solid ${groupColors[g].border}"></span><span>${g}</span>`;
+      item.onclick = () => filterByGroup(g, item);
+      legendContainer.appendChild(item);
+    });
+
+    function filterByGroup(group, el) {
+      if (activeFilterGroup === group) {
+        activeFilterGroup = null;
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+      } else {
+        activeFilterGroup = group;
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        
+        // Find first node of group and pan to it
+        const first = simNodes.find(n => n.group === group);
+        if (first) {
+          selectNode(first);
+          camera.x = -first.x * camera.zoom;
+          camera.y = -first.y * camera.zoom;
+        }
+      }
+      draw();
+    }
+
+    // Physics Simulation (Force-directed)
+    let simulationRunning = true;
+    let iterations = 0;
+
+    function tickPhysics() {
+      if (!simulationRunning && iterations > 200) return;
+      iterations++;
+
+      // Repulsion between nodes
+      for (let i = 0; i < simNodes.length; i++) {
+        for (let j = i + 1; j < simNodes.length; j++) {
+          const a = simNodes[i];
+          const b = simNodes[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const distSq = dx * dx + dy * dy + 1;
+          const dist = Math.sqrt(distSq);
+          
+          if (dist < 320) {
+            const force = (320 - dist) / dist * 0.08;
+            a.vx -= dx * force;
+            a.vy -= dy * force;
+            b.vx += dx * force;
+            b.vy += dy * force;
+          }
+        }
+      }
+
+      // Spring attraction on edges
+      for (let i = 0; i < simEdges.length; i++) {
+        const edge = simEdges[i];
+        const a = edge.source;
+        const b = edge.target;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const desired = 110;
+        const force = (dist - desired) * 0.025;
+        
+        a.vx += (dx / dist) * force;
+        a.vy += (dy / dist) * force;
+        b.vx -= (dx / dist) * force;
+        b.vy -= (dy / dist) * force;
+      }
+
+      // Centering force & damping
+      for (let i = 0; i < simNodes.length; i++) {
+        const n = simNodes[i];
+        if (draggedNode === n) continue;
+        
+        n.vx -= n.x * 0.003;
+        n.vy -= n.y * 0.003;
+
+        n.vx *= 0.85;
+        n.vy *= 0.85;
+
+        n.x += n.vx;
+        n.y += n.vy;
+      }
+    }
+
+    // Draw Function
+    let hoveredNode = null;
+    let selectedNode = null;
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.save();
+      // Center coordinates
+      ctx.translate(width / 2 + camera.x, height / 2 + camera.y);
+      ctx.scale(camera.zoom, camera.zoom);
+
+      // Draw Edges
+      for (let i = 0; i < simEdges.length; i++) {
+        const e = simEdges[i];
+        const a = e.source;
+        const b = e.target;
+
+        const isRelated = (selectedNode && (a === selectedNode || b === selectedNode)) ||
+                          (hoveredNode && (a === hoveredNode || b === hoveredNode));
+        
+        const isDimmed = activeFilterGroup && (a.group !== activeFilterGroup && b.group !== activeFilterGroup);
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+
+        if (isRelated) {
+          ctx.strokeStyle = '#FDE971';
+          ctx.lineWidth = 2.5;
+        } else if (isDimmed) {
+          ctx.strokeStyle = 'rgba(237, 144, 64, 0.08)';
+          ctx.lineWidth = 1;
+        } else {
+          ctx.strokeStyle = 'rgba(237, 144, 64, 0.35)';
+          ctx.lineWidth = 1.4;
+        }
+        ctx.stroke();
+
+        // Arrowhead
+        const angle = Math.atan2(b.y - a.y, b.x - a.x);
+        const targetRadius = b.radius + 3;
+        const arrowX = b.x - Math.cos(angle) * targetRadius;
+        const arrowY = b.y - Math.sin(angle) * targetRadius;
+
+        ctx.beginPath();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(arrowX - 8 * Math.cos(angle - Math.PI / 6), arrowY - 8 * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(arrowX - 8 * Math.cos(angle + Math.PI / 6), arrowY - 8 * Math.sin(angle + Math.PI / 6));
+        ctx.fillStyle = isRelated ? '#FDE971' : (isDimmed ? 'rgba(237, 144, 64, 0.15)' : 'rgba(237, 144, 64, 0.5)');
+        ctx.fill();
+      }
+
+      // Draw Nodes
+      for (let i = 0; i < simNodes.length; i++) {
+        const n = simNodes[i];
+        const isHover = n === hoveredNode;
+        const isSelected = n === selectedNode;
+        const isFiltered = activeFilterGroup && n.group !== activeFilterGroup;
+
+        ctx.save();
+        ctx.globalAlpha = isFiltered ? 0.25 : 1.0;
+
+        // Glow halo for selected / hovered
+        if (isSelected || isHover) {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.radius + 8, 0, Math.PI * 2);
+          ctx.fillStyle = isSelected ? 'rgba(253, 233, 113, 0.35)' : 'rgba(237, 144, 64, 0.3)';
+          ctx.fill();
+        }
+
+        // Node Circle / Box
+        ctx.beginPath();
+        if (n.type === 'app') {
+          const side = n.radius * 2;
+          ctx.roundRect(n.x - n.radius, n.y - n.radius, side, side, 8);
+        } else {
+          ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+        }
+
+        ctx.fillStyle = isSelected ? '#BD5705' : n.color.bg;
+        ctx.fill();
+
+        ctx.lineWidth = isSelected ? 3 : 2;
+        ctx.strokeStyle = isSelected ? '#FDE971' : (isHover ? '#FFC270' : n.color.border);
+        ctx.stroke();
+
+        // Node Label
+        ctx.font = `${n.type === 'app' ? 'bold 12px' : '11px'} -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        ctx.fillStyle = '#FFFDF9';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const labelY = n.y + n.radius + 14;
+        
+        // Background text pill for readability
+        const textMetrics = ctx.measureText(n.name);
+        const padX = 6;
+        const padY = 3;
+        ctx.fillStyle = 'rgba(23, 7, 6, 0.85)';
+        ctx.roundRect(n.x - textMetrics.width / 2 - padX, labelY - 8 - padY, textMetrics.width + padX * 2, 16 + padY * 2, 4);
+        ctx.fill();
+
+        ctx.fillStyle = isSelected ? '#FDE971' : (isHover ? '#FFC270' : '#FFFFFF');
+        ctx.fillText(n.name, n.x, labelY);
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    // Animation Loop
+    function animate() {
+      tickPhysics();
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    // Interactive Pan & Zoom & Drag
+    let isDragging = false;
+    let draggedNode = null;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+
+    function getMouseWorldPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+      const worldX = (clientX - width / 2 - camera.x) / camera.zoom;
+      const worldY = (clientY - height / 2 - camera.y) / camera.zoom;
+      return { x: worldX, y: worldY, screenX: clientX, screenY: clientY };
+    }
+
+    function findNodeAt(worldX, worldY) {
+      for (let i = simNodes.length - 1; i >= 0; i--) {
+        const n = simNodes[i];
+        const dx = worldX - n.x;
+        const dy = worldY - n.y;
+        if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {
+          return n;
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      const pos = getMouseWorldPos(e);
+      const clicked = findNodeAt(pos.x, pos.y);
+      if (clicked) {
+        draggedNode = clicked;
+        selectNode(clicked);
+      } else {
+        isDragging = true;
+      }
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', e => {
+      const pos = getMouseWorldPos(e);
+
+      if (draggedNode) {
+        draggedNode.x = pos.x;
+        draggedNode.y = pos.y;
+        draggedNode.vx = 0;
+        draggedNode.vy = 0;
+      } else if (isDragging) {
+        const dx = e.clientX - lastMouseX;
+        const dy = e.clientY - lastMouseY;
+        camera.x += dx;
+        camera.y += dy;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      } else {
+        const found = findNodeAt(pos.x, pos.y);
+        if (found !== hoveredNode) {
+          hoveredNode = found;
+          canvas.style.cursor = found ? 'pointer' : 'grab';
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      draggedNode = null;
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
+      const newZoom = Math.max(0.3, Math.min(3.0, camera.zoom * zoomFactor));
+
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left - width / 2;
+      const mouseY = e.clientY - rect.top - height / 2;
+
+      camera.x -= (mouseX - camera.x) * (newZoom / camera.zoom - 1);
+      camera.y -= (mouseY - camera.y) * (newZoom / camera.zoom - 1);
+      camera.zoom = newZoom;
+    }, { passive: false });
+
+    function selectNode(n) {
+      selectedNode = n;
+      
+      // Find connections
+      const incoming = simEdges.filter(e => e.target === n).map(e => e.source);
+      const outgoing = simEdges.filter(e => e.source === n).map(e => e.target);
+
+      const html = `
+        <h3>${n.name}</h3>
+        <span class="node-type-badge">${n.type} • ${n.group}</span>
+        <p>${n.desc}</p>
+
+        ${incoming.length ? `
+          <div class="conn-title">Được tham chiếu bởi (${incoming.length}):</div>
+          <ul class="conn-list">
+            ${incoming.map(src => `<li onclick="focusNode('${src.id}')">⬅ ${src.name}</li>`).join('')}
+          </ul>
+        ` : ''}
+
+        ${outgoing.length ? `
+          <div class="conn-title">Kết nối / Trực thuộc (${outgoing.length}):</div>
+          <ul class="conn-list">
+            ${outgoing.map(tgt => `<li onclick="focusNode('${tgt.id}')">➡ ${tgt.name}</li>`).join('')}
+          </ul>
+        ` : ''}
+      `;
+
+      document.getElementById('node-info').innerHTML = html;
+      draw();
+    }
+
+    function focusNode(id) {
+      const n = nodeMap[id];
+      if (n) {
+        selectNode(n);
+        camera.x = -n.x * camera.zoom;
+        camera.y = -n.y * camera.zoom;
+      }
+    }
+
+    function resetView() {
+      camera.x = 0;
+      camera.y = 0;
+      camera.zoom = 0.95;
+      selectedNode = null;
+      activeFilterGroup = null;
+      document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+      document.getElementById('node-info').innerHTML = `
+        <h3>💡 Hướng Dẫn Tương Tác</h3>
+        <p>Đã đưa góc nhìn đồ thị về trung tâm hệ thống.</p>
+        <p>Click vào bất kỳ Node nào để xem chi tiết mô tả và quan hệ ràng buộc.</p>
+      `;
+      draw();
+    }
+
+    function toggleSimulation() {
+      simulationRunning = !simulationRunning;
+      const btn = document.getElementById('toggle-sim-btn');
+      btn.textContent = simulationRunning ? 'Tạm Dừng Physics' : 'Tiếp Tục Physics';
+    }
+
+    // Search input
+    document.getElementById('search-input').addEventListener('input', e => {
+      const val = e.target.value.toLowerCase().trim();
+      if (!val) return;
+      const matched = simNodes.find(n => n.name.toLowerCase().includes(val) || n.desc.toLowerCase().includes(val));
+      if (matched) {
+        focusNode(matched.id);
+      }
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    animate();
+  </script>
+</body>
+</html>

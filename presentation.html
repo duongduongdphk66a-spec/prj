@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Bus System — Presentation Guidelines (30 Slides)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --color-primary: #1E293B;
+      --color-accent: #D97706;
+      --color-blue: #273272;
+      --color-text: #0F172A;
+      --color-muted: #64748B;
+      --color-bg-page: #FFFFFF;
+      --color-border: #E2E8F0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: #0F172A;
+      color: var(--color-text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Control Bar */
+    .top-toolbar {
+      height: 50px;
+      background: #090D16;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: white;
+      z-index: 100;
+    }
+
+    .toolbar-title {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-badge {
+      background: #D97706;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 800;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .t-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .t-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: #38BDF8;
+      color: #38BDF8;
+    }
+
+    /* Stage Area */
+    .stage-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #0B0F19;
+      position: relative;
+    }
+
+    /* Slide Box (16:9 ratio, Clean White editorial paper aesthetic like PDF) */
+    .slide {
+      position: absolute;
+      width: 1000px;
+      height: 562.5px; /* 16:9 Aspect Ratio */
+      background: var(--color-bg-page);
+      border-radius: 6px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      opacity: 0;
+      transform: scale(0.97);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: all;
+    }
+
+    /* COVER LAYOUT (Slide 1) */
+    .cover-layout {
+      display: flex;
+      height: 100%;
+    }
+
+    .cover-left {
+      flex: 1.2;
+      padding: 40px;
+      background: #F8FAFC;
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .cover-hero-box {
+      padding-top: 20px;
+    }
+
+    .hero-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--color-blue);
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .hero-cover-img-wrap {
+      width: 100%;
+      height: 190px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .hero-cover-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--color-blue);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-muted);
+      font-style: italic;
+    }
+
+    .cover-meta-grid {
+      display: flex;
+      gap: 30px;
+      border-top: 1px solid var(--color-border);
+      padding-top: 16px;
+    }
+
+    .meta-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      font-weight: 700;
+    }
+
+    .meta-val {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+
+    .cover-right {
+      flex: 0.8;
+      padding: 40px;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .toc-sidebar-title {
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-bottom: 24px;
+      color: var(--color-primary);
+      line-height: 1.2;
+    }
+
+    .toc-sidebar-title strong {
+      font-weight: 800;
+    }
+
+    .toc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .toc-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .toc-num {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--color-blue);
+      border-bottom: 2px solid var(--color-blue);
+      padding-bottom: 2px;
+      line-height: 1;
+    }
+
+    .toc-en {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text);
+      text-transform: uppercase;
+    }
+
+    .toc-vi {
+      font-size: 10px;
+      color: var(--color-muted);
+      font-style: italic;
+    }
+
+    /* DIVIDER LAYOUT (Full-bleed colorful Chapter break) */
+    .divider-layout {
+      height: 100%;
+      position: relative;
+      color: white;
+      padding: 50px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .divider-watermark {
+      position: absolute;
+      top: -30px;
+      left: -20px;
+      font-size: 260px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.08);
+      user-select: none;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .divider-content {
+      position: relative;
+      z-index: 10;
+      max-width: 650px;
+    }
+
+    .divider-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .divider-subtitle {
+      font-size: 15px;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 28px;
+    }
+
+    .divider-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 24px;
+    }
+
+    .divider-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 6px;
+      font-size: 11px;
+    }
+
+    .di-code {
+      font-weight: 700;
+      color: #38BDF8;
+      margin-right: 8px;
+    }
+
+    .di-name {
+      flex: 1;
+      color: white;
+    }
+
+    .di-page {
+      font-family: var(--font-mono);
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 600;
+    }
+
+    /* STANDARD PAGE LAYOUT */
+    .page-layout {
+      height: 100%;
+      padding: 30px 45px 20px 45px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #FFFFFF;
+    }
+
+    .page-top-nav {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .page-heading {
+      margin-bottom: 18px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--color-text);
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--color-muted);
+      font-style: italic;
+    }
+
+    .page-bottom-footer {
+      border-top: 1px solid var(--color-border);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* 2 COLUMNS EDITORIAL */
+    .two-col-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    .col-card {
+      background: #F8FAFC;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 16px 20px;
+    }
+
+    .col-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .col-body {
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: #334155;
+    }
+
+    /* PALETTE SLIDE */
+    .palette-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .pal-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--color-muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .swatches-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .swatch-card {
+      flex: 1;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #F8FAFC;
+    }
+
+    .swatch-preview {
+      height: 50px;
+      width: 100%;
+    }
+
+    .swatch-info {
+      padding: 8px 10px;
+      font-size: 10px;
+    }
+
+    .swatch-info strong {
+      font-size: 11px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .hex-text {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .rgb-text {
+      font-size: 9px;
+      color: var(--color-muted);
+      font-family: var(--font-mono);
+    }
+
+    .desc-text {
+      font-size: 9px;
+      color: #475569;
+      margin-top: 4px;
+      line-height: 1.3;
+    }
+
+    /* TYPOGRAPHY SLIDE */
+    .font-hero-box {
+      background: #F1F5F9;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--color-accent);
+    }
+
+    .type-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+    }
+
+    .type-table th {
+      background: #F8FAFC;
+      border-bottom: 2px solid var(--color-border);
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--color-muted);
+    }
+
+    .type-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--color-border);
+      color: #1E293B;
+    }
+
+    .weight-badge {
+      background: #E2E8F0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+    }
+
+    /* UI COMPONENTS SLIDE */
+    .ui-spec-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    .spec-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--color-muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .comp-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .btn-sample {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 130px;
+      text-align: center;
+    }
+
+    .btn-sample.primary-button {
+      background: #D97706;
+      color: white;
+    }
+
+    .btn-sample.secondary-button {
+      background: white;
+      border: 1px solid #CBD5E1;
+      color: #334155;
+    }
+
+    .btn-sample.danger-button {
+      background: #E11D48;
+      color: white;
+    }
+
+    .btn-sample.disabled-state {
+      background: #E2E8F0;
+      color: #94A3B8;
+    }
+
+    .comp-meta {
+      font-size: 10px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+
+    .demo-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #CBD5E1;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .demo-input.focus {
+      border-color: #0EA5E9;
+      box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+    }
+
+    .input-desc {
+      font-size: 10px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+
+    .icon-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 16px;
+      background: #F8FAFC;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      margin-bottom: 6px;
+    }
+
+    /* SITEMAP SLIDE */
+    .sitemap-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .sitemap-tree-node {
+      background: #F8FAFC;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .st-header {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--color-blue);
+      border-bottom: 2px solid var(--color-blue);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .st-children {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .st-children li {
+      font-size: 10.5px;
+      color: #334155;
+      padding-left: 10px;
+      position: relative;
+    }
+
+    .st-children li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--color-accent);
+    }
+
+    /* USER FLOW SLIDE */
+    .flow-timeline {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .flow-step-box {
+      flex: 1;
+      min-width: 140px;
+      background: #F8FAFC;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 12px 10px;
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-step-num {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--color-accent);
+      margin-bottom: 2px;
+    }
+
+    .flow-step-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .flow-step-desc {
+      font-size: 9.5px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+
+    .flow-arrow {
+      position: absolute;
+      right: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: #94A3B8;
+      z-index: 10;
+    }
+
+    /* WIREFRAME COMPARISON */
+    .compare-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .compare-col {
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 14px;
+      background: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .compare-badge {
+      font-size: 11px;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    .compare-badge.ui {
+      color: var(--color-blue);
+    }
+
+    .wireframe-mockup {
+      background: #E2E8F0;
+      height: 160px;
+      border-radius: 4px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .wf-header {
+      height: 14px;
+      background: #CBD5E1;
+      border-radius: 2px;
+    }
+
+    .wf-hero-box {
+      height: 50px;
+      background: #94A3B8;
+      border-radius: 3px;
+    }
+
+    .wf-cards-row {
+      display: flex;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .wf-card {
+      flex: 1;
+      background: #CBD5E1;
+      border-radius: 2px;
+    }
+
+    .ui-mockup {
+      background: white;
+      border: 1px solid #CBD5E1;
+      height: 160px;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .ui-header-bar {
+      height: 18px;
+      background: #F1F5F9;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 6px;
+    }
+
+    .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .dot.red { background: #EF4444; }
+    .dot.yellow { background: #F59E0B; }
+    .dot.green { background: #10B981; }
+    .ui-url { font-size: 8px; font-family: var(--font-mono); color: #64748B; margin-left: 6px; }
+
+    .ui-hero-banner {
+      height: 60px;
+      background: linear-gradient(135deg, #1E293B, #0F172A);
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+    }
+
+    .ui-bus-icon { font-size: 24px; }
+    .ui-text-lines { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .line-title { height: 8px; width: 60%; background: #38BDF8; border-radius: 2px; }
+    .line-sub { height: 5px; width: 40%; background: rgba(255,255,255,0.4); border-radius: 2px; }
+
+    .ui-book-cards {
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+      flex: 1;
+    }
+
+    .ui-card {
+      flex: 1;
+      border: 1px solid #E2E8F0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      background: #F8FAFC;
+    }
+
+    .ui-card.c1 { border-top: 2px solid #D97706; }
+    .ui-card.c2 { border-top: 2px solid #10B981; }
+    .ui-card.c3 { border-top: 2px solid #0EA5E9; }
+
+    .ui-mockup-img-container {
+      height: 220px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      background: white;
+    }
+
+    .ui-real-screenshot {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+    }
+
+    .compare-desc {
+      font-size: 10px;
+      line-height: 1.4;
+      color: #475569;
+      margin-top: 8px;
+    }
+
+    /* CONCLUSION SLIDE */
+    .conclusion-bg {
+      background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    }
+
+    .conclusion-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+
+    .concl-summary {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-blue);
+      line-height: 1.5;
+    }
+
+    .concl-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .concl-bullets li {
+      font-size: 12px;
+      color: #334155;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .concl-bullets li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #10B981;
+      font-weight: 800;
+    }
+
+    .concl-thanks {
+      margin-top: 16px;
+      padding: 12px 20px;
+      background: var(--color-blue);
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 6px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    /* Thumbnails Modal */
+    .thumb-modal {
+      position: fixed;
+      top: 50px;
+      left: 0;
+      width: 100%;
+      height: calc(100vh - 50px);
+      background: rgba(9, 13, 22, 0.96);
+      backdrop-filter: blur(20px);
+      z-index: 200;
+      padding: 30px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .thumb-modal.open {
+      display: block;
+    }
+
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .thumb-card {
+      background: #1E293B;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .thumb-card:hover {
+      border-color: #38BDF8;
+      transform: translateY(-2px);
+    }
+
+    .thumb-card.active {
+      border-color: #D97706;
+      background: rgba(217, 119, 6, 0.15);
+    }
+
+    .tc-num {
+      font-size: 10px;
+      color: #38BDF8;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+
+    .tc-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+
+    /* Print styling */
+    @media print {
+      body { background: white; height: auto; overflow: visible; }
+      .top-toolbar, .thumb-modal { display: none !important; }
+      .stage-container { padding: 0; background: white; }
+      .slide {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        page-break-after: always;
+        opacity: 1 !important;
+        transform: none !important;
+        box-shadow: none;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Toolbar -->
+  <div class="top-toolbar">
+    <div class="toolbar-title">
+      <span class="toolbar-badge">30 TRANG</span>
+      <span>TỦ SÁCH LƯU ĐỘNG — DESIGN & ARCHITECTURE GUIDELINES</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="t-btn" onclick="toggleThumbnails()">📑 Danh Mục 30 Trang</button>
+      <button class="t-btn" onclick="prevSlide()">◀ Trang Trước</button>
+      <span id="slide-indicator" style="font-size:11px;font-family:var(--font-mono);display:flex;align-items:center;">1 / 30</span>
+      <button class="t-btn" onclick="nextSlide()">Trang Sau ▶</button>
+      <button class="t-btn" onclick="window.print()">🖨️ Xuất PDF</button>
+    </div>
+  </div>
+
+  <!-- Stage Container -->
+  <div class="stage-container">
+    
+    <div class="slide active" id="slide-1" data-slide="1">
+      
+        <div class="cover-layout">
+          <div class="cover-left">
+            <div class="cover-hero-box">
+              <div class="hero-tag">PROJECT SEMESTER II</div>
+              <div class="hero-cover-img-wrap">
+                <img src="static_presentation/hero_bus.jpg" alt="Library Bus" class="hero-cover-photo">
+              </div>
+              <div class="hero-title">LIBRARY BUS PROJECT</div>
+              <div class="hero-sub">/Dự án Tủ Sách Lưu Động/</div>
+            </div>
+            <div class="cover-meta-grid">
+              <div class="meta-col">
+                <span class="meta-label">Cố vấn / Giảng viên:</span>
+                <span class="meta-val">Hội đồng Cố vấn Kỹ thuật</span>
+              </div>
+              <div class="meta-col">
+                <span class="meta-label">Đội ngũ thực hiện:</span>
+                <span class="meta-val">Nhóm Phát triển Hệ thống<br>Django Modular Monolith Core Team</span>
+              </div>
+            </div>
+          </div>
+          <div class="cover-right">
+            <div class="toc-sidebar-title">TABLE OF<br><strong>CONTENTS</strong></div>
+            <div class="toc-list">
+              
+          <div class="toc-row">
+            <span class="toc-num">01</span>
+            <div class="toc-text">
+              <div class="toc-en">INTRODUCTION AND RESEARCH</div>
+              <div class="toc-vi">Giới thiệu & Nghiên cứu bối cảnh</div>
+            </div>
+          </div>
+        
+          <div class="toc-row">
+            <span class="toc-num">02</span>
+            <div class="toc-text">
+              <div class="toc-en">BRANDING AND DESIGN SYSTEM</div>
+              <div class="toc-vi">Nhận diện & Quy chuẩn thiết kế Neo-Bakery</div>
+            </div>
+          </div>
+        
+          <div class="toc-row">
+            <span class="toc-num">03</span>
+            <div class="toc-text">
+              <div class="toc-en">ARCHITECTURE & ENGINEERING</div>
+              <div class="toc-vi">Kiến trúc hệ thống, Dữ liệu & Xử lý nền</div>
+            </div>
+          </div>
+        
+          <div class="toc-row">
+            <span class="toc-num">04</span>
+            <div class="toc-text">
+              <div class="toc-en">WIREFRAME & VISUAL DESIGN</div>
+              <div class="toc-vi">So sánh Khung dây & Giao diện thực tế</div>
+            </div>
+          </div>
+        
+          <div class="toc-row">
+            <span class="toc-num">05</span>
+            <div class="toc-text">
+              <div class="toc-en">TESTING AND DEPLOYMENT</div>
+              <div class="toc-vi">Kiểm thử tự động & Hạ tầng Docker</div>
+            </div>
+          </div>
+        
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-2" data-slide="2">
+      
+        <div class="divider-layout" style="background: #273272;">
+          <div class="divider-watermark">01</div>
+          <div class="divider-content">
+            <h1 class="divider-title">INTRODUCTION<br>AND RESEARCH</h1>
+            <div class="divider-subtitle">/Giới thiệu & Nghiên cứu bối cảnh/</div>
+            <div class="divider-list">
+              
+          <div class="divider-item">
+            <span class="di-code">1.1</span>
+            <span class="di-name">About Project (Về dự án)</span>
+            <span class="di-page">03</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.2</span>
+            <span class="di-name">Social Context & Market (Bối cảnh xã hội & Nghiên cứu)</span>
+            <span class="di-page">04</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.3</span>
+            <span class="di-name">Target Readers (Độc giả mục tiêu)</span>
+            <span class="di-page">05</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.4</span>
+            <span class="di-name">System References (Tham chiếu hệ thống)</span>
+            <span class="di-page">06</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.5</span>
+            <span class="di-name">Core Functions (Chức năng cốt lõi)</span>
+            <span class="di-page">07</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.6</span>
+            <span class="di-name">Information Architecture (Sơ đồ Sitemap)</span>
+            <span class="di-page">08</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">1.7</span>
+            <span class="di-name">User Flow (Quy trình trải nghiệm mượn trả)</span>
+            <span class="di-page">09</span>
+          </div>
+        
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-3" data-slide="3">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / ABOUT PROJECT</div>
+          <div class="page-heading">
+            <h2 class="page-title">ABOUT PROJECT</h2>
+            <div class="page-subtitle">/Về dự án Tủ Sách Lưu Động/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Lý do phát triển dự án</h3>
+              <div class="col-body">Tại các vùng nông thôn, ngoại thành và điểm trường xa xôi, trẻ em và người dân gặp nhiều rào cản trong việc tiếp cận các đầu sách mới và không gian thư viện tiêu chuẩn. Dự án Tủ Sách Lưu Động được phát triển nhằm mang tri thức đến tận nơi thông qua đội xe bus chuyên dụng được số hóa hoàn toàn, cung cấp trải nghiệm mượn sách hiện đại, nhanh chóng và thuận tiện nhất.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Sứ mệnh & Ý nghĩa tên gọi</h3>
+              <div class="col-body">• Sứ mệnh: Thu hẹp khoảng cách văn hóa đọc, trao cơ hội tiếp cận sách miễn phí cho mọi trẻ em, khuyến khích thói quen tự học suốt đời.<br>• Ý nghĩa: 'Library Bus' — Thư viện không còn là tòa nhà tĩnh mà là những bánh xe lăn bánh mang tri thức di động tới từng nẻo đường, trường học và khu dân cư.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 03</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-4" data-slide="4">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / RESEARCH</div>
+          <div class="page-heading">
+            <h2 class="page-title">SOCIAL RESEARCH</h2>
+            <div class="page-subtitle">/Nghiên cứu bối cảnh & Nhu cầu/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Xác định thách thức thực địa</h3>
+              <div class="col-body">• Khoảng cách địa lý: Điểm trường cách xa thư viện tỉnh/huyện từ 15 - 40km, phụ huynh không có thời gian đưa đón con đến thư viện cố định.<br>• Luân chuyển tài nguyên: Mỗi xe bus chỉ có sức chứa từ 1.000 - 2.500 cuốn sách, đòi hỏi lịch trình luân chuyển sách liên tục giữa các tuyến.<br>• Hạ tầng mạng chập chờn: Đòi hỏi hệ thống web phản hồi nhẹ, cache tốt, giao dịch mượt mà kể cả khi mạng di động 4G yếu.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Xu hướng chuyển đổi số thư viện</h3>
+              <div class="col-body">• Thẻ thư viện điện tử: Thay thế thẻ giấy bằng mã QR/Mã số độc giả số hóa, tra cứu lịch sử mượn trên điện thoại.<br>• Đặt chỗ trực tuyến (Pre-order): Độc giả đặt trước sách qua website, xe bus đến điểm đỗ chỉ cần nhận sách ngay.<br>• Gamification: Thống kê số sách đã đọc, chuỗi ngày đọc sách (reading streaks) kích thích hứng thú của học sinh.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 04</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-5" data-slide="5">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / TARGET AUDIENCE</div>
+          <div class="page-heading">
+            <h2 class="page-title">TARGET READERS</h2>
+            <div class="page-subtitle">/Khách hàng & Độc giả mục tiêu/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Nhân khẩu học & Đặc tính</h3>
+              <div class="col-body">• Độ tuổi phục vụ chính: Học sinh tiểu học, THCS (6 - 15 tuổi) và phụ huynh, giáo viên vùng ven.<br>• Mức độ tiếp cận công nghệ: Thao tác đơn giản, giao diện trực quan, chữ to rõ ràng, hình ảnh bìa sách nổi bật.<br>• Vị trí địa lý: Các điểm trường khó khăn, trung tâm văn hóa thôn/xã theo lịch trình xe bus cố định.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">3 Nhóm người dùng trọng tâm</h3>
+              <div class="col-body">1. Độc giả nhỏ tuổi (Readers): Thích sách tranh, truyện thiếu nhi, khoa học thường thức, thích tích điểm thành tích.<br>2. Phụ huynh & Giáo viên: Theo dõi sách con em đọc, đăng ký mượn sách bổ trợ học tập, nhận thông báo qua email/SMS.<br>3. Thủ thư lưu động (Librarians): Cần công cụ quét mã, ghi nhận mượn/trả nhanh dưới 5 giây mỗi lượt để phục vụ giờ ra chơi.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 05</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-6" data-slide="6">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / REFERENCES</div>
+          <div class="page-heading">
+            <h2 class="page-title">SYSTEM REFERENCES</h2>
+            <div class="page-subtitle">/Tham chiếu & Định vị giải pháp/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Mô hình tham chiếu quốc tế</h3>
+              <div class="col-body">• Bookmobile Systems (Mỹ, Nhật Bản): Áp dụng phương thức phân loại sách theo mã màu và xe chuyên dụng.<br>• Open Public Access Catalog (OPAC): Cung cấp cổng tra cứu trực tuyến tình trạng sách còn hay đã được mượn.<br>• Điểm cải tiến của dự án: Tích hợp định vị lộ trình xe bus theo thời gian thực và quản lý đặt chỗ thông minh.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">So sánh với thư viện truyền thống</h3>
+              <div class="col-body">• Thư viện truyền thống: Quản lý cố định, thủ tục giấy tờ thủ công, độc giả phải tự đến.<br>• Hệ thống Tủ Sách Lưu Động:<br>  + Xe mang sách đến tận sân trường.<br>  + Quản lý toàn bộ 235 tệp mã nguồn theo kiến trúc Monolith tinh gọn.<br>  + Tự động hóa 100% nhắc hạn và thống kê qua Celery Worker.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 06</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-7" data-slide="7">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / FUNCTIONS</div>
+          <div class="page-heading">
+            <h2 class="page-title">CORE FUNCTIONS</h2>
+            <div class="page-subtitle">/Chức năng trọng tâm của Hệ thống/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Phân hệ độc giả (Reader Portal)</h3>
+              <div class="col-body">• Tra cứu kho sách: Tìm kiếm theo tên sách, tác giả, thể loại, ISBN với hình ảnh trực quan.<br>• Xem lịch trình xe bus: Lịch đỗ của từng xe bus trong tuần, điểm đỗ gần nhất và giờ hoạt động.<br>• Quản lý mượn trả & Đặt trước: Gia hạn sách trực tuyến, xếp hàng chờ sách yêu thích.<br>• Thông báo & Bảng tin: Nhận tin nhắn nhắc hạn, đọc tin tức hoạt động và sự kiện ngày hội đọc sách.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Phân hệ thủ thư (Librarian & Admin)</h3>
+              <div class="col-body">• Giao dịch mượn/trả tốc độ cao: Hỗ trợ xác nhận nhanh, kiểm tra trạng thái độc giả và tiền phạt.<br>• Quản lý lộ trình & Xe bus: Thêm mới tuyến đường, điều chuyển đầu sách giữa các xe.<br>• Dashboard Thống kê thông minh: Xem biểu đồ sách hot, tỷ lệ trả sách đúng hạn và lưu lượng độc giả theo ngày.<br>• Báo cáo & Xuất dữ liệu: Xuất danh sách quá hạn, lịch sử kiểm kê.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 07</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-8" data-slide="8">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / SITEMAP</div>
+          <div class="page-heading">
+            <h2 class="page-title">SITEMAP</h2>
+            <div class="page-subtitle">/Sơ đồ cấu trúc website/</div>
+          </div>
+          <div class="sitemap-grid">
+            
+          <div class="sitemap-tree-node">
+            <div class="st-header">Trang chủ</div>
+            <ul class="st-children">
+              <li>Banner tin tức</li><li>Sách nổi bật</li><li>Lịch trình xe hôm nay</li><li>Thống kê cộng đồng</li>
+            </ul>
+          </div>
+        
+          <div class="sitemap-tree-node">
+            <div class="st-header">Kho Sách</div>
+            <ul class="st-children">
+              <li>Danh mục sách</li><li>Chi tiết cuốn sách</li><li>Tác giả & NXB</li><li>Tìm kiếm nâng cao</li>
+            </ul>
+          </div>
+        
+          <div class="sitemap-tree-node">
+            <div class="st-header">Tuyến Xe Bus</div>
+            <ul class="st-children">
+              <li>Danh sách xe bus</li><li>Lộ trình & Điểm đỗ</li><li>Lịch phục vụ tuần</li><li>Bản đồ di chuyển</li>
+            </ul>
+          </div>
+        
+          <div class="sitemap-tree-node">
+            <div class="st-header">Giao Dịch</div>
+            <ul class="st-children">
+              <li>Mượn / Trả sách</li><li>Sách đang giữ</li><li>Lịch sử giao dịch</li><li>Thanh toán phí phạt</li>
+            </ul>
+          </div>
+        
+          <div class="sitemap-tree-node">
+            <div class="st-header">Độc Giả</div>
+            <ul class="st-children">
+              <li>Hồ sơ cá nhân</li><li>Thẻ thư viện</li><li>Sở thích đọc</li><li>Thông báo</li>
+            </ul>
+          </div>
+        
+          <div class="sitemap-tree-node">
+            <div class="st-header">Cộng Đồng</div>
+            <ul class="st-children">
+              <li>Tin tức Blog</li><li>Góp ý - Đánh giá</li><li>Đăng ký Newsletter</li><li>Liên hệ</li>
+            </ul>
+          </div>
+        
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 08</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-9" data-slide="9">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">INTRODUCTION AND RESEARCH / USER FLOW</div>
+          <div class="page-heading">
+            <h2 class="page-title">USER FLOW</h2>
+            <div class="page-subtitle">/Sơ đồ quy trình mượn - trả sách/</div>
+          </div>
+          <div class="flow-timeline">
+            
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 1</div>
+            <div class="flow-step-title">Trang chủ / Kho sách</div>
+            <div class="flow-step-desc">Tìm kiếm & chọn sách mong muốn</div>
+            <div class="flow-arrow">➔</div>
+          </div>
+        
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 2</div>
+            <div class="flow-step-title">Kiểm tra tồn kho</div>
+            <div class="flow-step-desc">Sách còn bản sao trên xe bus không?</div>
+            <div class="flow-arrow">➔</div>
+          </div>
+        
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 3</div>
+            <div class="flow-step-title">Mượn trực tiếp / Đặt chỗ</div>
+            <div class="flow-step-desc">Nếu còn: Mượn ngay • Nếu hết: Xếp hàng giữ chỗ</div>
+            <div class="flow-arrow">➔</div>
+          </div>
+        
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 4</div>
+            <div class="flow-step-title">Thủ thư duyệt giao dịch</div>
+            <div class="flow-step-desc">Kiểm tra giới hạn mượn & khóa dòng dữ liệu</div>
+            <div class="flow-arrow">➔</div>
+          </div>
+        
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 5</div>
+            <div class="flow-step-title">Tạo BorrowRecord</div>
+            <div class="flow-step-desc">Cập nhật ngày hẹn trả & gửi thông báo vào hệ thống</div>
+            <div class="flow-arrow">➔</div>
+          </div>
+        
+          <div class="flow-step-box">
+            <div class="flow-step-num">BƯỚC 6</div>
+            <div class="flow-step-title">Đến hạn / Trả sách</div>
+            <div class="flow-step-desc">Độc giả trả sách đúng hạn hoặc hệ thống tính phí phạt</div>
+            
+          </div>
+        
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 09</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-10" data-slide="10">
+      
+        <div class="divider-layout" style="background: #BD5705;">
+          <div class="divider-watermark">02</div>
+          <div class="divider-content">
+            <h1 class="divider-title">BRANDING AND<br>DESIGN SYSTEM</h1>
+            <div class="divider-subtitle">/Nhận diện & Quy chuẩn thiết kế Neo-Bakery/</div>
+            <div class="divider-list">
+              
+          <div class="divider-item">
+            <span class="di-code">2.1</span>
+            <span class="di-name">Logo Concept & Meaning (Ý nghĩa biểu trưng)</span>
+            <span class="di-page">11</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.2</span>
+            <span class="di-name">Logo Grid & Safe Distance (Tỷ lệ lưới & Khoảng cách an toàn)</span>
+            <span class="di-page">12</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.3</span>
+            <span class="di-name">Color Palette (Bảng màu 6 tông Neo-Bakery)</span>
+            <span class="di-page">13</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.4</span>
+            <span class="di-name">Typography System (Hệ thống phông chữ & Thang bậc)</span>
+            <span class="di-page">14</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.5</span>
+            <span class="di-name">UI Components (Nút bấm, Input & Bộ Icon)</span>
+            <span class="di-page">15</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.6</span>
+            <span class="di-name">Header & Navigation (Đầu trang & Menu điều hướng)</span>
+            <span class="di-page">16</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">2.7</span>
+            <span class="di-name">Footer & Breadcrumbs (Chân trang & Định vị)</span>
+            <span class="di-page">17</span>
+          </div>
+        
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-11" data-slide="11">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / LOGO</div>
+          <div class="page-heading">
+            <h2 class="page-title">LOGO IDEA & MEANING</h2>
+            <div class="page-subtitle">/Ý tưởng & Ý nghĩa thương hiệu/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Ý tưởng cách điệu</h3>
+              <div class="col-body">Biểu trưng của Tủ Sách Lưu Động là sự kết hợp hài hòa giữa hình tượng cuốn sách mở rộng như cánh chim tri thức và hình khối chiếc xe bus thân thiện.<br>• Khối xe bus: Đại diện cho sự chuyển động không ngừng, vượt qua khoảng cách địa lý.<br>• Trang sách mở: Tượng trưng cho chân trời tri thức rộng mở chào đón mọi độc giả nhỏ tuổi.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Thông điệp thương hiệu</h3>
+              <div class="col-body">• 'Mỗi chuyến xe là một ngày hội tri thức': Không đơn thuần là việc giao nhận sách, chiếc xe bus đến điểm trường mang theo niềm vui, tiếng cười và khát vọng học hỏi.<br>• Màu sắc chủ đạo: Tông màu ấm áp Neo-Bakery (Molasses #4E0705, Roast #BD5705, Toasty #ED9040, Butter #FDE971) gợi cảm giác thân thuộc như gian bếp gia đình và những trang sách thơm mùi giấy mới.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 11</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-12" data-slide="12">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / LOGO</div>
+          <div class="page-heading">
+            <h2 class="page-title">LOGO STRUCTURE & SAFE DISTANCE</h2>
+            <div class="page-subtitle">/Cấu trúc tỷ lệ lưới & Khoảng cách an toàn/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Quy chuẩn tỷ lệ lưới (Grid System)</h3>
+              <div class="col-body">• Hệ thống lưới thiết kế dựa trên đơn vị cơ sở X (với X là chiều cao đường nét biểu tượng).<br>• Tỷ lệ chiều rộng : chiều cao tổng thể đạt chuẩn 5.5X : 3X nhằm đảm bảo tính cân đối khi hiển thị trên thanh Header website cũng như in trên thành xe bus thực tế.<br>• Tỷ lệ biểu tượng xe bus chiếm 40%, phần chữ 'Tủ Sách Lưu Động' chiếm 60% chiều ngang.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Khoảng cách an toàn & Kích thước tối thiểu</h3>
+              <div class="col-body">• Khoảng cách an toàn (Safe Distance): Tối thiểu 1.5X xung quanh logo để không bị xâm lấn bởi các thành phần đồ họa khác.<br>• Kích thước tối thiểu trên Web: 140px x 40px (đảm bảo độ sắc nét trên màn hình Retina).<br>• Kích thước in ấn tối thiểu: Chiều ngang 35mm để chữ và chi tiết bánh xe không bị nhòe mực.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 12</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-13" data-slide="13">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / COLOR</div>
+          <div class="page-heading">
+            <h2 class="page-title">NEO-BAKERY COLOR TOKENS</h2>
+            <div class="page-subtitle">/Bảng màu chuẩn 6 tông trích xuất từ tokens.css/</div>
+          </div>
+          <div class="palette-container">
+            <div class="pal-section">
+              <div class="pal-label">MÀU CHỦ ĐẠO (PRIMARY COLORS)</div>
+              <div class="swatches-row">
+          <div class="swatch-card">
+            <div class="swatch-preview" style="background:#4E0705;"></div>
+            <div class="swatch-info">
+              <strong>Molasses Ink</strong>
+              <div class="hex-text">#4E0705</div>
+              <div class="rgb-text">R: 78   G: 7    B: 5</div>
+              <div class="desc-text">Màu nâu đen espresso sâu, dùng cho chữ chính & header</div>
+            </div>
+          </div>
+        
+          <div class="swatch-card">
+            <div class="swatch-preview" style="background:#812203;"></div>
+            <div class="swatch-info">
+              <strong>Well-browned</strong>
+              <div class="hex-text">#812203</div>
+              <div class="rgb-text">R: 129  G: 34   B: 3</div>
+              <div class="desc-text">Màu hạt dẻ nướng, dùng cho viền & phân cách mạnh</div>
+            </div>
+          </div>
+        
+          <div class="swatch-card">
+            <div class="swatch-preview" style="background:#BD5705;"></div>
+            <div class="swatch-info">
+              <strong>Roast Amber</strong>
+              <div class="hex-text">#BD5705</div>
+              <div class="rgb-text">R: 189  G: 87   B: 5</div>
+              <div class="desc-text">Màu hổ phách caramel, Single Accent chính cho CTA</div>
+            </div>
+          </div>
+        </div>
+            </div>
+            <div class="pal-section">
+              <div class="pal-label">MÀU BỔ TRỢ & GIAO DIỆN (SUPPORTING & NEUTRALS)</div>
+              <div class="swatches-row">
+          <div class="swatch-card small">
+            <div class="swatch-preview" style="background:#ED9040;"></div>
+            <div class="swatch-info">
+              <strong>Toasty Orange</strong>
+              <div class="hex-text">#ED9040</div>
+              <div class="desc-text">Màu cam bánh mì nướng cho thanh cuộn & badge</div>
+            </div>
+          </div>
+        
+          <div class="swatch-card small">
+            <div class="swatch-preview" style="background:#FFC270;"></div>
+            <div class="swatch-info">
+              <strong>Greasey Honey</strong>
+              <div class="hex-text">#FFC270</div>
+              <div class="desc-text">Màu bơ mật ong cho viền thẻ sách & hiệu ứng hover</div>
+            </div>
+          </div>
+        
+          <div class="swatch-card small">
+            <div class="swatch-preview" style="background:#FDE971;"></div>
+            <div class="swatch-info">
+              <strong>Butter Cream</strong>
+              <div class="hex-text">#FDE971</div>
+              <div class="desc-text">Màu vàng kem pastry nhạt cho chữ nổi bật & hero tag</div>
+            </div>
+          </div>
+        
+          <div class="swatch-card small">
+            <div class="swatch-preview" style="background:#FFFDF9;"></div>
+            <div class="swatch-info">
+              <strong>Pure Ivory</strong>
+              <div class="hex-text">#FFFDF9</div>
+              <div class="desc-text">Màu nền giấy sách cổ điển ấm áp (bg-page)</div>
+            </div>
+          </div>
+        </div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 13</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-14" data-slide="14">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / TYPOGRAPHY</div>
+          <div class="page-heading">
+            <h2 class="page-title">TYPOGRAPHY SYSTEM</h2>
+            <div class="page-subtitle">/Hệ thống phông chữ & Thang đo tỷ lệ/</div>
+          </div>
+          <div class="font-hero-box">
+            <span class="font-preview-tag">Font Gia Đình:</span>
+            <strong>Plus Jakarta Sans & Inter (Hỗ trợ tiếng Việt đầy đủ, tối ưu đọc trên màn hình)</strong>
+          </div>
+          <table class="type-table">
+            <thead>
+              <tr>
+                <th>CẤP ĐỘ (NAME)</th>
+                <th>CỠ CHỮ (FONT SIZE)</th>
+                <th>KHOẢNG CÁCH (LETTER SPACING)</th>
+                <th>ĐỘ ĐẬM (WEIGHT)</th>
+                <th>ỨNG DỤNG THỰC TẾ</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+          <tr>
+            <td><strong>HEADING 1</strong></td>
+            <td>36 pt / 44px</td>
+            <td>-1.0px</td>
+            <td><span class="weight-badge">Bold (700)</span></td>
+            <td>Tiêu đề trang chính, Banner Hero</td>
+          </tr>
+        
+          <tr>
+            <td><strong>HEADING 2</strong></td>
+            <td>28 pt / 36px</td>
+            <td>-0.5px</td>
+            <td><span class="weight-badge">Bold (700)</span></td>
+            <td>Tiêu đề phân hệ, Tên sách chi tiết</td>
+          </tr>
+        
+          <tr>
+            <td><strong>HEADING 3</strong></td>
+            <td>20 pt / 28px</td>
+            <td>0px</td>
+            <td><span class="weight-badge">SemiBold (600)</span></td>
+            <td>Tiêu đề khối thẻ sách, Lịch trình xe</td>
+          </tr>
+        
+          <tr>
+            <td><strong>HEADING 4</strong></td>
+            <td>16 pt / 24px</td>
+            <td>+0.2px</td>
+            <td><span class="weight-badge">SemiBold (600)</span></td>
+            <td>Tiêu đề bảng biểu, Modal popup</td>
+          </tr>
+        
+          <tr>
+            <td><strong>BODY 1</strong></td>
+            <td>14 pt / 22px</td>
+            <td>+0.1px</td>
+            <td><span class="weight-badge">Regular (400)</span></td>
+            <td>Nội dung văn bản chính, Tóm tắt sách</td>
+          </tr>
+        
+          <tr>
+            <td><strong>BODY 2 / CAPTION</strong></td>
+            <td>12 pt / 18px</td>
+            <td>+0.2px</td>
+            <td><span class="weight-badge">Regular (400)</span></td>
+            <td>Thông tin phụ, Tác giả, Ngày hết hạn</td>
+          </tr>
+        
+          <tr>
+            <td><strong>BUTTON & BADGE</strong></td>
+            <td>13 pt / 20px</td>
+            <td>+0.5px</td>
+            <td><span class="weight-badge">Medium (500)</span></td>
+            <td>Chữ trên nút bấm, Nhãn trạng thái</td>
+          </tr>
+        
+            </tbody>
+          </table>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 14</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-15" data-slide="15">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / UI COMPONENTS</div>
+          <div class="page-heading">
+            <h2 class="page-title">UI COMPONENTS & ICONS</h2>
+            <div class="page-subtitle">/Quy chuẩn nút bấm, Input & Bộ icon tương tác/</div>
+          </div>
+          <div class="ui-spec-grid">
+            <div class="ui-spec-col">
+              <div class="spec-title">HỆ THỐNG NÚT BẤM (BUTTONS)</div>
+              
+          <div class="comp-box">
+            <div class="btn-sample primary-button">Primary Button</div>
+            <div class="comp-meta">
+              <strong>Primary Button</strong>: Nền Cam #D97706, chữ trắng, bo tròn 8px<br>
+              <em>Dùng cho hành động chính: 'Mượn sách', 'Lưu hồ sơ'</em>
+            </div>
+          </div>
+        
+          <div class="comp-box">
+            <div class="btn-sample secondary-button">Secondary Button</div>
+            <div class="comp-meta">
+              <strong>Secondary Button</strong>: Viền xám #CBD5E1, nền trắng/trong suốt<br>
+              <em>Dùng cho hành động phụ: 'Xem chi tiết', 'Hủy bỏ'</em>
+            </div>
+          </div>
+        
+          <div class="comp-box">
+            <div class="btn-sample danger-button">Danger Button</div>
+            <div class="comp-meta">
+              <strong>Danger Button</strong>: Nền Hồng Đỏ #E11D48, chữ trắng<br>
+              <em>Dùng cho: 'Trả sách phạt', 'Xóa tài khoản'</em>
+            </div>
+          </div>
+        
+          <div class="comp-box">
+            <div class="btn-sample disabled-state">Disabled State</div>
+            <div class="comp-meta">
+              <strong>Disabled State</strong>: Nền #E2E8F0, chữ xám mờ #94A3B8, con trỏ not-allowed<br>
+              <em>Khi sách hết bản sao hoặc độc giả bị khóa thẻ</em>
+            </div>
+          </div>
+        
+            </div>
+            <div class="ui-spec-col">
+              <div class="spec-title">Ô NHẬP LIỆU (TEXT FILL & INPUT)</div>
+              <div class="input-demo-box">
+                <input type="text" placeholder="Nhập tên sách hoặc tác giả..." class="demo-input">
+                <input type="text" placeholder="Đang focus..." class="demo-input focus">
+                <div class="input-desc">Input fields có padding 10px 14px, viền 1px, khi focus có hiệu ứng phát sáng nhẹ 2px màu xanh Cyan #0EA5E9.</div>
+              </div>
+              <div class="spec-title" style="margin-top:20px;">BỘ ICON CHUẨN (24x24 px)</div>
+              <div class="icon-grid">
+                <span>📖</span> <span>🚌</span> <span>⏰</span> <span>🔔</span>
+                <span>👤</span> <span>📍</span> <span>🔍</span> <span>⭐</span>
+                <span>🏷️</span> <span>📊</span> <span>💳</span> <span>💬</span>
+              </div>
+              <div class="input-desc">Hệ thống Icon SVG 24x24 px phong cách nét đơn (Line Art): Sách, Xe Bus, Đồng hồ hạn trả, Chuông thông báo, Bạn đọc, Lịch đỗ.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 15</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-16" data-slide="16">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / NAVIGATION</div>
+          <div class="page-heading">
+            <h2 class="page-title">HEADER & NAVIGATION SPECIFICATION</h2>
+            <div class="page-subtitle">/Quy chuẩn đầu trang & Menu điều hướng/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Cấu trúc Header cố định (Sticky Navigation)</h3>
+              <div class="col-body">• Chiều cao cố định 64px, nền trắng mờ kính `backdrop-filter: blur(12px)` với viền chân 1px.<br>• Cụm trái: Logo biểu trưng Tủ Sách Lưu Động kèm slogan ngắn.<br>• Cụm giữa: Menu điều hướng chính gồm 5 liên kết: 'Trang chủ', 'Kho sách', 'Tuyến xe bus', 'Giao dịch', 'Tin tức Blog'.<br>• Hiệu ứng Active: Gạch chân màu cam ấm áp và đổi màu chữ đậm hơn.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Cụm tài khoản & Chuông thông báo</h3>
+              <div class="col-body">• Thanh tìm kiếm nhanh: Ô input có icon kính lúp hỗ trợ gõ tìm nhanh sách theo từ khóa.<br>• Chuông thông báo tương tác: Có chấm đỏ hiển thị số lượng thông báo chưa đọc (nhắc sách sắp đến hạn).<br>• Avatar & Dropdown độc giả: Xem nhanh mã số thẻ thư viện, số sách đang mượn và nút 'Đăng xuất'.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 16</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-17" data-slide="17">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">LOGO AND UI COMPONENTS / FOOTER</div>
+          <div class="page-heading">
+            <h2 class="page-title">FOOTER & BREADCRUMBS</h2>
+            <div class="page-subtitle">/Quy chuẩn chân trang & Điều hướng vị trí/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Thanh điều hướng vị trí (Breadcrumbs)</h3>
+              <div class="col-body">• Hiển thị ngay dưới Header trên mọi trang con: `Trang chủ > Kho sách > Chi tiết: Dế Mèn Phiêu Lưu Ký`.<br>• Giúp độc giả và học sinh không bị mất phương hướng khi duyệt sâu vào cây danh mục thể loại sách.<br>• Font chữ nhỏ gọn 12px màu xám trung tính, phân cách bởi ký tự `>` thanh mảnh.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Chân trang toàn diện (Comprehensive Footer)</h3>
+              <div class="col-body">• Nền tối sang trọng `#1E293B`, chữ màu xám sáng `#94A3B8`.<br>• Cột 1: Thông tin tổ chức, sứ mệnh và giấy phép hoạt động thư viện cộng đồng.<br>• Cột 2: Danh sách nhanh các tuyến xe bus đang hoạt động trong tuần.<br>• Cột 3: Chính sách mượn trả, quy định bảo quản sách và bảng phí phạt trễ hạn.<br>• Cột 4: Hotline thủ thư hỗ trợ và ô đăng ký nhận bản tin qua email.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 17</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-18" data-slide="18">
+      
+        <div class="divider-layout" style="background: #0F172A;">
+          <div class="divider-watermark">03</div>
+          <div class="divider-content">
+            <h1 class="divider-title">ARCHITECTURE AND<br>ENGINEERING</h1>
+            <div class="divider-subtitle">/Kiến trúc hệ thống, Dữ liệu & Xử lý nền/</div>
+            <div class="divider-list">
+              
+          <div class="divider-item">
+            <span class="di-code">3.1</span>
+            <span class="di-name">Concentric Radar Architecture (Kiến trúc 6 vòng tròn đồng tâm)</span>
+            <span class="di-page">19</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">3.2</span>
+            <span class="di-name">Database Schema & ORM (Lược đồ cơ sở dữ liệu quan hệ)</span>
+            <span class="di-page">20</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">3.3</span>
+            <span class="di-name">Service Layer & Concurrency (Tầng nghiệp vụ & Khóa đồng thời)</span>
+            <span class="di-page">21</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">3.4</span>
+            <span class="di-name">Async Processing & Celery (Xử lý tác vụ nền Celery/Redis)</span>
+            <span class="di-page">22</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">3.5</span>
+            <span class="di-name">Cache Strategy & Soft Delete (Bộ nhớ đệm & Cơ chế xóa mềm)</span>
+            <span class="di-page">23</span>
+          </div>
+        
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-19" data-slide="19">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">ARCHITECTURE AND ENGINEERING / RADAR</div>
+          <div class="page-heading">
+            <h2 class="page-title">CONCENTRIC RADAR ARCHITECTURE</h2>
+            <div class="page-subtitle">/Phân bổ kiến trúc từ Lõi đến Giao diện/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Mô hình 6 vòng tròn đồng tâm</h3>
+              <div class="col-body">Trích xuất từ công cụ Understand Anything, toàn bộ 235 tệp mã nguồn được tổ chức theo 6 vòng quỹ đạo:<br>• Vòng 1 (Tâm - R140): `Core & Config` (settings, mixins, manage.py)<br>• Vòng 2 (R270): `Models & DB` (25+ bảng ORM, migrations)<br>• Vòng 3 (R390): `Services & Tasks` (transactions.services, celery)<br>• Vòng 4 (R520): `Views & Controllers` (HTTP handlers, forms, admin)<br>• Vòng 5 (R650): `Testing & Docs` (Unit tests, guides)<br>• Vòng 6-7 (R800-920): `Frontend Templates` (70+ HTML/CSS)</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Giá trị của mô hình</h3>
+              <div class="col-body">• Tính phân lập cao: Code ở tầng ngoài phụ thuộc tầng trong, không có tình trạng phụ thuộc vòng tròn (Circular Dependency).<br>• 100% kết nối: Toàn bộ 235 file đều có mối liên hệ kiến trúc chặt chẽ, không có file thừa hoặc code chết.<br>• Dễ dàng chuyển đổi: Khi cần nâng cấp lên Microservices, chỉ cần tách Vòng 3 & Vòng 4 thành các REST API services độc lập.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 19</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-20" data-slide="20">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">ARCHITECTURE AND ENGINEERING / DATABASE</div>
+          <div class="page-heading">
+            <h2 class="page-title">DATABASE SCHEMA & ORM</h2>
+            <div class="page-subtitle">/Thiết kế lược đồ cơ sở dữ liệu quan hệ/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Thực thể chính và quan hệ</h3>
+              <div class="col-body">• `Book` 1 - N `BookCopy`: Một đầu sách có thể có nhiều bản sao vật lý trên nhiều xe bus.<br>• `LibraryBus` 1 - N `Route`: Một xe bus có lịch trình đỗ tại nhiều điểm trường trong tuần.<br>• `BorrowRecord`: Bản ghi trung tâm liên kết `CustomUser`, `BookCopy` và `LibraryBus`.<br>• `BookReservation`: Hàng đợi đặt trước xếp theo thứ tự ưu tiên thời gian (`created_at ASC`).</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Tối ưu hóa chỉ mục (Indexes)</h3>
+              <div class="col-body">• B-Tree Index trên các trường lọc thường xuyên: `isbn`, `barcode`, `status`, `due_date`.<br>• Composite Index: `(user_id, status)` giúp kiểm tra nhanh số sách bạn đọc đang mượn.<br>• Soft Delete Index: Đánh chỉ mục trên trường `deleted_at` giúp loại bỏ nhanh các bản ghi đã xóa mà không làm chậm câu truy vấn.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 20</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-21" data-slide="21">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">ARCHITECTURE AND ENGINEERING / SERVICES</div>
+          <div class="page-heading">
+            <h2 class="page-title">SERVICE LAYER & CONCURRENCY</h2>
+            <div class="page-subtitle">/Xử lý giao dịch & Chống Race Condition/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Tách biệt Service Layer</h3>
+              <div class="col-body">• Toàn bộ logic giao dịch mượn/trả sách được gói trong `TransactionService` (`transactions/services.py`).<br>• View chỉ làm nhiệm vụ nhận request, validate form và gọi hàm service tương ứng.<br>• Giúp kiểm thử tự động (Unit Test) chạy độc lập mà không cần khởi tạo môi trường HTTP giả lập phức tạp.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Giải pháp Khóa dòng select_for_update()</h3>
+              <div class="col-body">• Tình huống: 2 bạn đọc cùng bấm mượn cuốn sách cuối cùng tại cùng một tích tắc.<br>• Giải pháp: Bọc trong `transaction.atomic()` và gọi `.select_for_update()` trên bản ghi sách.<br>• Cơ sở dữ liệu sẽ khóa tạm thời dòng bản ghi cho đến khi giao dịch trừ tồn kho kết thúc, ngăn chặn hoàn toàn việc mượn âm sách.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 21</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-22" data-slide="22">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">ARCHITECTURE AND ENGINEERING / ASYNC</div>
+          <div class="page-heading">
+            <h2 class="page-title">ASYNC PROCESSING & CELERY</h2>
+            <div class="page-subtitle">/Xử lý hàng đợi bất đồng bộ với Redis/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Mô hình xử lý tác vụ nền</h3>
+              <div class="col-body">• Django Web Server ➔ Đẩy task vào Redis Message Broker ➔ Phản hồi ngay cho người dùng trong < 50ms.<br>• Celery Worker chạy ngầm rút task từ Redis và thực thi độc lập.<br>• Các task tiêu biểu: Gửi email xác nhận mượn sách, nén ảnh bìa sách khi tải lên, cập nhật bảng xếp hạng đọc sách.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Lập lịch định kỳ với Celery Beat</h3>
+              <div class="col-body">• `generate_daily_stats_task`: Chạy lúc 00:00 hàng ngày để tổng hợp lượt mượn trong ngày.<br>• `check_overdue_borrows_task`: Quét danh sách sách sắp đến hạn và quá hạn lúc 06:00 sáng để gửi thông báo nhắc nhở.<br>• `cache_warmup_task`: Nạp sẵn dữ liệu trang chủ vào Redis trước giờ xe bus bắt đầu phục vụ.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 22</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-23" data-slide="23">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">ARCHITECTURE AND ENGINEERING / CACHE</div>
+          <div class="page-heading">
+            <h2 class="page-title">CACHE STRATEGY & SOFT DELETE</h2>
+            <div class="page-subtitle">/Bộ nhớ đệm đa tầng & Cơ chế xóa mềm/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Cơ chế Cache Versioning</h3>
+              <div class="col-body">• Áp dụng `CacheMixin`: Mỗi Model mang một số phiên bản `cache_version`.<br>• Cache Key: `book_detail_{{id}}_v{{version}}`.<br>• Khi thủ thư sửa thông tin sách, `version` tự động tăng lên 1 ➔ toàn bộ cache cũ tự vô hiệu hóa tức thì mà không cần quét lệnh flush cache tốn tài nguyên.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Cơ chế Xóa mềm (Soft Delete)</h3>
+              <div class="col-body">• Kế thừa `SoftDeleteModel`: Thêm trường `deleted_at`.<br>• Khi bấm xóa, hệ thống chỉ cập nhật timestamp thay vì xóa khỏi CSDL.<br>• Mặc định `objects.all()` tự lọc bỏ dữ liệu đã xóa mềm, bảo toàn 100% dữ liệu lịch sử mượn trả của độc giả trong quá khứ.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 23</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-24" data-slide="24">
+      
+        <div class="divider-layout" style="background: #1E3A8A;">
+          <div class="divider-watermark">04</div>
+          <div class="divider-content">
+            <h1 class="divider-title">WIREFRAME AND<br>VISUAL DESIGN</h1>
+            <div class="divider-subtitle">/Khung dây & Giao diện người dùng thực tế/</div>
+            <div class="divider-list">
+              
+          <div class="divider-item">
+            <span class="di-code">4.1</span>
+            <span class="di-name">Trang chủ & Banner tìm kiếm (Home & Hero)</span>
+            <span class="di-page">25</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">4.2</span>
+            <span class="di-name">Danh mục sách & Bộ lọc đa chiều (Catalog & Filters)</span>
+            <span class="di-page">26</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">4.3</span>
+            <span class="di-name">Chi tiết sách & Đặt chỗ (Book Detail & Reservation)</span>
+            <span class="di-page">27</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">4.4</span>
+            <span class="di-name">Lộ trình xe & Điểm đỗ (Bus Routes & Schedule)</span>
+            <span class="di-page">28</span>
+          </div>
+        
+          <div class="divider-item">
+            <span class="di-code">4.5</span>
+            <span class="di-name">Bảng điều khiển thủ thư (Librarian Dashboard)</span>
+            <span class="di-page">29</span>
+          </div>
+        
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-25" data-slide="25">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">WEBSITE DESIGN / VISUAL DESIGN</div>
+          <div class="page-heading">
+            <h2 class="page-title">TRANG CHỦ & TÌM KIẾM NHANH</h2>
+            <div class="page-subtitle">/So sánh Wireframe & Giao diện thực tế/</div>
+          </div>
+          <div class="compare-grid">
+            <div class="compare-col wireframe">
+              <div class="compare-badge">1. WIREFRAME /Khung dây/</div>
+              <div class="wireframe-mockup">
+                <div class="wf-header"></div>
+                <div class="wf-hero-box"></div>
+                <div class="wf-cards-row">
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                </div>
+              </div>
+              <div class="compare-desc">
+                <strong>Khung dây Wireframe</strong><br>Bố cục lưới 12 cột, thanh tìm kiếm nổi bật ở vị trí trung tâm Hero Banner, phía dưới là lưới 4 cột hiển thị danh sách sách mới về và các tuyến xe bus đang hoạt động trong ngày.
+              </div>
+            </div>
+            <div class="compare-col ui-design">
+              <div class="compare-badge ui">2. UI DESIGN /Giao diện hoàn thiện/</div>
+              
+              <div class="ui-mockup-img-container">
+                <img src="static_presentation/ui_dashboard.jpg" alt="UI Mockup" class="ui-real-screenshot">
+              </div>
+              
+              <div class="compare-desc">
+                <strong>Giao diện hoàn thiện (UI Design)</strong><br>Ứng dụng phong cách Neo-Bakery với hình ảnh xe bus minh họa 3D ấm áp, thanh search có gợi ý autocomplete tức thì, thẻ sách có hoạt ảnh GSAP lật trang mượt mà 60 FPS.
+              </div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 25</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-26" data-slide="26">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">WEBSITE DESIGN / VISUAL DESIGN</div>
+          <div class="page-heading">
+            <h2 class="page-title">DANH MỤC SÁCH & HỒ SƠ ĐỘC GIẢ</h2>
+            <div class="page-subtitle">/So sánh Wireframe & Giao diện Responsive/</div>
+          </div>
+          <div class="compare-grid">
+            <div class="compare-col wireframe">
+              <div class="compare-badge">1. WIREFRAME /Khung dây/</div>
+              <div class="wireframe-mockup">
+                <div class="wf-header"></div>
+                <div class="wf-hero-box"></div>
+                <div class="wf-cards-row">
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                </div>
+              </div>
+              <div class="compare-desc">
+                <strong>Khung dây Wireframe Mobile</strong><br>Bố cục đơn cột tối ưu cảm ứng di động: Thẻ thư viện mã vạch Barcode ở đầu trang, biểu đồ tiến độ đọc sách và danh sách sách đang mượn có thể vuốt ngang (horizontal carousel).
+              </div>
+            </div>
+            <div class="compare-col ui-design">
+              <div class="compare-badge ui">2. UI DESIGN /Giao diện hoàn thiện/</div>
+              
+              <div class="ui-mockup-img-container">
+                <img src="static_presentation/ui_mobile.jpg" alt="UI Mockup" class="ui-real-screenshot">
+              </div>
+              
+              <div class="compare-desc">
+                <strong>Giao diện Mobile Responsive</strong><br>Tích hợp biểu đồ Reading Streak động, thẻ quét mã vạch thành viên (Digital Card Code 128), hiển thị ngày hẹn trả sách và nút bấm gia hạn (Renew) 1 chạm.
+              </div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 26</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-27" data-slide="27">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">WEBSITE DESIGN / VISUAL DESIGN</div>
+          <div class="page-heading">
+            <h2 class="page-title">CHI TIẾT SÁCH & ĐẶT CHỖ</h2>
+            <div class="page-subtitle">/So sánh Wireframe & Giao diện thực tế/</div>
+          </div>
+          <div class="compare-grid">
+            <div class="compare-col wireframe">
+              <div class="compare-badge">1. WIREFRAME /Khung dây/</div>
+              <div class="wireframe-mockup">
+                <div class="wf-header"></div>
+                <div class="wf-hero-box"></div>
+                <div class="wf-cards-row">
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                </div>
+              </div>
+              <div class="compare-desc">
+                <strong>Khung dây Wireframe</strong><br>Phần trên chia 2 cột: Cột trái ảnh bìa lớn, cột phải thông tin tác giả, NXB, số lượng bản sao khả dụng. Phần dưới là các tab: Tóm tắt nội dung, Vị trí xe bus và Đánh giá của bạn đọc.
+              </div>
+            </div>
+            <div class="compare-col ui-design">
+              <div class="compare-badge ui">2. UI DESIGN /Giao diện hoàn thiện/</div>
+              
+              <div class="ui-mockup">
+                <div class="ui-header-bar">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                  <span class="ui-url">https://librarybus.edu.vn</span>
+                </div>
+                <div class="ui-hero-banner">
+                  <div class="ui-bus-icon">🚌</div>
+                  <div class="ui-text-lines">
+                    <span class="line-title"></span>
+                    <span class="line-sub"></span>
+                  </div>
+                </div>
+                <div class="ui-book-cards">
+                  <div class="ui-card c1">📖 Sách mới</div>
+                  <div class="ui-card c2">📍 Lộ trình</div>
+                  <div class="ui-card c3">⭐ Đặt trước</div>
+                </div>
+              </div>
+              
+              <div class="compare-desc">
+                <strong>Giao diện hoàn thiện (UI Design)</strong><br>Hiển thị bảng tình trạng các bản sao (Copy Status) rõ ràng: Bản sao #1 (Xe Tuyến 1 - Khả dụng), Bản sao #2 (Xe Tuyến 3 - Đang mượn, hạn trả 15/09). Nút đặt trước kích hoạt modal xác nhận.
+              </div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 27</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-28" data-slide="28">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">WEBSITE DESIGN / VISUAL DESIGN</div>
+          <div class="page-heading">
+            <h2 class="page-title">LỘ TRÌNH XE & LỊCH ĐIỂM ĐỖ</h2>
+            <div class="page-subtitle">/So sánh Wireframe & Giao diện thực tế/</div>
+          </div>
+          <div class="compare-grid">
+            <div class="compare-col wireframe">
+              <div class="compare-badge">1. WIREFRAME /Khung dây/</div>
+              <div class="wireframe-mockup">
+                <div class="wf-header"></div>
+                <div class="wf-hero-box"></div>
+                <div class="wf-cards-row">
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                  <div class="wf-card"></div>
+                </div>
+              </div>
+              <div class="compare-desc">
+                <strong>Khung dây Wireframe</strong><br>Bản đồ tuyến đường ở nửa trên màn hình, nửa dưới là bảng lịch trình theo ngày trong tuần: Giờ đến, Giờ đi, Tên điểm trường và Thủ thư phụ trách.
+              </div>
+            </div>
+            <div class="compare-col ui-design">
+              <div class="compare-badge ui">2. UI DESIGN /Giao diện hoàn thiện/</div>
+              
+              <div class="ui-mockup">
+                <div class="ui-header-bar">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                  <span class="ui-url">https://librarybus.edu.vn</span>
+                </div>
+                <div class="ui-hero-banner">
+                  <div class="ui-bus-icon">🚌</div>
+                  <div class="ui-text-lines">
+                    <span class="line-title"></span>
+                    <span class="line-sub"></span>
+                  </div>
+                </div>
+                <div class="ui-book-cards">
+                  <div class="ui-card c1">📖 Sách mới</div>
+                  <div class="ui-card c2">📍 Lộ trình</div>
+                  <div class="ui-card c3">⭐ Đặt trước</div>
+                </div>
+              </div>
+              
+              <div class="compare-desc">
+                <strong>Giao diện hoàn thiện (UI Design)</strong><br>Trực quan hóa tuyến đường bằng hoạt cảnh di chuyển xe bus (GSAP Motion Path), thẻ điểm đỗ có chỉ đường Google Maps và nút 'Nhận thông báo khi xe đến' tiện lợi.
+              </div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 28</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-29" data-slide="29">
+      
+        <div class="page-layout">
+          <div class="page-top-nav">TESTING AND DEPLOYMENT / QUALITY ASSURANCE</div>
+          <div class="page-heading">
+            <h2 class="page-title">TESTING & CONTAINERIZATION</h2>
+            <div class="page-subtitle">/Đảm bảo chất lượng & Hạ tầng triển khai/</div>
+          </div>
+          <div class="two-col-grid">
+            <div class="col-card">
+              <h3 class="col-header">Chiến lược kiểm thử tự động</h3>
+              <div class="col-body">• Unit Tests: Bao phủ các hàm tính toán tiền phạt, kiểm tra trừ tồn kho trong `transactions/tests.py` và `inventory/tests.py`.<br>• Functional Tests (`functional_test.py`): Kịch bản tự động kiểm tra toàn bộ luồng người dùng từ đăng nhập đến mượn sách thành công.<br>• Tích hợp CI/CD: Tự động chạy toàn bộ bộ test trên GitHub Actions mỗi khi tạo Pull Request.</div>
+            </div>
+            <div class="col-card">
+              <h3 class="col-header">Đóng gói Docker 4 dịch vụ</h3>
+              <div class="col-body">• `docker-compose.yml` điều phối 4 container đồng bộ:<br>  1. Web App (Django + Gunicorn)<br>  2. In-Memory Cache (Redis)<br>  3. Background Worker (Celery)<br>  4. Task Scheduler (Celery Beat)<br>• Triển khai một lệnh duy nhất: `docker compose up -d` là toàn bộ hệ thống sẵn sàng hoạt động.</div>
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 29</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+    <div class="slide " id="slide-30" data-slide="30">
+      
+        <div class="page-layout conclusion-bg">
+          <div class="page-top-nav">PROJECT SUMMARY / CONCLUSION</div>
+          <div class="page-heading">
+            <h2 class="page-title">CONCLUSION & Q&A</h2>
+            <div class="page-subtitle">/Tổng kết dự án & Phiên thảo luận/</div>
+          </div>
+          <div class="conclusion-box">
+            <div class="concl-summary">Dự án Tủ Sách Lưu Động đã hoàn thiện toàn diện từ phân tích kiến trúc Monolith 7 lớp đến hệ thống thiết kế Neo-Bakery ấm áp và quy trình xử lý giao dịch tin cậy.</div>
+            <ul class="concl-bullets">
+              <li>Kiến trúc chuẩn hóa: 235 tệp mã nguồn liên kết chặt chẽ, 100% không có tệp cô lập.</li><li>Trải nghiệm độc giả vượt trội: Đưa thư viện đến tận cổng trường học, xóa bỏ rào cản địa lý.</li><li>Tài nguyên bàn giao: Dashboard tương tác (understand_dashboard.html), Toàn bộ mã nguồn và Bộ tài liệu thuyết trình chuẩn mực.</li>
+            </ul>
+            <div class="concl-thanks">
+              🎉 CHÂN THÀNH CẢM ƠN QUÝ THẦY CÔ VÀ HỘI ĐỒNG ĐÃ LẮNG NGHE!
+            </div>
+          </div>
+          <div class="page-bottom-footer">
+            <span>Library Bus Guidelines 30</span>
+            <span>LIBRARY BUS SYSTEM</span>
+          </div>
+        </div>
+        
+    </div>
+    
+  </div>
+
+  <!-- Thumbnails Modal -->
+  <div class="thumb-modal" id="modal-thumbs">
+    <div style="font-size:16px;font-weight:800;color:white;margin-bottom:16px;display:flex;justify-content:space-between;">
+      <span>DANH MỤC 30 TRANG THUYẾT TRÌNH (ARENA / WEGO GUIDELINES STYLE)</span>
+      <span style="font-size:12px;color:#94A3B8;cursor:pointer;" onclick="toggleThumbnails()">Đóng [ESC]</span>
+    </div>
+    <div class="thumb-grid" id="thumb-grid"></div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 30;
+
+    function showSlide(num) {
+      if (num < 1) num = 1;
+      if (num > totalSlides) num = totalSlides;
+      currentSlide = num;
+
+      document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+      const s = document.getElementById(`slide-${num}`);
+      if (s) s.classList.add('active');
+
+      document.getElementById('slide-indicator').textContent = `${num} / ${totalSlides}`;
+
+      document.querySelectorAll('.thumb-card').forEach(c => c.classList.remove('active'));
+      const activeTc = document.querySelector(`.thumb-card[data-slide="${num}"]`);
+      if (activeTc) activeTc.classList.add('active');
+    }
+
+    function nextSlide() { showSlide(currentSlide + 1); }
+    function prevSlide() { showSlide(currentSlide - 1); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'PageDown') nextSlide();
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+      else if (e.key === 'Escape') document.getElementById('modal-thumbs').classList.remove('open');
+    });
+
+    function toggleThumbnails() {
+      const modal = document.getElementById('modal-thumbs');
+      modal.classList.toggle('open');
+      if (modal.classList.contains('open')) renderThumbnails();
+    }
+
+    function renderThumbnails() {
+      const grid = document.getElementById('thumb-grid');
+      grid.innerHTML = '';
+      document.querySelectorAll('.slide').forEach((s, idx) => {
+        const num = idx + 1;
+        const titleElem = s.querySelector('.page-title') || s.querySelector('.divider-title') || s.querySelector('.hero-title');
+        const title = titleElem ? titleElem.textContent.replace('\n', ' ') : `Trang ${num}`;
+        const card = document.createElement('div');
+        card.className = `thumb-card ${num === currentSlide ? 'active' : ''}`;
+        card.dataset.slide = num;
+        card.innerHTML = `<div class="tc-num">TRANG ${num}</div><div class="tc-title">${title}</div>`;
+        card.onclick = () => {
+          showSlide(num);
+          document.getElementById('modal-thumbs').classList.remove('open');
+        };
+        grid.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

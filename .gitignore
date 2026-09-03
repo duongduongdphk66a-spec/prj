@@ -7,6 +7,7 @@ venv/
 env/
 .env/
 mta/
+.ua/
 
 # Django & Database
 *.log
