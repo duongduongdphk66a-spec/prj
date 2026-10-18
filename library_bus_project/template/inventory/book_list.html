@@ -528,21 +528,21 @@
         <div class="catalog-top-bar">
             <div class="search-container">
                 <form method="get" class="search-input-group w-100 m-0">
-                    <input type="text" name="query" id="search-input" placeholder="Tìm kiếm sách..." value="{{ request.GET.query|default:'' }}" autocomplete="off">
+                    <input type="text" name="query" id="search-input" placeholder="Tìm kiếm sách..." aria-label="Tìm kiếm sách" value="{{ request.GET.query|default:'' }}" autocomplete="off">
                     {% if request.GET.category %}
                         <input type="hidden" name="category" value="{{ request.GET.category }}">
                     {% endif %}
-                    <button type="submit" style="background:none; border:none; padding:0;">
+                    <button type="submit" aria-label="Tìm kiếm" style="background:none; border:none; padding:0; cursor:pointer;">
                         <i class="fas fa-search"></i>
                     </button>
                     <!-- Autocomplete dropdown -->
-                    <div id="autocomplete-results" class="autocomplete-dropdown"></div>
+                    <div id="autocomplete-results" class="autocomplete-dropdown" role="listbox" aria-label="Gợi ý tìm kiếm"></div>
                 </form>
                 <div class="filter-dropdown" style="position: relative;">
-                    <div class="filter-icon" id="filter-dropdown-btn" style="font-size: 1.4rem; color: var(--color-roast); cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%;">
+                    <button type="button" class="filter-icon" id="filter-dropdown-btn" aria-label="Bộ lọc tìm kiếm" aria-expanded="false" style="font-size: 1.4rem; color: var(--color-roast); cursor: pointer; display: flex; align-items: center; justify-content: center; height: 100%; background: transparent; border: none;">
                         <i class="fas fa-filter"></i>
-                    </div>
-                    <ul class="dropdown-menu shadow" id="filter-dropdown-menu" style="position: absolute; top: 100%; right: 0; display: none; min-width: 250px; padding: 10px 0; border-radius: var(--radius-md); border: 1px solid var(--border-medium); background-color: var(--bg-surface); z-index: 1000;">
+                    </button>
+                    <ul class="dropdown-menu shadow" id="filter-dropdown-menu" style="position: absolute; top: 100%; right: 0; display: none; min-width: 250px; padding: 10px 0; border-radius: var(--radius-md); border: 1px solid var(--border-medium); background-color: var(--bg-surface); z-index: 1000; list-style: none;">
                         <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="query" data-placeholder="Tìm kiếm sách...">Tất cả (Mặc định)</a></li>
                         <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="title" data-placeholder="Tìm kiếm theo tên sách...">Tên sách</a></li>
                         <li><a class="dropdown-item fw-bold search-filter-option" href="#" data-type="author" data-placeholder="Tìm kiếm theo tác giả...">Tác giả</a></li>
@@ -570,7 +570,7 @@
             <div class="book-card">
                 <div class="book-card-image-wrapper">
                     {% if book.cover_image %}
-                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy">
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" loading="lazy" decoding="async">
                     {% else %}
                         <div class="book-card-fallback-cover" style="background: linear-gradient(135deg, {% if book.category.color_code %}{{ book.category.color_code }}{% else %}var(--color-roast){% endif %} 0%, var(--dark-brown) 100%);">
                             <i class="fas fa-book-open book-fallback-icon"></i>
@@ -667,16 +667,15 @@
 
         filterBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (filterMenu.style.display === 'block') {
-                filterMenu.style.display = 'none';
-            } else {
-                filterMenu.style.display = 'block';
-            }
+            const isVisible = filterMenu.style.display === 'block';
+            filterMenu.style.display = isVisible ? 'none' : 'block';
+            filterBtn.setAttribute('aria-expanded', isVisible ? 'false' : 'true');
         });
 
         document.addEventListener('click', (e) => {
             if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
                 filterMenu.style.display = 'none';
+                filterBtn.setAttribute('aria-expanded', 'false');
             }
         });
 
@@ -691,6 +690,7 @@
                 searchInput.setAttribute('placeholder', placeholder);
                 
                 filterMenu.style.display = 'none';
+                filterBtn.setAttribute('aria-expanded', 'false');
                 searchInput.focus();
             });
         });
@@ -713,12 +713,17 @@
                                 data.results.forEach(item => {
                                     const div = document.createElement('div');
                                     div.className = 'autocomplete-item';
-                                    div.innerHTML = `
-                                        <div class="autocomplete-title">${item.title}</div>
-                                        <div class="autocomplete-author">${item.author || 'Chưa rõ tác giả'}</div>
-                                    `;
+                                    div.setAttribute('role', 'option');
+                                    const titleEl = document.createElement('div');
+                                    titleEl.className = 'autocomplete-title';
+                                    titleEl.textContent = item.title || '';
+                                    const authorEl = document.createElement('div');
+                                    authorEl.className = 'autocomplete-author';
+                                    authorEl.textContent = item.author || 'Chưa rõ tác giả';
+                                    div.appendChild(titleEl);
+                                    div.appendChild(authorEl);
                                     div.addEventListener('click', () => {
-                                        window.location.href = `/inventory/books/${item.id}/`;
+                                        window.location.href = `/inventory/books/${encodeURIComponent(item.id)}/`;
                                     });
                                     autocompleteResults.appendChild(div);
                                 });

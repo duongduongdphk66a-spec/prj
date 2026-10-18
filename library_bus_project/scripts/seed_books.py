@@ -3,7 +3,10 @@ import sys
 import django
 import random
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(current_dir)
+if project_dir not in sys.path:
+    sys.path.insert(0, project_dir)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()
@@ -83,7 +86,6 @@ def seed_data():
             }
         )
         if not created:
-            # If exists, ensure it's available for demonstration if it's currently something else
             if random.random() > 0.3:
                 book.status = 'available'
                 book.save()

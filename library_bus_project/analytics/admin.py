@@ -1,21 +1,21 @@
-# analytics/admin.py - ĐÃ CẬP NHẬT theo core/models.py
 from django.contrib import admin
-from django.utils.html import format_html
-from django.urls import reverse
-from django.utils.safestring import mark_safe
-from django.db.models import Count, Avg, Sum
-from django.utils import timezone
 from django.contrib.auth import get_user_model
-from .models import (
-    UserReadingStats, 
-    BookAnalytics, 
-    BusAnalytics, 
-    UserActivity,
-    BookRecommendation,
-    DailyStats,
-    ArchivedUserActivity
-)
+from django.db.models import Avg, Sum
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import format_html
 from rangefilter.filters import DateRangeFilter
+
+from .models import (
+    ArchivedUserActivity,
+    BookAnalytics,
+    BookRecommendation,
+    BusAnalytics,
+    DailyStats,
+    UserActivity,
+    UserReadingStats,
+)
+
 User = get_user_model()
 
 # --- MIXINS ĐÃ CẬP NHẬT ---

@@ -1,17 +1,14 @@
-# File: inventory/models.py 
-from django.db import models, transaction
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.utils.text import slugify
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils import timezone
-from django.db.models import F, Count, Avg, Q, Prefetch
-from django.core.cache import cache
-from django.conf import settings
-from core.models import TimestampedModel, SoftDeleteModel, CacheMixin, BaseQuerySet
-from analytics.models import BookAnalytics
-from datetime import datetime
 import logging
+from django.conf import settings
+from django.core.cache import cache
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models, transaction
+from django.db.models import Count, Prefetch, Q
+from django.utils import timezone
+from django.utils.text import slugify
+
+from analytics.models import BookAnalytics
+from core.models import BaseQuerySet, TimestampedModel
 
 logger = logging.getLogger(__name__)
 

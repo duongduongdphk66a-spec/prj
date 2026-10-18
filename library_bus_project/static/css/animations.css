@@ -173,16 +173,15 @@ button:active,
     display: inline-block;
 }
 
-/* Performance hint for GSAP animated targets */
-.stat-card,
-.metric-card,
-.book-card,
-.post-card-home,
-.blog-card,
-.category-pill,
-.route-card,
-.bus-card {
-    will-change: transform, opacity;
+/* Performance hint for interactive card targets on hover/focus */
+.stat-card:hover,
+.metric-card:hover,
+.book-card:hover,
+.post-card-home:hover,
+.blog-card:hover,
+.route-card:hover,
+.bus-card:hover {
+    will-change: transform;
 }
 
 /* Accessibility: Reduced Motion */

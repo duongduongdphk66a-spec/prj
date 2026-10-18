@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="vi" style="scroll-behavior: smooth;" {% if user.is_authenticated %} data-theme="{{ user.preferences.theme|default:'light' }}" {% endif %}>
+<html lang="vi" style="scroll-behavior: smooth;" {% if user.is_authenticated %} data-theme="{{ user_theme|default:'light' }}" {% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,7 +27,7 @@
     <a href="#main-content" class="skip-link">Chuyển đến nội dung chính</a>
 
     <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+    <div class="toast-container" id="toast-container" role="region" aria-live="polite" aria-label="Thông báo hệ thống"></div>
 
     <!-- Django Messages Data (Hidden) -->
     {% if messages %}
@@ -44,7 +44,7 @@
             <nav class="navbar">
                 <!-- Logo -->
                 <a href="{% url 'index' %}" class="logo">
-                    <img src="{% static 'img/bus-icon.webp' %}" alt="Library Bus Logo">
+                    <img src="{% static 'img/bus-icon.webp' %}" alt="Library Bus Logo" width="38" height="38" decoding="async">
                     <span>Library Bus</span>
                 </a>
 
@@ -78,8 +78,8 @@
                         </a>
                         <div class="profile-dropdown" id="profile-dropdown">
                             <button class="profile-trigger" id="profile-trigger" aria-label="Mở menu tài khoản" aria-expanded="false">
-                                {% if user.profile.avatar and user.profile.avatar.name != 'avatars/default.png' %}
-                                    <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="profile-avatar" id="navbar-avatar" style="object-fit: cover;">
+                                {% if user_avatar_url %}
+                                    <img src="{{ user_avatar_url }}" alt="Avatar" width="32" height="32" decoding="async" class="profile-avatar" id="navbar-avatar" style="object-fit: cover;">
                                 {% else %}
                                     <div class="profile-avatar" id="navbar-avatar">
                                         {{ user.first_name|slice:":1"|default:user.username|slice:":1"|upper }}
@@ -113,7 +113,7 @@
                                 <div class="profile-dropdown-divider"></div>
                                 <form action="{% url 'users:logout' %}" method="post" style="margin:0;">
                                     {% csrf_token %}
-                                    <button type="submit" class="profile-dropdown-item" style="width:100; border:none; background:none; cursor:pointer; text-align:left;">
+                                    <button type="submit" class="profile-dropdown-item" style="width:100%; border:none; background:none; cursor:pointer; text-align:left;">
                                         <i class="fas fa-sign-out-alt"></i> Đăng xuất
                                     </button>
                                 </form>
@@ -193,8 +193,8 @@
     </button>
     
     <!-- GSAP Core & ScrollTrigger (GreenSock) CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
     
     <script>
     // ========== TOAST NOTIFICATION SYSTEM ==========
@@ -216,14 +216,19 @@
         toast.innerHTML = `
             <div class="toast-icon"><i class="${iconMap[type] || iconMap.info}"></i></div>
             <div class="toast-body">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
+                <div class="toast-title"></div>
+                <div class="toast-message"></div>
             </div>
-            <button class="toast-close" onclick="this.closest('.toast').remove()"><i class="fas fa-times"></i></button>
+            <button type="button" class="toast-close" aria-label="Đóng thông báo"><i class="fas fa-times"></i></button>
             <div class="toast-progress">
                 <div class="toast-progress-bar" style="animation-duration: ${duration}ms;"></div>
             </div>
         `;
+        toast.querySelector('.toast-title').textContent = title || '';
+        toast.querySelector('.toast-message').textContent = message || '';
+        toast.querySelector('.toast-close').addEventListener('click', function() {
+            toast.remove();
+        });
         container.appendChild(toast);
         
         if (typeof window.animateToastIn === 'function') {
@@ -271,18 +276,36 @@
             });
         }
 
-        // ========== HEADER SCROLL EFFECT ==========
+        // ========== UNIFIED R-A-F PASSIVE SCROLL HANDLER (HEADER + BACK TO TOP) ==========
         const header = document.getElementById('main-header');
-        if (header) {
-            let lastScrollTop = 0;
+        const backToTopButton = document.getElementById('back-to-top');
+        if (header || backToTopButton) {
+            let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+            let scrollTicking = false;
+
             window.addEventListener('scroll', function() {
-                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                if (scrollTop > 60) header.classList.add('scrolled');
-                else header.classList.remove('scrolled');
-                if (scrollTop > lastScrollTop && scrollTop > 120) header.classList.add('hidden');
-                else header.classList.remove('hidden');
-                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-            }, false);
+                if (!scrollTicking) {
+                    window.requestAnimationFrame(function() {
+                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+                        if (header) {
+                            header.classList.toggle('scrolled', scrollTop > 60);
+                            header.classList.toggle('hidden', scrollTop > lastScrollTop && scrollTop > 120);
+                        }
+                        if (backToTopButton) {
+                            backToTopButton.classList.toggle('show', scrollTop > 300);
+                        }
+                        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                        scrollTicking = false;
+                    });
+                    scrollTicking = true;
+                }
+            }, { passive: true });
+
+            if (backToTopButton) {
+                backToTopButton.addEventListener('click', function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
         }
 
         // ========== PROFILE DROPDOWN ==========
@@ -321,18 +344,6 @@
             });
         }
 
-        // ========== BACK TO TOP ==========
-        const backToTopButton = document.getElementById('back-to-top');
-        if (backToTopButton) {
-            window.addEventListener('scroll', function() {
-                if (window.pageYOffset > 300) backToTopButton.classList.add('show');
-                else backToTopButton.classList.remove('show');
-            });
-            backToTopButton.addEventListener('click', function() {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-
         // ========== SCROLL REVEAL OBSERVER ==========
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -351,20 +362,20 @@
     
     <!-- Chatbot Widget -->
     <div class="chatbot-widget">
-        <div class="chatbot-window" id="chatbot-window">
+        <div class="chatbot-window" id="chatbot-window" role="dialog" aria-label="Trợ lý ảo Library Bus">
             <div class="chatbot-header">
                 <h4><i class="fas fa-robot"></i> Trợ lý Library Bus</h4>
-                <button class="chatbot-close" id="chatbot-close"><i class="fas fa-times"></i></button>
+                <button type="button" class="chatbot-close" id="chatbot-close" aria-label="Đóng cửa sổ chat"><i class="fas fa-times"></i></button>
             </div>
-            <div class="chatbot-messages" id="chatbot-messages">
-                <div class="chat-msg bot">Xin chào! Tôi là trợ lý ảo sử dụng lõi Gemini 3.5. Tôi có thể giúp gì cho bạn hôm nay?</div>
+            <div class="chatbot-messages" id="chatbot-messages" aria-live="polite">
+                <div class="chat-msg bot">Xin chào! Tôi là trợ lý ảo AI của Tủ Sách Lưu Động. Tôi có thể giúp gì cho bạn hôm nay?</div>
             </div>
             <div class="chatbot-input-area">
-                <input type="text" class="chatbot-input" id="chatbot-input" placeholder="Nhập tin nhắn..." autocomplete="off">
-                <button class="chatbot-send" id="chatbot-send"><i class="fas fa-paper-plane"></i></button>
+                <input type="text" class="chatbot-input" id="chatbot-input" placeholder="Nhập tin nhắn..." aria-label="Nhập tin nhắn cho trợ lý ảo" autocomplete="off">
+                <button type="button" class="chatbot-send" id="chatbot-send" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-        <button class="chatbot-toggle" id="chatbot-toggle">
+        <button type="button" class="chatbot-toggle" id="chatbot-toggle" aria-label="Mở trợ lý ảo Library Bus" aria-expanded="false">
             <i class="fas fa-comment-dots"></i>
         </button>
     </div>
@@ -381,8 +392,9 @@
         let chatHistory = [];
 
         function toggleChat() {
-            chatWindow.classList.toggle('show');
-            if (chatWindow.classList.contains('show')) {
+            const isOpen = chatWindow.classList.toggle('show');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (isOpen) {
                 chatInput.focus();
             }
         }
@@ -390,10 +402,19 @@
         if(toggleBtn) toggleBtn.addEventListener('click', toggleChat);
         if(closeBtn) closeBtn.addEventListener('click', toggleChat);
 
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function appendMessage(text, sender) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `chat-msg ${sender}`;
-            msgDiv.innerHTML = text.replace(/\\n/g, '<br>');
+            msgDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
             messagesDiv.appendChild(msgDiv);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
@@ -417,16 +438,25 @@
             const typingIndicator = showTyping();
 
             try {
+                const csrfToken = (typeof window.getCSRFToken === 'function' ? window.getCSRFToken() : '') || '';
                 const response = await fetch('/inventory/api/chatbot/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({
                         message: text,
                         history: chatHistory
                     })
                 });
+
+                if (response.redirected && response.url.includes('/users/login')) {
+                    typingIndicator.remove();
+                    appendMessage('Vui lòng đăng nhập tài khoản để trò chuyện cùng trợ lý ảo.', 'bot');
+                    return;
+                }
 
                 const data = await response.json();
                 typingIndicator.remove();
@@ -440,20 +470,23 @@
                 }
             } catch (error) {
                 typingIndicator.remove();
-                appendMessage('Không thể kết nối đến máy chủ.', 'bot');
+                appendMessage('Vui lòng đăng nhập hoặc kiểm tra lại kết nối mạng để sử dụng trợ lý ảo.', 'bot');
             }
         }
 
         if(sendBtn) sendBtn.addEventListener('click', sendMessage);
         if(chatInput) {
-            chatInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') sendMessage();
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
             });
         }
     });
     </script>
     <!-- GSAP Custom Animations Suite -->
-    <script src="{% static 'js/animations.js' %}"></script>
+    <script src="{% static 'js/animations.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

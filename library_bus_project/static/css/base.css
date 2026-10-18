@@ -165,48 +165,10 @@ p:last-child {
 }
 
 /* Tabular numbers for all statistics & data metrics */
-.stat-number, .tabular-nums, .price, .badge, .inventory-stat-value, td.number, .metric-value {
+.stat-number, .tabular-nums, .price, .badge, .inventory-stat-value, td.number, .metric-value, .spec-value {
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
     letter-spacing: -0.02em;
-}
-
-/* Selection */
-::selection {
-    background-color: var(--color-greasey);
-    color: var(--color-molasses);
-}
-
-::-moz-selection {
-    background-color: var(--color-greasey);
-    color: var(--color-molasses);
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-page-alt);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-toasty);
-    border-radius: var(--radius-pill);
-    border: 2px solid var(--bg-page-alt);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--color-roast);
-}
-
-/* Focus States (Accessibility First) */
-:focus-visible {
-    outline: 2px solid var(--color-roast);
-    outline-offset: 3px;
-    border-radius: var(--radius-xs);
 }
 
 /* Links */

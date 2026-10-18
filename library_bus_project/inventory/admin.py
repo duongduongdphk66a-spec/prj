@@ -1,20 +1,12 @@
-# File: inventory/admin.py 
 from django.contrib import admin
-from django.utils.html import format_html
-from django.http import HttpResponse, JsonResponse
-from django.core.files.storage import default_storage
 from django.contrib import messages
-from django.utils.safestring import mark_safe
-from django.db.models import Count, Q
 from django.contrib.admin import SimpleListFilter
-from django.core.cache import cache
-from django.utils import timezone
-from django.urls import path, reverse
+from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
-import json
-from .models import LibraryBus, Category, Book, BookStatusHistory, BusRoute, InventoryAlert
+from django.urls import path, reverse
+from django.utils.html import format_html
+
+from .models import Book, BookStatusHistory, BusRoute, Category, InventoryAlert, LibraryBus
 
 class BookCountFilter(SimpleListFilter):
     title = 'Số lượng sách'

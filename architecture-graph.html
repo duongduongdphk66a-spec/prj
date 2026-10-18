@@ -161,54 +161,92 @@
     .node-detail {
       background: #170706;
       border: 1px solid #4E0705;
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
     }
     .node-detail h3 {
-      color: var(--accent-hover);
+      color: #FFD14C;
       margin-bottom: 6px;
-      font-size: 1.05rem;
+      font-size: 1.15rem;
+      font-weight: 700;
     }
     .node-type-badge {
       display: inline-block;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--accent);
       background: rgba(237, 144, 64, 0.15);
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      font-weight: 600;
+      border: 1px solid rgba(237, 144, 64, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .node-detail p {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       line-height: 1.5;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .conn-title {
       font-size: 0.75rem;
       color: var(--accent);
       font-weight: 700;
       text-transform: uppercase;
-      margin-top: 10px;
-      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      margin-top: 14px;
+      margin-bottom: 6px;
     }
     .conn-list {
       list-style: none;
-      font-size: 0.8rem;
-      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      height: auto;
+      max-height: none;
+      overflow: visible;
     }
     .conn-list li {
-      padding: 4px 6px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 4px;
-      margin-bottom: 4px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: #FFFDF9;
       cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      height: auto;
+      min-height: auto;
+      line-height: 1.45;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      transition: all 0.2s;
     }
     .conn-list li:hover {
-      color: var(--accent);
-      background: rgba(255,255,255,0.08);
+      color: #FFD14C;
+      background: rgba(237, 144, 64, 0.12);
+      border-color: rgba(237, 144, 64, 0.3);
+      transform: translateX(2px);
+    }
+    .conn-arrow {
+      flex-shrink: 0;
+      color: #ED9040;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .conn-text {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.45;
     }
     .hint-dock {
       position: absolute;
@@ -632,20 +670,20 @@
 
       const html = `
         <h3>${n.name}</h3>
-        <span class="node-type-badge">${n.type} • ${n.group}</span>
+        <span class="node-type-badge">${(n.type || '').toUpperCase()} • ${(n.group || '').toUpperCase()}</span>
         <p>${n.desc}</p>
 
         ${incoming.length ? `
-          <div class="conn-title">Được tham chiếu bởi (${incoming.length}):</div>
+          <div class="conn-title">ĐƯỢC THAM CHIẾU BỞI (${incoming.length}):</div>
           <ul class="conn-list">
-            ${incoming.map(src => `<li onclick="focusNode('${src.id}')">⬅ ${src.name}</li>`).join('')}
+            ${incoming.map(src => `<li onclick="focusNode('${src.id}')"><span class=\"conn-arrow\">←</span><span class=\"conn-text\">${src.name}</span></li>`).join('')}
           </ul>
         ` : ''}
 
         ${outgoing.length ? `
-          <div class="conn-title">Kết nối / Trực thuộc (${outgoing.length}):</div>
+          <div class="conn-title">KẾT NỐI / TRỰC THUỘC (${outgoing.length}):</div>
           <ul class="conn-list">
-            ${outgoing.map(tgt => `<li onclick="focusNode('${tgt.id}')">➡ ${tgt.name}</li>`).join('')}
+            ${outgoing.map(tgt => `<li onclick="focusNode('${tgt.id}')"><span class=\"conn-arrow\">→</span><span class=\"conn-text\">${tgt.name}</span></li>`).join('')}
           </ul>
         ` : ''}
       `;
@@ -698,6 +736,10 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
     animate();
+
+    setTimeout(() => {
+      focusNode('model:Profile');
+    }, 350);
   </script>
 </body>
 </html>

@@ -1,16 +1,12 @@
-# analytics/models.py 
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils import timezone
-from django.db.models import Count, Avg, Sum, F, Q
-from django.core.cache import cache
-from datetime import datetime, timedelta
-import json
+from datetime import timedelta
 from decimal import Decimal
+from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models import Avg, Count, Sum
+from django.utils import timezone
 
-# Import từ core models
-from core.models import TimestampedModel, SoftDeleteModel, AuditMixin, CacheMixin
+from core.models import AuditMixin, CacheMixin, SoftDeleteModel, TimestampedModel
 
 class UserReadingStats(TimestampedModel, AuditMixin):
     """Thống kê đọc sách của người dùng - kế thừa từ TimestampedModel"""
@@ -612,7 +608,7 @@ def get_system_health():
     )
 
 # --- SIGNAL HANDLERS (Tùy chọn) ---
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 @receiver(post_save, sender=User)

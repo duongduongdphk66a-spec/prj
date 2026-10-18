@@ -170,14 +170,19 @@ C:\Users\ADMIN\Documents\prj/
 │   │   ├── transactions/                   # 10 templates phiếu mượn, hàng đợi, nộp phạt
 │   │   └── users/                          # 14 templates đăng nhập, hồ sơ, đổi mật khẩu, VIP
 │   │
+│   ├── scripts/                            # Kịch bản nạp dữ liệu mẫu & audit hệ thống
+│   │   ├── functional_test.py              # Kiểm thử chức năng toàn diện (E2E)
+│   │   ├── generate_blog_data.py           # Tạo dữ liệu giả lập cho bài viết Blog
+│   │   ├── generate_test_data.py           # Tạo dữ liệu giả lập cho hệ thống
+│   │   ├── populate_books.py               # Nạp dữ liệu sách phong phú kèm bìa sách
+│   │   ├── seed_books.py                   # Kịch bản nạp sách mẫu ban đầu
+│   │   ├── seed_routes.py                  # Kịch bản nạp lộ trình trạm dừng GPS
+│   │   └── taste_preflight_check.py        # Kiểm tra tiêu chuẩn giao diện Design System
+│   │
 │   ├── .env                                # Biến môi trường cục bộ (Database, Secret, API keys)
 │   ├── .env.example                        # File mẫu biến môi trường chuẩn
-│   ├── functional_test.py                  # Kiểm thử chức năng toàn diện (E2E)
-│   ├── generate_blog_data.py               # Tạo dữ liệu giả lập cho bài viết Blog
-│   ├── generate_test_data.py               # Tạo dữ liệu giả lập cho hệ thống
 │   ├── manage.py                           # Điểm điều khiển CLI của Django
-│   ├── run_server.py                       # Script khởi động nhanh server
-│   └── seed_books.py                       # Kịch bản nạp sách mẫu ban đầu
+│   └── run_server.py                       # Script khởi động nhanh server production (Waitress)
 │
 ├── .dockerignore                           # Danh sách loại trừ khi đóng gói Docker
 ├── .gitignore                              # Danh sách bỏ qua phiên bản Git

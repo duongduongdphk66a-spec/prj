@@ -98,7 +98,8 @@
                             duration: 0.75,
                             stagger: 0.08,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
 
                         // Dynamic Counter Animation
@@ -140,7 +141,8 @@
                             duration: 0.6,
                             stagger: 0.06,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -158,7 +160,8 @@
                             duration: 0.75,
                             stagger: 0.1,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -176,7 +179,8 @@
                             duration: 0.7,
                             stagger: 0.08,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -194,7 +198,8 @@
                             duration: 0.6,
                             stagger: 0.06,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -210,7 +215,8 @@
                             duration: 0.5,
                             stagger: 0.04,
                             ease: "back.out(1.4)",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -227,7 +233,8 @@
                             duration: 0.7,
                             stagger: 0.1,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -242,7 +249,8 @@
                             autoAlpha: 0,
                             duration: 0.65,
                             ease: "power2.out",
-                            overwrite: "auto"
+                            overwrite: "auto",
+                            clearProps: "transform"
                         });
                     }
                 });
@@ -289,36 +297,35 @@
                 }
             }
 
-            // ========== C. 3D CARD MICRO-TILT (gsap.utils.mapRange & clamp) ==========
+            // ========== C. 3D CARD MICRO-TILT (gsap.utils.mapRange & clamp + quickTo) ==========
             const tiltCards = document.querySelectorAll('.hero-visual-card, .featured-book-hero, .card-tilt-3d, .book-detail-cover');
             tiltCards.forEach(card => {
+                gsap.set(card, { transformPerspective: 900 });
+                const rxTo = gsap.quickTo(card, "rotationX", { duration: 0.35, ease: "power1.out" });
+                const ryTo = gsap.quickTo(card, "rotationY", { duration: 0.35, ease: "power1.out" });
+                let cachedRect = null;
+
+                card.addEventListener('mouseenter', () => {
+                    cachedRect = card.getBoundingClientRect();
+                }, { passive: true });
+
                 card.addEventListener('mousemove', (e) => {
-                    const rect = card.getBoundingClientRect();
+                    const rect = cachedRect || (cachedRect = card.getBoundingClientRect());
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
-                    
+
                     const rotX = gsap.utils.clamp(-8, 8, gsap.utils.mapRange(0, rect.height, 8, -8, y));
                     const rotY = gsap.utils.clamp(-8, 8, gsap.utils.mapRange(0, rect.width, -8, 8, x));
 
-                    gsap.to(card, {
-                        rotationX: rotX,
-                        rotationY: rotY,
-                        transformPerspective: 900,
-                        duration: 0.35,
-                        ease: "power1.out",
-                        overwrite: "auto"
-                    });
-                });
+                    rxTo(rotX);
+                    ryTo(rotY);
+                }, { passive: true });
 
                 card.addEventListener('mouseleave', () => {
-                    gsap.to(card, {
-                        rotationX: 0,
-                        rotationY: 0,
-                        duration: 0.6,
-                        ease: "power2.out",
-                        overwrite: "auto"
-                    });
-                });
+                    cachedRect = null;
+                    rxTo(0);
+                    ryTo(0);
+                }, { passive: true });
             });
 
             // ========== D. INTERACTIVE STAR RATING MICRO-ANIMATIONS ==========

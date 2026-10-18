@@ -5,7 +5,10 @@ import random
 import datetime
 from faker import Faker
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(current_dir)
+if project_dir not in sys.path:
+    sys.path.insert(0, project_dir)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()
@@ -23,7 +26,6 @@ def create_seed_data():
     users = []
     print("Creating 50 accounts...")
     for i in range(50):
-        # Tạo username unique
         username = fake.user_name() + str(random.randint(10000, 99999))
         email = fake.email()
         try:
@@ -45,7 +47,6 @@ def create_seed_data():
     print("Generating 200 random requests (Borrow / Reservation)...")
     requests_created = 0
     
-    # Cố gắng lặp nhiều hơn 200 để bù đắp các case bị lỗi do unique constraints
     for _ in range(400):
         if requests_created >= 200:
             break
@@ -56,10 +57,8 @@ def create_seed_data():
         
         try:
             if request_type == 'borrow':
-                # Kiểm tra constraint: một người không mượn cùng 1 quyển sách đang active
                 if not BorrowRecord.objects.filter(user=user, book=book, return_date__isnull=True).exists():
                     due_date = timezone.now().date() + datetime.timedelta(days=random.randint(7, 30))
-                    # 20% khả năng bị overdue (quá hạn) để test
                     if random.random() < 0.2:
                         due_date = timezone.now().date() - datetime.timedelta(days=random.randint(1, 10))
                         
@@ -70,15 +69,13 @@ def create_seed_data():
                     )
                     requests_created += 1
             else:
-                # Kiểm tra constraint: active reservation
                 if not BookReservation.objects.filter(user=user, book=book, is_fulfilled=False).exists():
                     BookReservation.objects.create(
                         user=user,
                         book=book
                     )
                     requests_created += 1
-        except Exception as e:
-            # Bỏ qua nếu có lỗi constraint
+        except Exception:
             pass
             
     print(f"Successfully created {requests_created} requests.")

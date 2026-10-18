@@ -1,11 +1,19 @@
-# File: blog/admin.py 
-from django.contrib import admin
-from django.utils.html import format_html
-from django.utils import timezone
-from django.db.models import Count, Avg, F
+import logging
+
+from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.core.cache import cache
-from .models import BlogCategory, BlogTag, Post, PostRating, PostLike, PostView, Newsletter
+from django.db.models import Avg, Count
+from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
+from django.utils.html import format_html
+
+from .models import (
+    BlogCategory, BlogTag, Comment, CommentLike, Newsletter,
+    Post, PostLike, PostRating, PostView, Report
+)
+
+logger = logging.getLogger(__name__)
 
 # Custom Filters
 class PublishStatusFilter(SimpleListFilter):
@@ -285,23 +293,6 @@ class NewsletterAdmin(admin.ModelAdmin):
     mark_confirmed.short_description = 'Đánh dấu đã xác nhận'
 
 # --- MOVED FROM COMMUNITY ---
-# File: blog/admin.py
-from django.contrib import admin
-from django.utils.html import format_html
-from django.urls import reverse, NoReverseMatch
-from django.utils import timezone
-from django.db.models import Count, Avg, Q
-from django.contrib.admin import SimpleListFilter
-from django.core.cache import cache
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.http import HttpResponseRedirect
-from .models import (
-    Comment, CommentLike, Report,
-)
-import logging
-
-logger = logging.getLogger(__name__)
 # ================== CUSTOM ACTIONS ==================
 
 def approve_comments(modeladmin, request, queryset):

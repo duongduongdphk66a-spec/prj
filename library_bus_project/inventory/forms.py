@@ -1,12 +1,10 @@
-# File: inventory/forms.py 
+import json
 from django import forms
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from django.utils import timezone
 from django.core.validators import FileExtensionValidator
-from django.db.models import Q
-from .models import LibraryBus, Category, Book, BookStatusHistory, BusRoute, InventoryAlert, BookDonation
-import json
+from django.utils import timezone
+
+from .models import Book, BookDonation, BusRoute, Category, InventoryAlert, LibraryBus
 
 class LibraryBusForm(forms.ModelForm):
     """Form cho xe bus sách với validation nâng cao"""

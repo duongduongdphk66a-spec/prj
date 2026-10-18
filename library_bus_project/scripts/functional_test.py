@@ -9,7 +9,10 @@ if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
 # Ensure project root is in sys.path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(current_dir)
+if project_dir not in sys.path:
+    sys.path.insert(0, project_dir)
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
@@ -50,8 +53,7 @@ def test_public_pages():
 
 def test_auth():
     print("\n--- Testing Authentication ---")
-    # Đảm bảo có user 'admin'/'admin'
-    admin_user, created = User.objects.get_or_create(username='admin', defaults={'email': 'admin@example.com'})
+    admin_user, _ = User.objects.get_or_create(username='admin', defaults={'email': 'admin@example.com'})
     admin_user.set_password('admin')
     admin_user.is_superuser = True
     admin_user.is_staff = True
@@ -77,7 +79,6 @@ def test_inventory():
     else:
         report("FAIL", "Truy cập danh sách sách", f"Status code: {response.status_code}")
         
-    # Tạo dữ liệu test nếu chưa có
     book = Book.objects.first()
     if not book:
         book = Book.objects.create(title="Sách test E2E", author="Tác giả test", page_count=100)
@@ -129,7 +130,6 @@ def test_admin():
     print("\n--- Testing Admin Panel ---")
     client.login(username='admin', password='admin')
     response = client.get('/admin/')
-    # Dashboard admin trong Django trả về 200 nếu login thành công, 302 nếu chưa
     if response.status_code == 200:
         report("PASS", "Truy cập trang Admin Dashboard")
     else:

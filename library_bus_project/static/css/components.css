@@ -175,10 +175,11 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-light);
-    transition: all var(--transition-base);
+    transition: transform var(--transition-base), background-color var(--transition-base), box-shadow var(--transition-base);
     height: 74px;
     display: flex;
     align-items: center;
+    will-change: transform;
 }
 
 [data-theme="dark"] .main-header {
@@ -187,7 +188,6 @@
 }
 
 .main-header.scrolled {
-    height: 66px;
     box-shadow: var(--shadow-sm);
 }
 

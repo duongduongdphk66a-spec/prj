@@ -1,30 +1,28 @@
-# File: blog/views.py 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.paginator import Paginator
-from django.db.models import Q, Count, Avg, F, Prefetch
-from django.http import JsonResponse, HttpResponse, Http404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.views.generic.base import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.utils import timezone
-from django.core.cache import cache
-from django.db import transaction
-from django.utils.decorators import method_decorator
-from django.db import models
-from django.views.decorators.cache import cache_page
-from django.views.decorators.vary import vary_on_headers
-from django.urls import reverse_lazy
-from django.contrib.syndication.views import Feed
-from django.utils.feedgenerator import Atom1Feed
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django.conf import settings
 from datetime import timedelta
-import json
-from .models import Post, BlogCategory, BlogTag, PostLike, PostRating, Newsletter, PostView
-from .forms import PostForm, NewsletterSubscriptionForm, PostSearchForm, CommentForm, PostRatingForm, AdvancedSearchForm, QuickPostForm
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.syndication.views import Feed
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models import Avg, Count, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+
+from .forms import (
+    AdvancedSearchForm, CommentForm, NewsletterSubscriptionForm,
+    PostForm, PostRatingForm, PostSearchForm, QuickPostForm
+)
+from .models import (
+    BlogCategory, BlogTag, Newsletter, Post, PostLike, PostRating, PostView
+)
 
 # ========== HOME & LISTING VIEWS ==========
 class BlogHomeView(ListView):

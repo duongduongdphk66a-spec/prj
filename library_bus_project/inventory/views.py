@@ -1,18 +1,32 @@
-# File: inventory/views.py 
 import os
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
-from django.db.models import Q, Count, Avg, Prefetch
-from django.core.paginator import Paginator
-from django.views.decorators.http import require_http_methods
-from django.utils.decorators import method_decorator
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.cache import cache
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Avg, Count, Prefetch, Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.cache import cache_page
+from django.utils import timezone
+from django.views import View
+from django.views.decorators.http import require_http_methods
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
+
+from .forms import (
+    BookDonationForm, BookForm, BookSearchForm, BookStatusChangeForm,
+    BulkBookUploadForm, BusRouteForm, CategoryForm, LibraryBusForm
+)
+from .models import (
+    Book, BookDonation, BookRating, BusRoute, Category, InventoryAlert, LibraryBus
+)
+import csv
+import io
+import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -22,24 +36,6 @@ def is_staff_check(user):
     return user.is_staff
 
 staff_required = user_passes_test(is_staff_check)
-from django.db import transaction
-from django.core.cache import cache
-from django.utils import timezone
-from django.views import View
-from .models import (
-    LibraryBus, Category, Book, BookStatusHistory,
-    BusRoute, InventoryAlert, BookDonation, BookRating
-)
-from .forms import (
-    LibraryBusForm, CategoryForm, BookSearchForm, BookStatusChangeForm,
-    BookForm, BulkBookUploadForm, BusRouteForm, BookDonationForm
-)
-import csv
-import io
-import json
-import logging
-
-logger = logging.getLogger(__name__)
 
 # Dashboard View
 @staff_required

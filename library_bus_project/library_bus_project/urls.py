@@ -7,6 +7,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from core.views import IndexView
 
 admin.site.site_header = "Hệ thống Quản lý Thư viện Di động"
 admin.site.site_title = "Admin Panel - Thư viện Di động"
@@ -19,8 +20,8 @@ urlpatterns = [
 
     # --- STATIC PAGES ---
     # Các trang tĩnh như trang chủ, giới thiệu, liên hệ
-    # Sử dụng TemplateView cho các trang đơn giản không cần logic phức tạp
-    path('', TemplateView.as_view(template_name='pages/index.html'), name='index'),
+    # Sử dụng IndexView (có cache) cho trang chủ và TemplateView cho các trang tĩnh đơn giản
+    path('', IndexView.as_view(), name='index'),
     path('about/', TemplateView.as_view(template_name='pages/about.html'), name='about'),
     path('contact/', TemplateView.as_view(template_name='pages/contact.html'), name='contact'),
     path('faq/', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),

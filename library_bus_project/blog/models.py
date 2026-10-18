@@ -1,24 +1,21 @@
-# File: blog/models.py 
-from PIL import Image
-from django.db import models
-from django.contrib.auth.models import User
-from django.urls import reverse
-from django.utils.text import slugify
-from django.utils.html import strip_tags
-from django.core.validators import MinLengthValidator, FileExtensionValidator
-from django.core.cache import cache
-from django.db.models import Q, Count, Avg, F, Prefetch
-from django.utils import timezone
-from django.db import transaction
+import logging
 from datetime import timedelta
-from core.models import TimestampedModel, SoftDeleteModel, CacheMixin, BaseManager, BaseQuerySet
 
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
-from django.db.models import Sum, Max
-import logging
+from django.core.cache import cache
+from django.core.validators import FileExtensionValidator, MinLengthValidator
+from django.db import models
+from django.db.models import Avg, Count, F, Prefetch, Q
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.html import strip_tags
+from django.utils.text import slugify
+from PIL import Image
+
+from core.models import BaseManager, BaseQuerySet, CacheMixin, SoftDeleteModel, TimestampedModel
+
 logger = logging.getLogger(__name__)
 
 

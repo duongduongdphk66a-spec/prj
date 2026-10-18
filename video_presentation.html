@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Giải Thích Kiến Trúc — Hệ Thống Tủ Sách Lưu Động (Library Bus System)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #060911;
+      --bg-card: #0B1120;
+      --accent-cyan: #38BDF8;
+      --accent-blue: #0284C7;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --accent-purple: #A855F7;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Header Bar */
+    header.top-bar {
+      height: 56px;
+      background: rgba(11, 17, 32, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #0284C7, #38BDF8);
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-text span {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn-record {
+      background: linear-gradient(135deg, #E11D48, #BE123C);
+      border: none;
+      color: white;
+      box-shadow: 0 0 16px rgba(225, 29, 72, 0.45);
+    }
+
+    .btn-record:hover {
+      background: linear-gradient(135deg, #F43F5E, #E11D48);
+      transform: translateY(-1px);
+    }
+
+    .btn-record.recording {
+      animation: pulseRecord 1.2s infinite;
+      background: #E11D48;
+    }
+
+    @keyframes pulseRecord {
+      0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+      70% { box-shadow: 0 0 0 12px rgba(225, 29, 72, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+    }
+
+    /* Main Video Stage */
+    main.video-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      position: relative;
+      background: radial-gradient(circle at center, #0F172A 0%, #060911 100%);
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      max-width: 1600px;
+      aspect-ratio: 16 / 9;
+      max-height: calc(100vh - 180px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas#presentation-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Subtitles overlay */
+    .subtitles-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 88%;
+      background: rgba(6, 9, 17, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(12px);
+      border-radius: 10px;
+      padding: 10px 22px;
+      text-align: center;
+      color: #FFFFFF;
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+
+    /* Bottom Control Bar */
+    footer.control-bar {
+      height: 74px;
+      background: rgba(11, 17, 32, 0.98);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      z-index: 50;
+    }
+
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-ctrl {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    .btn-ctrl:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: var(--accent-cyan);
+    }
+
+    .btn-play-pause {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284C7, #0369A1);
+      border: none;
+      color: white;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-play-pause:hover {
+      background: linear-gradient(135deg, #38BDF8, #0284C7);
+      transform: scale(1.05);
+    }
+
+    .timeline-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .timeline-scrubber {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .timeline-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #0284C7, #38BDF8, #10B981);
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.15s linear;
+    }
+
+    .timeline-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    .voice-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .voice-toggle input {
+      accent-color: var(--accent-cyan);
+      cursor: pointer;
+    }
+
+    .speed-select {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .speed-select option {
+      background: #0F172A;
+      color: white;
+    }
+
+    .scene-jump {
+      display: flex;
+      gap: 4px;
+      max-width: 320px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .btn-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-pill.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-cyan);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-icon">🚌</div>
+      <div class="brand-text">
+        <h1>LIBRARY BUS • VIDEO GIẢI THÍCH KIẾN TRÚC & SƠ ĐỒ MINH HỌA</h1>
+        <span>Phân tích trực quan 10 Cảnh Kiến trúc, ERD, Concurrency & Hàng đợi Celery</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-action" onclick="toggleFullscreen()">⛶ Toàn màn hình</button>
+      <button class="btn-action btn-record" id="btn-record" onclick="toggleRecording()">
+        🔴 Ghi & Tải Video (.webm)
+      </button>
+    </div>
+  </header>
+
+  <!-- Video Stage -->
+  <main class="video-stage">
+    <div class="canvas-container" id="canvas-container">
+      <canvas id="presentation-canvas" width="1920" height="1080"></canvas>
+      <div class="subtitles-bar" id="subtitle-box">
+        Đang khởi động trình phát video kiến trúc với sơ đồ minh họa chuyên sâu...
+      </div>
+    </div>
+  </main>
+
+  <!-- Control Bar -->
+  <footer class="control-bar">
+    <div class="playback-controls">
+      <button class="btn-ctrl" title="Cảnh trước" onclick="prevScene()">⏮</button>
+      <button class="btn-ctrl btn-play-pause" id="play-pause-btn" title="Phát/Dừng" onclick="togglePlayPause()">▶</button>
+      <button class="btn-ctrl" title="Cảnh sau" onclick="nextScene()">⏭</button>
+    </div>
+
+    <div class="timeline-container">
+      <div class="timeline-scrubber" id="timeline-scrubber" onclick="seekTimeline(event)">
+        <div class="timeline-progress" id="progress-fill"></div>
+      </div>
+      <div class="timeline-meta">
+        <span id="time-current">00:00</span>
+        <span id="slide-info">Cảnh 1 / 10: Tổng quan & Mô hình Vận hành Thực tế</span>
+        <span id="time-total">03:15</span>
+      </div>
+    </div>
+
+    <div class="scene-jump" id="scene-pills"></div>
+
+    <label class="voice-toggle">
+      <input type="checkbox" id="chk-voice" checked onchange="toggleVoice(this.checked)">
+      🔊 Lồng tiếng Việt (TTS)
+    </label>
+
+    <select class="speed-select" id="speed-select" onchange="changeSpeed(this.value)">
+      <option value="0.85">0.85x</option>
+      <option value="1.0" selected>1.0x (Chuẩn)</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+    </select>
+  </footer>
+
+  <script>
+    // 10 Comprehensive Explanatory Scenes with In-depth Diagrams and Narration
+    const SCENES = [
+      {
+        id: 1,
+        tag: "CẢNH 01 • TỔNG QUAN & MÔ HÌNH VẬN HÀNH",
+        title: "HỆ THỐNG TỦ SÁCH LƯU ĐỘNG",
+        subtitle: "Mô hình số hóa thư viện di động kết nối đa điểm thời gian thực",
+        color: "#38BDF8",
+        diagramType: "bus_operation",
+        durationSeconds: 18,
+        bullets: [
+          "Mô hình tích hợp: Kết hợp giữa xe buýt thực địa và nền tảng máy chủ số hóa",
+          "Định vị & Viễn thông: Giám sát GPS thời gian thực, đồng bộ dữ liệu qua 4G LTE",
+          "Điểm đến phục vụ: Trường học vùng sâu, khu công nghiệp, trung tâm văn hóa xã",
+          "Năng lực phục vụ: 1.500 đầu sách giấy, 10.000 eBook, đọc sách offline khi mất mạng"
+        ],
+        codeTag: "GPS TELEMETRY • OFFLINE-FIRST SYNC • 4G LTE",
+        narration: "Kính chào quý vị và các bạn! Trên màn hình bên phải là sơ đồ mô hình vận hành của Hệ thống Tủ Sách Lưu Động. Xe buýt được trang bị hệ thống định vị GPS và bộ nhớ đệm cục bộ, di chuyển qua các trường học, khu công nghiệp và vùng nông thôn. Toàn bộ giao dịch mượn trả và tọa độ xe được đồng bộ liên tục về máy chủ trung tâm qua mạng di động."
+      },
+      {
+        id: 2,
+        tag: "CẢNH 02 • KIẾN TRÚC TỔNG THỂ",
+        title: "MODULAR MONOLITH: 7 PHÂN HỆ",
+        subtitle: "Kiến trúc đơn khối phân rã thành các Bounded Contexts độc lập",
+        color: "#10B981",
+        diagramType: "modular_monolith",
+        durationSeconds: 19,
+        bullets: [
+          "Core: Quản lý người dùng, phân quyền RBAC, Base Models và Audit Log",
+          "Inventory: Quản lý danh mục đầu sách, mã vạch Barcode và trạng thái bản sao",
+          "Transactions: Xử lý giao dịch mượn/trả sách, gia hạn và tính toán phí phạt",
+          "Analytics & Notifications: Thống kê báo cáo và gửi thông báo nhắc hạn tự động",
+          "Tối ưu chi phí: Triển khai khép kín trong cụm Docker, loại bỏ độ trễ microservices"
+        ],
+        codeTag: "BOUNDED CONTEXTS • ZERO NETWORK HOP • SHARED DB POOL",
+        narration: "Quan sát sơ đồ kiến trúc bên phải, hệ thống được xây dựng theo mô hình Modular Monolith bao gồm bảy ứng dụng Django riêng biệt. Mỗi phân hệ chịu trách nhiệm một nghiệp vụ độc lập, giao tiếp với nhau qua Service layer nội bộ. Kiến trúc này triệt tiêu hoàn toàn độ trễ mạng của Microservices mà vẫn đảm bảo tính module hóa cao."
+      },
+      {
+        id: 3,
+        tag: "CẢNH 03 • BẢN ĐỒ KIẾN TRÚC RADAR",
+        title: "RADAR 6 VÒNG ĐỒNG TÂM",
+        subtitle: "Trực quan hóa 702 thành phần mã nguồn và 1.303 liên kết phân tầng",
+        color: "#F59E0B",
+        diagramType: "concentric_radar",
+        durationSeconds: 19,
+        bullets: [
+          "Vòng 1 (Lõi): Core & Config — manage.py, settings.py và các base mixin",
+          "Vòng 2: Models & CSDL — Lược đồ quan hệ chuẩn 3NF, Soft-delete và Cache keys",
+          "Vòng 3: Nghiệp vụ & Celery — Tasks ngầm, tính phạt quá hạn và trợ lý Gemini AI",
+          "Vòng 4: Điều hướng & Views — Tiếp nhận HTTP Request và phân luồng nghiệp vụ",
+          "Vòng 5 & 6: Testing & UI — Bộ kiểm thử tự động cùng 114 mẫu giao diện HTML"
+        ],
+        codeTag: "702 NODES • 1.303 EDGES • 6 CONCENTRIC ORBITS",
+        narration: "Sơ đồ Radar bên phải mô phỏng trực tiếp tệp understand_dashboard.html. Thay vì đồ thị lực rối rắm, 702 thành phần mã nguồn được phân bố trên 6 quỹ đạo đồng tâm từ Lõi hệ thống, Tầng dữ liệu, Tầng dịch vụ, Tầng điều phối cho tới Tầng giao diện ngoài cùng. Radar xoay quét kiểm tra tính toàn vẹn của hơn một nghìn ba trăm liên kết phân cấp."
+      },
+      {
+        id: 4,
+        tag: "CẢNH 04 • ĐIỂM VÀO & TIẾP NHẬN REQUEST",
+        title: "LUỒNG XỬ LÝ & PHÂN PHỐI REQUEST",
+        subtitle: "Cơ chế định tuyến từ Nginx Gateway qua WSGI/ASGI tới URL Resolver",
+        color: "#38BDF8",
+        diagramType: "request_routing",
+        durationSeconds: 18,
+        bullets: [
+          "Cổng tiếp nhận: Nginx Reverse Proxy xử lý SSL, cân bằng tải và static files",
+          "Giao tiếp máy chủ: WSGI (Gunicorn) cho HTTP đồng bộ và ASGI cho WebSockets",
+          "Chuỗi Middleware: Tự động lọc bảo mật, quản lý phiên đăng nhập và bảo vệ CSRF",
+          "Phân phối URL: urls.py gốc rẽ nhánh tới các URL module mà không bị xung đột"
+        ],
+        codeTag: "CLIENT ➔ NGINX ➔ WSGI ➔ MIDDLEWARE ➔ URLS ➔ VIEW",
+        narration: "Mời quý vị theo dõi luồng dữ liệu ở sơ đồ bên phải. Khi một yêu cầu HTTP gửi đến, Nginx chuyển tiếp qua giao tiếp WSGI tới Gunicorn. Request đi qua chuỗi Middleware để kiểm tra bảo mật, định danh người dùng và chống tấn công CSRF, trước khi được bộ giải mã urls.py định tuyến chính xác tới View nghiệp vụ."
+      },
+      {
+        id: 5,
+        tag: "CẢNH 05 • THIẾT KẾ CƠ SỞ DỮ LIỆU",
+        title: "SƠ ĐỒ THỰC THỂ LIÊN KẾT (ERD)",
+        subtitle: "Mô hình quan hệ chuẩn 3NF với toàn vẹn tham chiếu và Soft Delete",
+        color: "#10B981",
+        diagramType: "erd_diagram",
+        durationSeconds: 20,
+        bullets: [
+          "CustomUser: Lưu trữ hồ sơ độc giả, số điện thoại, vai trò và hạn mức mượn",
+          "Book & BookCopy: Phân biệt tựa sách chung và từng cuốn sách vật lý có mã vạch",
+          "BorrowRecord: Bản ghi mượn trả nối User và BookCopy, theo dõi hạn trả chính xác",
+          "FineTransaction: Ghi nhận tiền phạt quá hạn, liên kết một-nhiều với phiếu mượn",
+          "Toàn vẹn dữ liệu: Khóa ngoại Foreign Key và cờ is_deleted ngăn xóa dữ liệu lịch sử"
+        ],
+        codeTag: "3NF NORMALIZATION • FOREIGN KEYS • AUDIT TRAILS",
+        narration: "Trên sơ đồ ERD bên phải, kiến trúc dữ liệu được chuẩn hóa ở dạng 3NF chuẩn mực. Mỗi tựa sách trong bảng Book có thể sở hữu nhiều bản sao BookCopy phân bố trên các xe buýt khác nhau. Bảng BorrowRecord lưu vết chi tiết giao dịch giữa Độc giả và Bản sao sách, đồng thời liên kết chặt chẽ với bảng FineTransaction để quản lý phạt vi phạm."
+      },
+      {
+        id: 6,
+        tag: "CẢNH 06 • BẢO VỆ GIAO DỊCH ĐỒNG THỜI",
+        title: "CHỐNG RACE CONDITION (KHÓA BI QUAN)",
+        subtitle: "So sánh lỗi Oversell với cơ chế khóa hàng select_for_update an toàn",
+        color: "#F43F5E",
+        diagramType: "concurrency_control",
+        durationSeconds: 22,
+        bullets: [
+          "Vấn đề kinh điển: Hai độc giả cùng bấm mượn cuốn sách cuối cùng trong cùng 1 giây",
+          "Không khóa: Cả hai cùng đọc tồn kho = 1, dẫn đến trừ 2 lần khiến kho âm (Lỗi!)",
+          "Khóa bi quan: select_for_update() khóa độc quyền dòng dữ liệu trên MySQL",
+          "Hàng đợi an toàn: Độc giả 2 bị chặn chờ đến khi Độc giả 1 hoàn tất Commit",
+          "Bảo đảm ACID: Độc giả 2 đọc lại số lượng = 0 và nhận thông báo sách đã hết"
+        ],
+        codeTag: "with transaction.atomic(): Book.objects.select_for_update()",
+        narration: "Đây là điểm cốt lõi trong xử lý đồng thời, được minh họa ở sơ đồ bên phải. Khi không có khóa, hệ thống sẽ gặp lỗi Race Condition khiến kho sách bị âm. Bằng cách áp dụng select_for_update trong một transaction.atomic, hệ thống thiết lập khóa hàng độc quyền trên MySQL, đảm bảo chỉ độc giả đầu tiên mượn thành công và độc giả sau nhận thông báo hết sách an toàn."
+      },
+      {
+        id: 7,
+        tag: "CẢNH 07 • XỬ LÝ BẤT ĐỒNG BỘ & AI",
+        title: "CELERY, REDIS & TRỢ LÝ GEMINI AI",
+        subtitle: "Kiến trúc tách luồng tác vụ nền và gợi ý sách thông minh",
+        color: "#A855F7",
+        diagramType: "celery_async",
+        durationSeconds: 20,
+        bullets: [
+          "Producer: Django đẩy tác vụ nặng vào hàng đợi qua task.delay() mà không chặn UI",
+          "Message Broker: Redis 7 lưu trữ hàng đợi tác vụ tốc độ cao In-Memory",
+          "Celery Workers: Cụm tiến trình ngầm tiếp nhận và xử lý song song các hàng đợi",
+          "Tác vụ tự động: Gửi email nhắc hạn, tính phạt định kỳ nửa đêm lúc 0h",
+          "Trí tuệ nhân tạo: Gọi Google Gemini API tóm tắt nội dung và gợi ý sách cá nhân hóa"
+        ],
+        codeTag: "CELERY WORKER • REDIS BROKER • GOOGLE GEMINI PRO",
+        narration: "Sơ đồ luồng bên phải mô tả kiến trúc xử lý bất đồng bộ. Thay vì bắt người dùng chờ đợi, Django đẩy các tác vụ nặng vào Redis Message Broker. Cụm Celery Workers ngầm sẽ rút tác vụ để gửi email thông báo, tính toán tiền phạt nửa đêm và kết nối tới Google Gemini API để phân tích sở thích, tạo gợi ý sách cá nhân hóa cho độc giả."
+      },
+      {
+        id: 8,
+        tag: "CẢNH 08 • THIẾT KẾ GIAO DIỆN & HIỆU ỨNG",
+        title: "GIAO DIỆN NEO-BAKERY & GSAP",
+        subtitle: "Hệ thống bảng màu bánh mì ấm áp và hoạt họa mượt mà 60 FPS",
+        color: "#F59E0B",
+        diagramType: "neo_bakery_ui",
+        durationSeconds: 18,
+        bullets: [
+          "Bảng màu đặc trưng: Molasses (mật đường), Roast (cà phê rang) và Toasty (vàng ươm)",
+          "Trải nghiệm thân thiện: Giao diện gợi cảm giác ấm cúng, thư giãn như tiệm bánh sách",
+          "Tối ưu hóa GSAP: Áp dụng ScrollTrigger và transform 3D tăng tốc phần cứng GPU",
+          "Chuẩn hiệu năng: Duy trì tốc độ khung hình 60 FPS ổn định, không giật lag",
+          "Thân thiện thiết bị: Tự động co giãn mượt mà trên cả máy tính bàn và điện thoại"
+        ],
+        codeTag: "NEO-BAKERY PALETTE • GSAP 3.12 • 60 FPS HARDWARE ACCEL",
+        narration: "Về mặt giao diện người dùng, như minh họa ở khung bên phải, hệ thống sử dụng ngôn ngữ thiết kế Neo-Bakery với các tông màu ấm áp như mật mía và vỏ bánh nướng. Kết hợp cùng thư viện hoạt họa GSAP được tối ưu phần cứng GPU, giao diện mang lại cảm giác mượt mà 60 khung hình một giây và tạo sự thân thiện, gần gũi cho mọi lứa tuổi độc giả."
+      },
+      {
+        id: 9,
+        tag: "CẢNH 09 • ĐẢM BẢO CHẤT LƯỢNG & TẢI CAO",
+        title: "KIỂM THỬ TỰ ĐỘNG & LOCUST STRESS TEST",
+        subtitle: "Kiểm thử đa tầng và mô phỏng 100 luồng đồng thời không sụp đổ",
+        color: "#10B981",
+        diagramType: "testing_locust",
+        durationSeconds: 19,
+        bullets: [
+          "Kim tự tháp kiểm thử: Unit Test ➔ Integration Test ➔ Concurrency Stress Test",
+          "Mô phỏng 100 Users: Sử dụng công cụ Locust bắn đồng thời 100 yêu cầu vào 1 cuốn sách",
+          "Kết quả ấn tượng: Không phát sinh bất kỳ lỗi 500 hay dữ liệu sai lệch nào",
+          "Thời gian phản hồi: Trung bình dưới 45ms, 95% yêu cầu hoàn tất trong 80ms",
+          "CI/CD Pipeline: Tự động chạy toàn bộ test case trước khi đóng gói bản phát hành"
+        ],
+        codeTag: "PYTEST • LOCUST LOAD TEST • 0% ERROR RATE • <45ms P95",
+        narration: "Để đảm bảo hệ thống vận hành bền bỉ ngoài thực tế, chúng tôi áp dụng chiến lược kiểm thử nghiêm ngặt như thể hiện ở biểu đồ bên phải. Bài kiểm tra Locust mô phỏng một trăm người dùng cùng lúc bấm mượn một cuốn sách duy nhất. Kết quả kiểm thử đạt độ tin cậy tuyệt đối: tỷ lệ lỗi 0 phần trăm và thời gian phản hồi trung bình chỉ dưới 45 mili giây."
+      },
+      {
+        id: 10,
+        tag: "CẢNH 10 • TỔNG KẾT & TIÊU CHUẨN KỸ THUẬT",
+        title: "TỔNG KẾT KIẾN TRÚC & TIỀM NĂNG",
+        subtitle: "Nền tảng vững chắc, tài liệu hóa toàn diện, sẵn sàng mở rộng Cloud",
+        color: "#38BDF8",
+        diagramType: "summary_cloud",
+        durationSeconds: 18,
+        bullets: [
+          "Bản vẽ hoàn chỉnh: Tệp understand_dashboard.html trực quan hóa toàn bộ 702 nodes",
+          "Tính toàn vẹn: 1.303 liên kết phân cấp và không tồn tại chu trình phụ thuộc chéo",
+          "Khả năng mở rộng: Sẵn sàng tách thành microservices trên Kubernetes khi lưu lượng tăng",
+          "Ý nghĩa xã hội: Cầu nối tri thức số hóa tới hàng triệu độc giả ở các vùng xa xôi",
+          "Mã nguồn mở: Dễ bảo trì, dễ nâng cấp và thân thiện với các nhà phát triển mới"
+        ],
+        codeTag: "PRODUCTION-READY • DOCKERIZED • 100% SCALE-OUT READY",
+        narration: "Tổng kết lại, Hệ thống Tủ Sách Lưu Động là sự kết hợp hoàn hảo giữa công nghệ hiện đại và giá trị nhân văn sâu sắc. Bản vẽ kiến trúc 702 nút mã nguồn đã chứng minh tính chặt chẽ, tối ưu và sẵn sàng vận hành ổn định. Xin trân trọng cảm ơn quý vị đã chú ý lắng nghe và theo dõi video trình bày!"
+      }
+    ];
+
+    // Global App State
+    let currentSceneIdx = 0;
+    let isPlaying = false;
+    let isRecording = false;
+    let playbackRate = 1.0;
+    let voiceEnabled = true;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let sceneTimer = null;
+    let animFrameId = null;
+    let animPulse = 0;
+    let currentSpeechUtterance = null;
+
+    // DOM Elements
+    const canvas = document.getElementById('presentation-canvas');
+    const ctx = canvas.getContext('2d');
+    const subtitleBox = document.getElementById('subtitle-box');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const progressFill = document.getElementById('progress-fill');
+    const slideInfo = document.getElementById('slide-info');
+    const timeCurrent = document.getElementById('time-current');
+    const timeTotal = document.getElementById('time-total');
+    const scenePillsContainer = document.getElementById('scene-pills');
+    const btnRecord = document.getElementById('btn-record');
+
+    // Calculate total duration
+    const totalDurationSeconds = SCENES.reduce((acc, s) => acc + s.durationSeconds, 0);
+    timeTotal.textContent = formatTime(totalDurationSeconds);
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    // Initialize Scene Pills
+    SCENES.forEach((s, idx) => {
+      const pill = document.createElement('button');
+      pill.className = `btn-pill ${idx === 0 ? 'active' : ''}`;
+      pill.textContent = `C${idx + 1}`;
+      pill.title = s.title;
+      pill.onclick = () => jumpToScene(idx);
+      scenePillsContainer.appendChild(pill);
+    });
+
+    function updatePills(idx) {
+      const pills = scenePillsContainer.querySelectorAll('.btn-pill');
+      pills.forEach((p, i) => {
+        p.classList.toggle('active', i === idx);
+      });
+    }
+
+    // Canvas Utility Helpers
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function drawPanel(ctx, x, y, w, h, title, color) {
+      // Panel BG
+      ctx.fillStyle = "rgba(11, 17, 32, 0.92)";
+      roundRect(ctx, x, y, w, h, 14, true, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x, y, w, h, 14, false, true);
+
+      // Panel Header
+      ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+      roundRect(ctx, x, y, w, 46, 14, true, false);
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 18, y + 14, 8, 18);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText(title, x + 36, y + 28);
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color, pulseOffset) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.lineDashOffset = -pulseOffset;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      // Arrow head
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.setLineDash([]);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 10 * Math.cos(angle - Math.PI / 6), y2 - 10 * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - 10 * Math.cos(angle + Math.PI / 6), y2 - 10 * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawNodeBox(ctx, x, y, w, h, title, sub, color, borderCol) {
+      ctx.fillStyle = color;
+      roundRect(ctx, x, y, w, h, 8, true, false);
+      ctx.strokeStyle = borderCol || "rgba(255, 255, 255, 0.18)";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x, y, w, h, 8, false, true);
+
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText(title, x + 14, y + 24);
+
+      if (sub) {
+        ctx.fillStyle = "#CBD5E1";
+        ctx.font = "500 12px 'JetBrains Mono'";
+        ctx.fillText(sub, x + 14, y + 42);
+      }
+    }
+
+    // ==========================================
+    // 10 HIGH-FIDELITY DIAGRAM DRAWING ENGINES
+    // ==========================================
+
+    function drawDiagram(type, px, py, pw, ph, anim) {
+      switch (type) {
+        case "bus_operation":
+          drawBusOperationDiagram(px, py, pw, ph, anim);
+          break;
+        case "modular_monolith":
+          drawModularMonolithDiagram(px, py, pw, ph, anim);
+          break;
+        case "concentric_radar":
+          drawConcentricRadarDiagram(px, py, pw, ph, anim);
+          break;
+        case "request_routing":
+          drawRequestRoutingDiagram(px, py, pw, ph, anim);
+          break;
+        case "erd_diagram":
+          drawERDDiagram(px, py, pw, ph, anim);
+          break;
+        case "concurrency_control":
+          drawConcurrencyDiagram(px, py, pw, ph, anim);
+          break;
+        case "celery_async":
+          drawCeleryAsyncDiagram(px, py, pw, ph, anim);
+          break;
+        case "neo_bakery_ui":
+          drawNeoBakeryDiagram(px, py, pw, ph, anim);
+          break;
+        case "testing_locust":
+          drawTestingLocustDiagram(px, py, pw, ph, anim);
+          break;
+        case "summary_cloud":
+          drawSummaryCloudDiagram(px, py, pw, ph, anim);
+          break;
+      }
+    }
+
+    // Diagram 1: Bus Operation & Telemetry Sync
+    function drawBusOperationDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "SƠ ĐỒ MÔ HÌNH VẬN HÀNH THỰC ĐỊA & ĐỒNG BỘ ĐÁM MÂY", "#38BDF8");
+
+      // Cloud Center (Top)
+      const cx = x + w / 2;
+      drawNodeBox(ctx, cx - 180, y + 70, 360, 64, "☁️ MÁY CHỦ TRUNG TÂM (CENTRAL CLOUD)", "Django Core • MySQL 8 • REST API Gateway", "#0F172A", "#38BDF8");
+
+      // Bus Vehicle (Center)
+      const by = y + 260;
+      ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+      roundRect(ctx, cx - 210, by, 420, 150, 12, true, false);
+      ctx.strokeStyle = "#38BDF8";
+      ctx.lineWidth = 2;
+      roundRect(ctx, cx - 210, by, 420, 150, 12, false, true);
+
+      // Bus Illustration
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 22px 'Plus Jakarta Sans'";
+      ctx.fillText("🚌 XE BUÝT THƯ VIỆN LƯU ĐỘNG SỐ 01", cx - 190, by + 36);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "14px 'JetBrains Mono'";
+      ctx.fillText("• Tọa độ GPS: 10.7769° N, 106.7009° E (Đang di chuyển)", cx - 190, by + 68);
+      ctx.fillText("• Thiết bị: Raspberry Pi 4 Hub • Bộ nhớ đệm SQLite Local", cx - 190, by + 94);
+      ctx.fillText("• Dung lượng: 1.500 Sách giấy • 10.000 Bản sách số", cx - 190, by + 120);
+
+      // Connecting Arrows
+      drawArrow(ctx, cx, y + 134, cx, by, "#38BDF8", anim * 20);
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 13px 'JetBrains Mono'";
+      ctx.fillText("4G LTE / GPS SYNC (2-WAY)", cx + 15, y + 200);
+
+      // 3 Service Stations (Bottom)
+      const sy = y + 490;
+      const stations = [
+        { name: "🏫 TRƯỜNG TIỂU HỌC", sub: "Phục vụ 850 học sinh", col: "#10B981" },
+        { name: "🏭 KHU CÔNG NGHIỆP", sub: "Phục vụ 2.400 công nhân", col: "#F59E0B" },
+        { name: "🌾 XÃ NÔNG THÔN", sub: "Thư viện lưu động cộng đồng", col: "#A855F7" }
+      ];
+
+      stations.forEach((st, i) => {
+        const sx = x + 30 + i * ((w - 60) / 3);
+        const sw = (w - 100) / 3;
+        drawNodeBox(ctx, sx, sy, sw, 64, st.name, st.sub, "#0F172A", st.col);
+        drawArrow(ctx, cx - 140 + i * 140, by + 150, sx + sw / 2, sy, st.col, anim * 15);
+      });
+
+      // Bottom Telemetry Bar
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      roundRect(ctx, x + 30, y + h - 70, w - 60, 48, 8, true, false);
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 14px 'JetBrains Mono'";
+      ctx.fillText("● TRẠNG THÁI HỆ THỐNG: KẾT NỐI ONLINE • TỐC ĐỘ 42 KM/H • ZERO DATA LOSS", x + 50, y + h - 40);
+    }
+
+    // Diagram 2: Modular Monolith Architecture
+    function drawModularMonolithDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "SƠ ĐỒ KIẾN TRÚC MODULAR MONOLITH (7 BOUNDED CONTEXTS)", "#10B981");
+
+      const apps = [
+        { name: "1. Core & Auth", desc: "User, Roles, Base Models, Mixins", col: "#38BDF8" },
+        { name: "2. Inventory", desc: "Book, BookCopy, Barcode, Bus", col: "#10B981" },
+        { name: "3. Transactions", desc: "BorrowRecord, Return, Fines", col: "#F43F5E" },
+        { name: "4. Analytics", desc: "Daily Stats, Heatmap, Metrics", col: "#A855F7" },
+        { name: "5. Notifications", desc: "SMS Reminder, Email, Push", col: "#F59E0B" },
+        { name: "6. Blog & Community", desc: "Articles, Reviews, Events", col: "#EC4899" },
+        { name: "7. API & Mobile", desc: "REST Framework, JWT Endpoints", col: "#6366F1" }
+      ];
+
+      // Outer Monolith Container Box
+      ctx.fillStyle = "rgba(16, 185, 129, 0.06)";
+      roundRect(ctx, x + 25, y + 60, w - 50, 430, 12, true, false);
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.35)";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x + 25, y + 60, w - 50, 430, 12, false, true);
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 14px 'JetBrains Mono'";
+      ctx.fillText("DOCKER CONTAINER: DJANGO 5.2 MONOLITH RUNTIME (INTERNAL MEMORY BUS)", x + 45, y + 90);
+
+      // Render 7 Apps Grid
+      apps.forEach((app, i) => {
+        const colIdx = i % 2;
+        const rowIdx = Math.floor(i / 2);
+        const ax = x + 45 + colIdx * ((w - 110) / 2);
+        const ay = y + 110 + rowIdx * 80;
+        const aw = (w - 130) / 2;
+
+        drawNodeBox(ctx, ax, ay, aw, 64, app.name, app.desc, "rgba(15, 23, 42, 0.9)", app.col);
+      });
+
+      // Bottom Infrastructure Layer
+      const dbY = y + 510;
+      drawNodeBox(ctx, x + 45, dbY, (w - 130) / 2, 70, "🗄️ MySQL 8.0 CLUSTER", "B-Tree Indexes • InnoDB Engine • ACID Transactions", "#0F172A", "#38BDF8");
+      drawNodeBox(ctx, x + 45 + (w - 110) / 2, dbY, (w - 130) / 2, 70, "⚡ REDIS 7 IN-MEMORY CACHE", "Cache Versioning • Celery Task Broker • Rate Limiter", "#0F172A", "#F43F5E");
+
+      // Connective flow lines
+      drawArrow(ctx, x + w / 4, y + 490, x + w / 4, dbY, "#38BDF8", anim * 15);
+      drawArrow(ctx, x + (3 * w) / 4, y + 490, x + (3 * w) / 4, dbY, "#F43F5E", anim * 15);
+    }
+
+    // Diagram 3: Concentric Radar Diagram
+    function drawConcentricRadarDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "BẢN ĐỒ RADAR 6 QUỸ ĐẠO ĐỒNG TÂM (702 NODES & 1.303 EDGES)", "#F59E0B");
+
+      const cx = x + w / 2;
+      const cy = y + h / 2 + 10;
+      const rings = [
+        { r: 45, name: "Core & Config", col: "#38BDF8" },
+        { r: 90, name: "Models & DB", col: "#10B981" },
+        { r: 140, name: "Services & Tasks", col: "#F59E0B" },
+        { r: 190, name: "Views & Admin", col: "#A855F7" },
+        { r: 240, name: "Testing & QA", col: "#F43F5E" },
+        { r: 285, name: "Templates & UI", col: "#0284C7" }
+      ];
+
+      // Draw Rings
+      rings.forEach((ring, i) => {
+        ctx.save();
+        ctx.strokeStyle = ring.col + "40";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Ring Label
+        ctx.fillStyle = ring.col;
+        ctx.font = "bold 11px 'JetBrains Mono'";
+        ctx.fillText(ring.name, cx + ring.r - 35, cy - 6);
+        ctx.restore();
+      });
+
+      // Rotating Scanner Beam
+      const angle = (anim * 1.5) % (Math.PI * 2);
+      ctx.save();
+      const sweepGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 290);
+      sweepGrad.addColorStop(0, "rgba(245, 158, 11, 0.4)");
+      sweepGrad.addColorStop(1, "rgba(245, 158, 11, 0.0)");
+      ctx.fillStyle = sweepGrad;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, 285, angle - 0.35, angle);
+      ctx.closePath();
+      ctx.fill();
+
+      // Scanner Line
+      ctx.strokeStyle = "#F59E0B";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(angle) * 285, cy + Math.sin(angle) * 285);
+      ctx.stroke();
+      ctx.restore();
+
+      // Dynamic Node Dots on Rings
+      for (let i = 0; i < 48; i++) {
+        const ringIdx = i % rings.length;
+        const radius = rings[ringIdx].r;
+        const nodeAngle = (i * 1.35) + (anim * 0.1 * (ringIdx % 2 === 0 ? 1 : -1));
+        const nx = cx + Math.cos(nodeAngle) * radius;
+        const ny = cy + Math.sin(nodeAngle) * radius;
+
+        ctx.fillStyle = rings[ringIdx].col;
+        ctx.beginPath();
+        ctx.arc(nx, ny, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Center Core Dot
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Radar Legend Box
+      ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+      roundRect(ctx, x + 25, y + h - 80, w - 50, 56, 8, true, false);
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 13px 'JetBrains Mono'";
+      ctx.fillText("TỔNG SỐ: 219 FILES • 288 CLASSES • 179 FUNCTIONS • 18 RELATIONSHIP TYPES", x + 40, y + h - 46);
+    }
+
+    // Diagram 4: Request Routing & Pipeline
+    function drawRequestRoutingDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "SƠ ĐỒ ĐIỂM VÀO HỆ THỐNG & LUỒNG XỬ LÝ REQUEST", "#38BDF8");
+
+      const steps = [
+        { label: "1. HTTP / HTTPS CLIENT", sub: "Web Browser hoặc Mobile App gửi request", col: "#38BDF8" },
+        { label: "2. NGINX REVERSE PROXY", sub: "SSL Termination, Cân bằng tải, Phục vụ Static Files", col: "#10B981" },
+        { label: "3. WSGI / ASGI RUNTIME", sub: "Gunicorn Master & Uvicorn Worker Pools", col: "#F59E0B" },
+        { label: "4. DJANGO MIDDLEWARE CHAIN", sub: "Security ➔ Session ➔ Authentication ➔ CSRF", col: "#A855F7" },
+        { label: "5. URL RESOLVER (urls.py)", sub: "Khớp định tuyến: /inventory/ -> inventory.urls", col: "#F43F5E" },
+        { label: "6. CONTROLLER VIEW & ORM", sub: "Nghiệp vụ, truy vấn CSDL và Render Template/JSON", col: "#0284C7" }
+      ];
+
+      const stepH = 64;
+      const gap = 16;
+      const startY = y + 70;
+
+      steps.forEach((st, i) => {
+        const sy = startY + i * (stepH + gap);
+        drawNodeBox(ctx, x + 45, sy, w - 90, stepH, st.label, st.sub, "#0F172A", st.col);
+
+        if (i < steps.length - 1) {
+          drawArrow(ctx, x + w / 2, sy + stepH, x + w / 2, sy + stepH + gap, st.col, anim * 15);
+        }
+      });
+    }
+
+    // Diagram 5: Database ERD
+    function drawERDDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "SƠ ĐỒ THỰC THỂ CƠ SỞ DỮ LIỆU (ERD 3NF)", "#10B981");
+
+      const colW = (w - 80) / 2;
+
+      // Table 1: CustomUser
+      drawTableCard(ctx, x + 30, y + 65, colW, 140, "👤 CustomUser (auth)", [
+        "id: BigAutoField (PK)",
+        "username / email: Varchar",
+        "membership_tier: Enum (Basic/VIP)",
+        "max_borrow_limit: Integer"
+      ], "#38BDF8");
+
+      // Table 2: Book
+      drawTableCard(ctx, x + 50 + colW, y + 65, colW, 140, "📖 Book (inventory)", [
+        "id: BigAutoField (PK)",
+        "title / isbn: Varchar (Index)",
+        "author / category_id: FK",
+        "total_copies: Integer"
+      ], "#10B981");
+
+      // Table 3: BookCopy
+      drawTableCard(ctx, x + 50 + colW, y + 235, colW, 150, "🔖 BookCopy (inventory)", [
+        "id: BigAutoField (PK)",
+        "book_id: FK ➔ Book.id",
+        "bus_id: FK ➔ LibraryBus.id",
+        "barcode: Varchar (Unique)",
+        "status: Enum (Available/Borrowed)"
+      ], "#F59E0B");
+
+      // Table 4: BorrowRecord
+      drawTableCard(ctx, x + 30, y + 235, colW, 160, "📋 BorrowRecord (transactions)", [
+        "id: BigAutoField (PK)",
+        "user_id: FK ➔ CustomUser.id",
+        "copy_id: FK ➔ BookCopy.id",
+        "borrowed_at / due_date: DateTime",
+        "status: Enum (Active/Returned/Overdue)"
+      ], "#F43F5E");
+
+      // Table 5: FineTransaction
+      drawTableCard(ctx, x + 30, y + 425, colW, 130, "💰 FineTransaction (transactions)", [
+        "id: BigAutoField (PK)",
+        "borrow_id: FK ➔ BorrowRecord.id",
+        "amount: Decimal(10,2)",
+        "paid: Boolean • paid_at: DateTime"
+      ], "#A855F7");
+
+      // Table 6: LibraryBus
+      drawTableCard(ctx, x + 50 + colW, y + 425, colW, 130, "🚌 LibraryBus (inventory)", [
+        "id: BigAutoField (PK)",
+        "bus_plate / model: Varchar",
+        "current_latitude / longitude: Float",
+        "is_active: Boolean"
+      ], "#38BDF8");
+
+      // Relationship connectors
+      drawArrow(ctx, x + 30 + colW / 2, y + 205, x + 30 + colW / 2, y + 235, "#F43F5E", anim * 10);
+      drawArrow(ctx, x + 30 + colW, y + 315, x + 50 + colW, y + 315, "#F59E0B", anim * 10);
+      drawArrow(ctx, x + 50 + colW + colW / 2, y + 205, x + 50 + colW + colW / 2, y + 235, "#10B981", anim * 10);
+      drawArrow(ctx, x + 30 + colW / 2, y + 395, x + 30 + colW / 2, y + 425, "#A855F7", anim * 10);
+    }
+
+    function drawTableCard(ctx, x, y, w, h, title, fields, col) {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+      roundRect(ctx, x, y, w, h, 8, true, false);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x, y, w, h, 8, false, true);
+
+      // Header
+      ctx.fillStyle = col;
+      roundRect(ctx, x, y, w, 28, 8, true, false);
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 13px 'Plus Jakarta Sans'";
+      ctx.fillText(title, x + 10, y + 19);
+
+      // Fields
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "12px 'JetBrains Mono'";
+      fields.forEach((f, i) => {
+        ctx.fillText(f, x + 12, y + 48 + i * 20);
+      });
+    }
+
+    // Diagram 6: Concurrency Control & Race Condition
+    function drawConcurrencyDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "ĐỐI CHIẾU XỬ LÝ ĐỒNG THỜI: LỖI OVERSELL VS KHÓA BI QUAN", "#F43F5E");
+
+      const colW = (w - 70) / 2;
+
+      // Left Box: Without Lock (Failure)
+      ctx.fillStyle = "rgba(244, 63, 94, 0.08)";
+      roundRect(ctx, x + 25, y + 65, colW, 400, 10, true, false);
+      ctx.strokeStyle = "#F43F5E";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x + 25, y + 65, colW, 400, 10, false, true);
+
+      ctx.fillStyle = "#F43F5E";
+      ctx.font = "bold 16px 'Plus Jakarta Sans'";
+      ctx.fillText("❌ KHI KHÔNG KHÓA (RACE CONDITION)", x + 40, y + 95);
+
+      const badFlow = [
+        "Tồn kho ban đầu: Chỉ còn 1 cuốn sách",
+        "• Độc giả A đọc DB: Còn 1 cuốn (OK)",
+        "• Độc giả B cùng lúc đọc DB: Còn 1 cuốn (OK)",
+        "• Độc giả A bấm mượn: 1 - 1 = 0 ➔ Commit",
+        "• Độc giả B bấm mượn: 1 - 1 = 0 ➔ Commit",
+        "HẬU QUẢ: 2 người mượn cùng 1 cuốn!",
+        "TỒN KHO THỰC TẾ TRỞ THÀNH: -1 (LỖI KHO ÂM)"
+      ];
+
+      badFlow.forEach((txt, i) => {
+        ctx.fillStyle = i >= 5 ? "#F43F5E" : "#E2E8F0";
+        ctx.font = i >= 5 ? "bold 13px 'JetBrains Mono'" : "13px 'Plus Jakarta Sans'";
+        ctx.fillText(txt, x + 40, y + 135 + i * 40);
+      });
+
+      // Right Box: With Pessimistic Lock (Success)
+      ctx.fillStyle = "rgba(16, 185, 129, 0.08)";
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 400, 10, true, false);
+      ctx.strokeStyle = "#10B981";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 400, 10, false, true);
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 16px 'Plus Jakarta Sans'";
+      ctx.fillText("✅ KHÓA BI QUAN (select_for_update)", x + 60 + colW, y + 95);
+
+      const goodFlow = [
+        "Tồn kho ban đầu: Chỉ còn 1 cuốn sách",
+        "• Độc giả A gọi select_for_update(): KHÓA DÒNG 🔒",
+        "• Độc giả B gọi select_for_update(): PHẢI ĐỢI ⏳",
+        "• Độc giả A trừ kho: Còn 0 ➔ COMMIT & MỞ KHÓA 🔓",
+        "• Độc giả B thức dậy: Đọc lại tồn kho = 0",
+        "KẾT QUẢ: Độc giả B nhận OutOfStockError",
+        "BẢO ĐẢM TOÀN VẸN: TỒN KHO = 0 (CHUẨN ACID 100%)"
+      ];
+
+      goodFlow.forEach((txt, i) => {
+        ctx.fillStyle = i >= 5 ? "#10B981" : "#E2E8F0";
+        ctx.font = i >= 5 ? "bold 13px 'JetBrains Mono'" : "13px 'Plus Jakarta Sans'";
+        ctx.fillText(txt, x + 60 + colW, y + 135 + i * 40);
+      });
+
+      // Bottom Code Implementation
+      ctx.fillStyle = "#020617";
+      roundRect(ctx, x + 25, y + 480, w - 50, 90, 8, true, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      roundRect(ctx, x + 25, y + 480, w - 50, 90, 8, false, true);
+
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 13px 'JetBrains Mono'";
+      ctx.fillText("with transaction.atomic():", x + 45, y + 508);
+      ctx.fillStyle = "#F8FAFC";
+      ctx.fillText("    book = Book.objects.select_for_update().get(id=book_id)", x + 65, y + 530);
+      ctx.fillText("    if book.available_copies <= 0: raise OutOfStockException('Hết sách!')", x + 65, y + 552);
+    }
+
+    // Diagram 7: Celery Async & Gemini AI
+    function drawCeleryAsyncDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "SƠ ĐỒ HÀNG ĐỢI BẤT ĐỒNG BỘ (CELERY, REDIS & GEMINI AI)", "#A855F7");
+
+      // Step 1: Django Web Producer
+      drawNodeBox(ctx, x + 35, y + 80, 220, 80, "🌐 DJANGO WEB APP", "User mượn sách ➔ Gọi task.delay()", "#0F172A", "#38BDF8");
+
+      // Step 2: Redis Message Broker
+      drawNodeBox(ctx, x + 350, y + 80, 260, 80, "⚡ REDIS 7 BROKER", "InMemory FIFO Queues: high, default, ai", "#0F172A", "#F43F5E");
+
+      drawArrow(ctx, x + 255, y + 120, x + 350, y + 120, "#38BDF8", anim * 15);
+
+      // Step 3: Celery Workers Pool
+      ctx.fillStyle = "rgba(168, 85, 247, 0.08)";
+      roundRect(ctx, x + 35, y + 220, w - 70, 340, 12, true, false);
+      ctx.strokeStyle = "#A855F7";
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x + 35, y + 220, w - 70, 340, 12, false, true);
+
+      ctx.fillStyle = "#A855F7";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("⚙️ CỤM CELERY WORKER TIẾN TRÌNH NGẦM (BACKGROUND WORKERS)", x + 55, y + 250);
+
+      drawArrow(ctx, x + 480, y + 160, x + 480, y + 220, "#A855F7", anim * 15);
+
+      // 3 Task Branches
+      const tasks = [
+        { title: "📧 TÁC VỤ 1: THÔNG BÁO TỰ ĐỘNG", sub: "Gửi Email nhắc hạn trả trước 2 ngày qua SMTP", col: "#38BDF8" },
+        { title: "🌙 TÁC VỤ 2: TÍNH PHẠT QUÁ HẠN", sub: "Chạy định kỳ nửa đêm 0h00, phạt 5.000đ/ngày", col: "#F59E0B" },
+        { title: "🤖 TÁC VỤ 3: TRỢ LÝ GEMINI AI", sub: "Gọi Google Gemini API sinh tóm tắt & gợi ý sách", col: "#10B981" }
+      ];
+
+      tasks.forEach((t, i) => {
+        const ty = y + 280 + i * 80;
+        drawNodeBox(ctx, x + 60, ty, w - 120, 64, t.title, t.sub, "#0F172A", t.col);
+      });
+    }
+
+    // Diagram 8: Neo-Bakery UI & GSAP Engine
+    function drawNeoBakeryDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "HỆ THỐNG THIẾT KẾ NEO-BAKERY & CÔNG NGHỆ HOẠT HỌA GSAP", "#F59E0B");
+
+      const colW = (w - 70) / 2;
+
+      // Color Palette Box
+      ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+      roundRect(ctx, x + 25, y + 65, colW, 250, 10, true, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      roundRect(ctx, x + 25, y + 65, colW, 250, 10, false, true);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("🎨 BẢNG MÀU NEO-BAKERY (ẤM ÁP & THÂN THIỆN)", x + 40, y + 95);
+
+      const swatches = [
+        { name: "Molasses (#4E0705)", col: "#4E0705", text: "#FFF" },
+        { name: "Roast (#BD5705)", col: "#BD5705", text: "#FFF" },
+        { name: "Toasty (#ED9040)", col: "#ED9040", text: "#000" },
+        { name: "Butter Cream (#FDE971)", col: "#FDE971", text: "#000" }
+      ];
+
+      swatches.forEach((sw, i) => {
+        const sy = y + 115 + i * 32;
+        ctx.fillStyle = sw.col;
+        roundRect(ctx, x + 40, sy, 34, 24, 4, true, false);
+        ctx.fillStyle = "#E2E8F0";
+        ctx.font = "13px 'JetBrains Mono'";
+        ctx.fillText(sw.name, x + 85, sy + 17);
+      });
+
+      // UI Component Mockup Box
+      ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 250, 10, true, false);
+      ctx.strokeStyle = "#F59E0B";
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 250, 10, false, true);
+
+      ctx.fillStyle = "#F59E0B";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("📱 MOCKUP THẺ XE BUÝT TRÊN GIAO DIỆN", x + 60 + colW, y + 95);
+
+      // Card inside
+      ctx.fillStyle = "#0F172A";
+      roundRect(ctx, x + 60 + colW, y + 115, colW - 30, 180, 8, true, false);
+      ctx.fillStyle = "#10B981";
+      roundRect(ctx, x + 75 + colW, y + 130, 90, 22, 4, true, false);
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 11px 'Plus Jakarta Sans'";
+      ctx.fillText("ĐANG HOẠT ĐỘNG", x + 80 + colW, y + 145);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 16px 'Plus Jakarta Sans'";
+      ctx.fillText("Chuyến Xe Tri Thức #03", x + 75 + colW, y + 180);
+      ctx.fillStyle = "#94A3B8";
+      ctx.font = "12px 'Plus Jakarta Sans'";
+      ctx.fillText("Trạm dừng: THCS Nguyễn Du • 14:30 Hôm nay", x + 75 + colW, y + 205);
+
+      // GSAP Pipeline (Bottom)
+      ctx.fillStyle = "rgba(16, 185, 129, 0.08)";
+      roundRect(ctx, x + 25, y + 335, w - 50, 235, 10, true, false);
+      ctx.strokeStyle = "#10B981";
+      roundRect(ctx, x + 25, y + 335, w - 50, 235, 10, false, true);
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("⚡ QUY TRÌNH TỐI ƯU HIỆU NĂNG GSAP 60 FPS", x + 45, y + 365);
+
+      const gsapSteps = [
+        "1. ScrollTrigger Batching: Nhóm các hiệu ứng cuộn trang giúp giảm tải DOM reflow",
+        "2. Hardware Accelerated: Ép trình duyệt sử dụng GPU thông qua translate3d / will-change",
+        "3. Zero Layout Thrashing: Không bao giờ animate thuộc tính top/left/width/height trực tiếp",
+        "4. Prefers-Reduced-Motion: Tôn trọng cấu hình hệ điều hành hỗ trợ người khiếm thị"
+      ];
+
+      gsapSteps.forEach((gs, i) => {
+        ctx.fillStyle = "#E2E8F0";
+        ctx.font = "13px 'Plus Jakarta Sans'";
+        ctx.fillText(gs, x + 45, y + 405 + i * 36);
+      });
+    }
+
+    // Diagram 9: Testing Pyramid & Locust Chart
+    function drawTestingLocustDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "KIM TỰ THÁP KIỂM THỬ & BIỂU ĐỒ STRESS TEST LOCUST", "#10B981");
+
+      const colW = (w - 70) / 2;
+
+      // Test Pyramid (Left)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+      roundRect(ctx, x + 25, y + 65, colW, 490, 10, true, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      roundRect(ctx, x + 25, y + 65, colW, 490, 10, false, true);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("🔺 KIM TỰ THÁP KIỂM THỬ ĐA TẦNG", x + 40, y + 95);
+
+      // Pyramid Tiers
+      drawNodeBox(ctx, x + 45, y + 130, colW - 40, 80, "1. LOCUST CONCURRENCY (10%)", "100 Luồng đồng thời mượn 1 cuốn sách • 0 lỗi", "#0F172A", "#F43F5E");
+      drawNodeBox(ctx, x + 45, y + 230, colW - 40, 80, "2. INTEGRATION TESTS (30%)", "Test giao dịch ACID, Cache Versioning, Celery Tasks", "#0F172A", "#F59E0B");
+      drawNodeBox(ctx, x + 45, y + 330, colW - 40, 80, "3. UNIT & SERVICE TESTS (60%)", "Pytest, Mocking External API, Model Validation", "#0F172A", "#10B981");
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 13px 'JetBrains Mono'";
+      ctx.fillText("CHỈ SỐ: 100% CODE COVERAGE TẦNG GIAO DỊCH", x + 45, y + 460);
+
+      // Locust Benchmark Chart (Right)
+      ctx.fillStyle = "rgba(16, 185, 129, 0.06)";
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 490, 10, true, false);
+      ctx.strokeStyle = "#10B981";
+      roundRect(ctx, x + 45 + colW, y + 65, colW, 490, 10, false, true);
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("📊 BIỂU ĐỒ TẢI LOCUST (100 CONCURRENT USERS)", x + 65 + colW, y + 95);
+
+      // Chart axes
+      const gx = x + 75 + colW;
+      const gy = y + 140;
+      const gw = colW - 60;
+      const gh = 260;
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(gx, gy + gh);
+      ctx.lineTo(gx + gw, gy + gh);
+      ctx.stroke();
+
+      // Chart Line (RPS Wave)
+      ctx.save();
+      ctx.strokeStyle = "#38BDF8";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i <= gw; i += 10) {
+        const val = Math.sin((i * 0.05) + (anim * 2)) * 15 + (gh * 0.35);
+        if (i === 0) ctx.moveTo(gx + i, gy + val);
+        else ctx.lineTo(gx + i, gy + val);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 12px 'JetBrains Mono'";
+      ctx.fillText("━ Throughput: 105 Requests/s", gx + 15, gy + 30);
+
+      ctx.fillStyle = "#10B981";
+      ctx.fillText("━ Response Time: 42ms (p95 < 78ms)", gx + 15, gy + 55);
+
+      ctx.fillStyle = "#F43F5E";
+      ctx.fillText("━ Tỷ lệ lỗi (Error Rate): 0.00%", gx + 15, gy + 80);
+
+      // Summary Card
+      ctx.fillStyle = "#0F172A";
+      roundRect(ctx, gx, gy + gh + 15, gw, 60, 8, true, false);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 13px 'Plus Jakarta Sans'";
+      ctx.fillText("KẾT LUẬN: ĐẠT CHỨNG NHẬN ZERO-CRASH DƯỚI TẢI CAO", gx + 15, gy + gh + 48);
+    }
+
+    // Diagram 10: Summary & Cloud Scalability
+    function drawSummaryCloudDiagram(x, y, w, h, anim) {
+      drawPanel(ctx, x, y, w, h, "LỘ TRÌNH MỞ RỘNG ĐÁM MÂY (AWS / GCP CLOUD READINESS)", "#38BDF8");
+
+      // Ingress Layer
+      drawNodeBox(ctx, x + 40, y + 70, w - 80, 56, "🌐 CLOUD LOAD BALANCER / AWS ALB / CLOUD ARMOR", "DDoS Protection • SSL Offloading • Anycast Routing", "#0F172A", "#38BDF8");
+
+      drawArrow(ctx, x + w / 2, y + 126, x + w / 2, y + 160, "#38BDF8", anim * 15);
+
+      // Auto-scaling Container Cluster
+      ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
+      roundRect(ctx, x + 40, y + 160, w - 80, 180, 12, true, false);
+      ctx.strokeStyle = "#38BDF8";
+      roundRect(ctx, x + 40, y + 160, w - 80, 180, 12, false, true);
+
+      ctx.fillStyle = "#38BDF8";
+      ctx.font = "bold 14px 'JetBrains Mono'";
+      ctx.fillText("KUBERNETES / AWS ECS AUTO-SCALING CLUSTER", x + 60, y + 190);
+
+      const pods = [
+        { name: "Django Pod #1", sub: "Gunicorn Active" },
+        { name: "Django Pod #2", sub: "Gunicorn Active" },
+        { name: "Celery Worker #1", sub: "Task Queue Active" },
+        { name: "Celery Worker #2", sub: "Gemini AI Active" }
+      ];
+
+      const podW = (w - 140) / 4;
+      pods.forEach((p, i) => {
+        drawNodeBox(ctx, x + 60 + i * (podW + 10), y + 210, podW, 70, p.name, p.sub, "#0F172A", "#10B981");
+      });
+
+      drawArrow(ctx, x + w / 2, y + 340, x + w / 2, y + 375, "#10B981", anim * 15);
+
+      // Managed Cloud Storage & DB
+      const dbW = (w - 110) / 3;
+      drawNodeBox(ctx, x + 40, y + 375, dbW, 80, "🗄️ AWS RDS MySQL Multi-AZ", "Tự động sao lưu, Read Replicas", "#0F172A", "#38BDF8");
+      drawNodeBox(ctx, x + 55 + dbW, y + 375, dbW, 80, "⚡ AWS ElastiCache Redis", "In-Memory Clustering & Failover", "#0F172A", "#F43F5E");
+      drawNodeBox(ctx, x + 70 + dbW * 2, y + 375, dbW, 80, "🪣 AWS S3 Object Storage", "Lưu trữ bìa sách, eBook PDF", "#0F172A", "#F59E0B");
+
+      // Bottom Metrics Banner
+      ctx.fillStyle = "rgba(16, 185, 129, 0.12)";
+      roundRect(ctx, x + 40, y + 480, w - 80, 75, 8, true, false);
+      ctx.strokeStyle = "#10B981";
+      roundRect(ctx, x + 40, y + 480, w - 80, 75, 8, false, true);
+
+      ctx.fillStyle = "#10B981";
+      ctx.font = "bold 15px 'Plus Jakarta Sans'";
+      ctx.fillText("TIÊU CHUẨN ĐẠT ĐƯỢC: 702 NODES BẢN ĐỒ • 0% CONCURRENCY ERROR • PRODUCTION READY", x + 60, y + 512);
+      ctx.fillStyle = "#94A3B8";
+      ctx.font = "13px 'JetBrains Mono'";
+      ctx.fillText("Hệ thống sẵn sàng mở rộng phục vụ hàng trăm xe buýt thư viện trên toàn quốc.", x + 60, y + 538);
+    }
+
+    // Main Canvas Render Loop
+    function render() {
+      animPulse += 0.04;
+      const scene = SCENES[currentSceneIdx];
+      if (!scene) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Dark Tech Background
+      ctx.fillStyle = "#060911";
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle Background Grid
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.025)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 60) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Top Presentation Bar
+      ctx.fillStyle = "#0B1120";
+      ctx.fillRect(0, 0, w, 70);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx.fillRect(0, 69, w, 1);
+
+      // Tag Badge
+      ctx.fillStyle = scene.color;
+      roundRect(ctx, 40, 16, 320, 38, 7, true, false);
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 14px 'JetBrains Mono'";
+      ctx.fillText(scene.tag, 58, 41);
+
+      ctx.fillStyle = "#94A3B8";
+      ctx.font = "600 16px 'Plus Jakarta Sans'";
+      ctx.fillText("HỆ THỐNG TỦ SÁCH LƯU ĐỘNG — BẢN ĐỒ KIẾN TRÚC & SƠ ĐỒ THIẾT KẾ", 380, 41);
+
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "bold 16px 'JetBrains Mono'";
+      ctx.fillText(`CẢNH ${currentSceneIdx + 1} / ${SCENES.length}`, w - 170, 41);
+
+      // ==========================================
+      // LEFT COLUMN: EXPLANATION & BULLETS (w: 780px)
+      // ==========================================
+      const leftX = 40;
+      const leftY = 95;
+      const leftW = 810;
+      const leftH = h - 170;
+
+      ctx.fillStyle = "rgba(11, 17, 32, 0.88)";
+      roundRect(ctx, leftX, leftY, leftW, leftH, 14, true, false);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      roundRect(ctx, leftX, leftY, leftW, leftH, 14, false, true);
+
+      // Left Color Accent Stripe
+      ctx.fillStyle = scene.color;
+      roundRect(ctx, leftX, leftY, 12, leftH, 7, true, false);
+
+      // Title
+      ctx.fillStyle = "#F8FAFC";
+      ctx.font = "800 40px 'Plus Jakarta Sans'";
+      ctx.fillText(scene.title, leftX + 40, leftY + 65);
+
+      // Subtitle
+      ctx.fillStyle = scene.color;
+      ctx.font = "600 20px 'Plus Jakarta Sans'";
+      ctx.fillText(scene.subtitle, leftX + 42, leftY + 105);
+
+      // Divider
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.fillRect(leftX + 42, leftY + 125, leftW - 80, 1.5);
+
+      // Bullets
+      let by = leftY + 175;
+      scene.bullets.forEach((b, i) => {
+        // Bullet Card
+        ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+        roundRect(ctx, leftX + 42, by - 30, leftW - 84, 58, 8, true, false);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        roundRect(ctx, leftX + 42, by - 30, leftW - 84, 58, 8, false, true);
+
+        // Number bullet badge
+        ctx.fillStyle = scene.color;
+        roundRect(ctx, leftX + 54, by - 20, 28, 28, 6, true, false);
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 14px 'JetBrains Mono'";
+        ctx.fillText(String(i + 1), leftX + 63, by - 1);
+
+        // Bullet Text
+        ctx.fillStyle = "#E2E8F0";
+        ctx.font = "500 17px 'Plus Jakarta Sans'";
+        ctx.fillText(b, leftX + 96, by);
+
+        by += 72;
+      });
+
+      // Code Tag Banner
+      ctx.fillStyle = "#020617";
+      roundRect(ctx, leftX + 42, leftY + leftH - 80, leftW - 84, 52, 8, true, false);
+      ctx.strokeStyle = scene.color;
+      roundRect(ctx, leftX + 42, leftY + leftH - 80, leftW - 84, 52, 8, false, true);
+
+      ctx.fillStyle = scene.color;
+      ctx.font = "bold 15px 'JetBrains Mono'";
+      ctx.fillText(`⚡ ${scene.codeTag}`, leftX + 65, leftY + leftH - 48);
+
+      // ==========================================
+      // RIGHT COLUMN: LIVE DIAGRAM ENGINE (w: 990px)
+      // ==========================================
+      const rightX = 880;
+      const rightY = 95;
+      const rightW = w - rightX - 40;
+      const rightH = leftH;
+
+      drawDiagram(scene.diagramType, rightX, rightY, rightW, rightH, animPulse);
+
+      // Bottom Watermark
+      ctx.fillStyle = "#64748B";
+      ctx.font = "500 14px 'Plus Jakarta Sans'";
+      ctx.fillText("Django 5.2 • Celery 5.5 • Redis 7 • MySQL 8.0 • Interactive Architecture Diagrams", 40, h - 25);
+
+      ctx.fillStyle = scene.color;
+      ctx.font = "bold 14px 'JetBrains Mono'";
+      ctx.fillText("understand_dashboard.html", w - 240, h - 25);
+
+      // Loop animation
+      animFrameId = requestAnimationFrame(render);
+    }
+
+    // Playback and Scene Management
+    function startScene(idx) {
+      currentSceneIdx = idx;
+      updatePills(idx);
+
+      const scene = SCENES[idx];
+      subtitleBox.textContent = scene.narration;
+      slideInfo.textContent = `Cảnh ${idx + 1} / ${SCENES.length}: ${scene.title}`;
+
+      const elapsed = SCENES.slice(0, idx).reduce((acc, s) => acc + s.durationSeconds, 0);
+      timeCurrent.textContent = formatTime(elapsed);
+      progressFill.style.width = `${((idx + 1) / SCENES.length) * 100}%`;
+
+      if (!isPlaying) return;
+
+      clearTimeout(sceneTimer);
+      const durationMs = (scene.durationSeconds / playbackRate) * 1000;
+
+      speakNarration(scene.narration);
+
+      sceneTimer = setTimeout(() => {
+        if (!isPlaying) return;
+        if (currentSceneIdx < SCENES.length - 1) {
+          startScene(currentSceneIdx + 1);
+        } else {
+          stopVideo();
+          if (isRecording) stopRecording();
+        }
+      }, durationMs);
+    }
+
+    function speakNarration(text) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'vi-VN';
+      utterance.rate = playbackRate * 1.02;
+      utterance.pitch = 1.0;
+
+      currentSpeechUtterance = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playVideo() {
+      isPlaying = true;
+      playPauseBtn.textContent = '⏸';
+      startScene(currentSceneIdx);
+    }
+
+    function pauseVideo() {
+      isPlaying = false;
+      playPauseBtn.textContent = '▶';
+      clearTimeout(sceneTimer);
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    function stopVideo() {
+      pauseVideo();
+      currentSceneIdx = 0;
+      updatePills(0);
+      progressFill.style.width = '0%';
+    }
+
+    function togglePlayPause() {
+      if (isPlaying) pauseVideo();
+      else playVideo();
+    }
+
+    function nextScene() {
+      if (currentSceneIdx < SCENES.length - 1) {
+        startScene(currentSceneIdx + 1);
+      }
+    }
+
+    function prevScene() {
+      if (currentSceneIdx > 0) {
+        startScene(currentSceneIdx - 1);
+      }
+    }
+
+    function jumpToScene(idx) {
+      startScene(idx);
+    }
+
+    function seekTimeline(e) {
+      const scrubber = document.getElementById('timeline-scrubber');
+      const rect = scrubber.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      const targetIdx = Math.min(SCENES.length - 1, Math.max(0, Math.floor(ratio * SCENES.length)));
+      jumpToScene(targetIdx);
+    }
+
+    function toggleVoice(enabled) {
+      voiceEnabled = enabled;
+      if (!enabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      } else if (enabled && isPlaying) {
+        speakNarration(SCENES[currentSceneIdx].narration);
+      }
+    }
+
+    function changeSpeed(rate) {
+      playbackRate = parseFloat(rate);
+      if (isPlaying) {
+        startScene(currentSceneIdx);
+      }
+    }
+
+    function toggleFullscreen() {
+      const container = document.getElementById('canvas-container');
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // MediaRecorder Video Export
+    function toggleRecording() {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    }
+
+    function startRecording() {
+      try {
+        const stream = canvas.captureStream(60);
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'video/webm;codecs=vp9',
+          videoBitsPerSecond: 6000000
+        });
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = exportVideoFile;
+
+        mediaRecorder.start();
+        isRecording = true;
+        btnRecord.classList.add('recording');
+        btnRecord.textContent = '⏹ Đang Ghi... Nhấn Để Lưu Video';
+
+        // Play from start
+        currentSceneIdx = 0;
+        playVideo();
+      } catch (err) {
+        alert("Lỗi khi khởi động MediaRecorder: " + err.message + "\nHãy thử lại trên trình duyệt Google Chrome hoặc Edge.");
+      }
+    }
+
+    function stopRecording() {
+      if (!isRecording) return;
+      isRecording = false;
+      btnRecord.classList.remove('recording');
+      btnRecord.textContent = '🔴 Ghi & Tải Video (.webm)';
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+      pauseVideo();
+    }
+
+    function exportVideoFile() {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `video_giai_thich_kien_truc_library_bus.webm`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 2000);
+      alert("🎉 Đã xuất và tải thành công video giải thích kiến trúc: video_giai_thich_kien_truc_library_bus.webm");
+    }
+
+    // Start initial render
+    render();
+    startScene(0);
+  </script>
+</body>
+</html>

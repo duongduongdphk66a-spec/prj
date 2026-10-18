@@ -7,7 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="./vis-network.min.js"></script>
+  <script>
+    if (typeof vis === "undefined") {
+      document.write('<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"><\/script>');
+    }
+  </script>
   <style>
     :root {
       --bg-primary: #070A12;
@@ -215,6 +220,8 @@
 
     /* Left Sidebar */
     aside.sidebar {
+      scrollbar-width: thin;
+      scrollbar-color: #4E0705 transparent;
       width: 320px;
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(16px);
@@ -279,19 +286,39 @@
       background: var(--bg-glass);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
       cursor: pointer;
+      border-left: 3px solid var(--ring-color, var(--border-color));
       transition: all 0.2s;
     }
 
     .ring-card:hover {
       border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateX(2px);
     }
 
     .ring-card.active {
       border-color: var(--ring-color, var(--accent-cyan));
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 16px rgba(237, 144, 64, 0.2), inset 0 0 8px rgba(255, 255, 255, 0.02);
+    }
+
+    .ring-hint {
+      font-size: 10px;
+      color: #ED9040;
+      margin-top: 6px;
+      font-weight: 600;
+      opacity: 0.85;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ring-card.active .ring-hint {
+      color: #FFD14C;
+      opacity: 1;
     }
 
     .ring-header {
@@ -434,22 +461,52 @@
       color: var(--accent-cyan);
     }
 
-    /* Inspector Panel */
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #4E0705;
+      border-radius: 3px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: #ED9040;
+    }
+
+    /* Inspector Panel — Matched with Architecture Node Explanation Card */
     .inspector-panel {
       position: absolute;
       top: 16px;
       right: 16px;
-      width: 360px;
+      width: clamp(340px, 26vw, 420px);
       max-height: calc(100% - 32px);
-      background: rgba(15, 23, 42, 0.94);
-      backdrop-filter: blur(18px);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 16px;
+      background: #170706;
+      border: 1px solid #4E0705;
+      border-radius: 12px;
+      padding: 18px;
       z-index: 45;
       overflow-y: auto;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+      overflow-x: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 1px rgba(237, 144, 64, 0.25);
       display: none;
+      scrollbar-width: thin;
+      scrollbar-color: #4E0705 transparent;
+    }
+
+    .inspector-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    .inspector-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .inspector-panel::-webkit-scrollbar-thumb {
+      background: #4E0705;
+      border-radius: 3px;
+    }
+    .inspector-panel::-webkit-scrollbar-thumb:hover {
+      background: #ED9040;
     }
 
     .inspector-panel.visible {
@@ -460,99 +517,130 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 2px;
     }
 
-    .inspector-type {
-      font-size: 10px;
-      text-transform: uppercase;
+    .inspector-title {
+      color: #FFD14C;
+      font-size: 1.15rem;
       font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
+      margin-bottom: 4px;
+      word-break: break-word;
+      line-height: 1.3;
+      padding-right: 10px;
     }
 
     .close-btn {
       background: transparent;
       border: none;
-      color: var(--text-dim);
-      font-size: 18px;
+      color: #8C7A75;
+      font-size: 20px;
       cursor: pointer;
+      line-height: 1;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.2s;
     }
 
-    .inspector-title {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 2px;
-      word-break: break-all;
+    .close-btn:hover {
+      color: #FFD14C;
     }
 
-    .inspector-path {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text-dim);
+    .inspector-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      color: #ED9040;
+      background: rgba(237, 144, 64, 0.15);
+      border: 1px solid rgba(237, 144, 64, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
       margin-bottom: 12px;
-      word-break: break-all;
-    }
-
-    .inspector-label {
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
       font-weight: 700;
-      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .inspector-summary {
-      font-size: 12px;
-      color: var(--text-main);
-      line-height: 1.45;
-      background: var(--bg-glass);
-      padding: 8px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      margin-bottom: 12px;
+      color: #D1BDB7;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 14px;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 12px;
+    .conn-title {
+      font-size: 0.75rem;
+      color: #ED9040;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 14px;
+      margin-bottom: 6px;
     }
 
-    .node-tag {
-      font-size: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-muted);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .connections-list {
+    .conn-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      max-height: 140px;
-      overflow-y: auto;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      height: auto;
+      max-height: none;
+      overflow: visible;
     }
 
-    .connection-item {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      padding: 5px 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 4px;
-      border-left: 2px solid var(--accent-cyan);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    .conn-list li {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: #FFFDF9;
       cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      height: auto;
+      min-height: auto;
+      line-height: 1.45;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      transition: all 0.2s;
     }
 
-    .connection-item:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .conn-list li:hover {
+      color: #FFD14C;
+      background: rgba(237, 144, 64, 0.12);
+      border-color: rgba(237, 144, 64, 0.3);
+      transform: translateX(2px);
+    }
+
+    .conn-arrow {
+      flex-shrink: 0;
+      color: #ED9040;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .conn-text {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.45;
+    }
+
+    .engine-footer {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(237, 144, 64, 0.15);
+      text-align: center;
+      color: #8C7A75;
+      font-size: 0.72rem;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -649,20 +737,18 @@
     <!-- Inspector Panel -->
     <div class="inspector-panel" id="inspector">
       <div class="inspector-header">
-        <span class="inspector-type" id="ins-type">File</span>
-        <button class="close-btn" onclick="closeInspector()">×</button>
+        <h3 class="inspector-title" id="ins-title">Profile (Độc giả / VIP)</h3>
+        <button class="close-btn" onclick="closeInspector()" title="Đóng">×</button>
       </div>
-      <div class="inspector-title" id="ins-title">services.py</div>
-      <div class="inspector-path" id="ins-path">library_bus_project/transactions/services.py</div>
+      <span class="inspector-badge" id="ins-badge">MODEL • USERS</span>
+      <p class="inspector-summary" id="ins-summary">Hồ sơ người dùng mở rộng: lưu cấp bậc thẻ, điểm thưởng, avatar, sđt, hạn mức mượn</p>
 
-      <div class="inspector-label">Tóm tắt chức năng</div>
-      <div class="inspector-summary" id="ins-summary">Tầng nghiệp vụ (business logic) xử lý giao dịch mượn/trả và chống race condition.</div>
+      <div id="ins-connections-container"></div>
 
-      <div class="inspector-label">Từ khóa</div>
-      <div class="tag-container" id="ins-tags"></div>
-
-      <div class="inspector-label">Liên kết phụ thuộc</div>
-      <div class="connections-list" id="ins-connections"></div>
+      <div class="engine-footer">
+        100% Offline Standalone Canvas Engine<br>
+        Django 5.2 • MySQL 8.0 • Redis 7 • Celery 5.5
+      </div>
     </div>
   </div>
 
@@ -677,7 +763,7 @@
     let showAllLabels = true;
     let hideTemplates = false;
 
-    // 6 Concentric Rings Definition
+    // 6 Concentric Rings Definition with Rich Architectural Explanations
     const CONCENTRIC_RINGS = [
       {
         id: 'ring-1',
@@ -685,8 +771,21 @@
         radius: 140,
         name: 'Vòng 1: Cấu hình & Lớp lõi (Core & Config)',
         shortName: 'Core & Config',
+        badge: 'RING 1 • CORE & CONFIG',
         color: '#38BDF8',
-        desc: 'Tâm hệ thống: settings.py, manage.py, mixin dùng chung và CLI.'
+        desc: 'Tâm hệ thống: settings.py, manage.py, mixin dùng chung và CLI.',
+        detailSummary: 'Tâm của kiến trúc Modular Monolith. Quản lý toàn bộ cấu hình nền tảng Django, ASGI/WSGI, kết nối CSDL MySQL 8.0, Redis Broker, Celery Beat scheduler và các hạ tầng dùng chung: AuditMixin, TimestampedModel, SoftDeleteModel, BaseQuerySet xử lý query toàn cục.',
+        keyModules: [
+          { name: 'settings.py (Cấu hình tổng)', id: 'file:library_bus_project/library_bus_project/settings.py' },
+          { name: 'manage.py (CLI Gateway)', id: 'file:library_bus_project/manage.py' },
+          { name: 'models.py (Base Audit & Mixin)', id: 'file:library_bus_project/core/models.py' },
+          { name: 'celery.py (Task Orchestrator)', id: 'file:library_bus_project/library_bus_project/celery.py' }
+        ],
+        connections: [
+          { name: 'Models & DB (Kế thừa BaseModel)', ringIndex: 1 },
+          { name: 'Services & Tasks (Cung cấp Redis/Celery)', ringIndex: 2 },
+          { name: 'Middleware & Security (Bảo mật HTTP)', ringIndex: 3 }
+        ]
       },
       {
         id: 'ring-2',
@@ -694,8 +793,21 @@
         radius: 270,
         name: 'Vòng 2: Mô hình dữ liệu & ORM (Models & DB)',
         shortName: 'Models & DB',
+        badge: 'RING 2 • ORM & DATABASE',
         color: '#10B981',
-        desc: 'Thực thể cơ sở dữ liệu (ORM), khóa ngoại và migrations.'
+        desc: 'Thực thể cơ sở dữ liệu (ORM), khóa ngoại và migrations.',
+        detailSummary: 'Tầng cấu trúc CSDL quan hệ chuẩn 3NF của 7 phân hệ nghiệp vụ. Bao gồm ORM Models, quan hệ khóa ngoại (Foreign Key, M2M), định nghĩa QuerySet tối ưu chống N+1 query, cơ chế Soft-delete an toàn và các migration versioning.',
+        keyModules: [
+          { name: 'Profile (Độc giả / VIP)', id: 'class:library_bus_project/users/models.py:Profile' },
+          { name: 'Book (Kho Sách & PDF)', id: 'class:library_bus_project/inventory/models.py:Book' },
+          { name: 'LibraryBus (Xe buýt lưu động)', id: 'class:library_bus_project/inventory/models.py:LibraryBus' },
+          { name: 'BorrowRecord (Phiếu mượn)', id: 'class:library_bus_project/transactions/models.py:BorrowRecord' }
+        ],
+        connections: [
+          { name: 'Core & Config (Kế thừa Mixin lõi)', ringIndex: 0 },
+          { name: 'Services & Tasks (Cung cấp ORM cho xử lý)', ringIndex: 2 },
+          { name: 'Views & Admin (Hiển thị & quản trị dữ liệu)', ringIndex: 3 }
+        ]
       },
       {
         id: 'ring-3',
@@ -703,8 +815,21 @@
         radius: 390,
         name: 'Vòng 3: Tầng nghiệp vụ & Xử lý nền (Services & Tasks)',
         shortName: 'Services & Tasks',
+        badge: 'RING 3 • SERVICES & TASKS',
         color: '#F59E0B',
-        desc: 'Transactions Service, xử lý mượn/trả và tác vụ ngầm Celery/Redis.'
+        desc: 'Transactions Service, xử lý mượn/trả và tác vụ ngầm Celery/Redis.',
+        detailSummary: 'Trọng tâm xử lý logic nghiệp vụ phân tán (Business Logic Layer). Xử lý hàng đợi mượn sách FIFO, cơ chế khóa bi quan (select_for_update) chống race-condition tuyệt đối khi nhiều độc giả mượn cùng lúc, cùng các Celery Tasks ngầm gửi thông báo email, tính phạt trễ và gọi Gemini AI.',
+        keyModules: [
+          { name: 'services.py (Transactions Service)', id: 'file:library_bus_project/transactions/services.py' },
+          { name: 'tasks.py (Celery Worker & Cron)', id: 'file:library_bus_project/analytics/tasks.py' },
+          { name: 'select_for_update (Lock Engine)', id: 'file:library_bus_project/transactions/services.py' },
+          { name: 'Google Gemini AI (Recommender)', id: 'file:library_bus_project/analytics/tasks.py' }
+        ],
+        connections: [
+          { name: 'Models & DB (Đọc/ghi CSDL an toàn)', ringIndex: 1 },
+          { name: 'Views & Controllers (Cung cấp nghiệp vụ cho View)', ringIndex: 3 },
+          { name: 'Redis Queue (Đẩy task ngầm không nghẽn)', ringIndex: 0 }
+        ]
       },
       {
         id: 'ring-4',
@@ -712,8 +837,21 @@
         radius: 520,
         name: 'Vòng 4: Tầng điều phối & Quản trị (Views & URLs)',
         shortName: 'Views & Controllers',
+        badge: 'RING 4 • VIEWS & CONTROLLERS',
         color: '#6366F1',
-        desc: 'View xử lý request, forms xác thực và trang admin.'
+        desc: 'View xử lý request, forms xác thực và trang admin.',
+        detailSummary: 'Tầng tiếp nhận HTTP Request, định tuyến URL, phân quyền người dùng (Role-based Access Control), xác thực dữ liệu qua Django Forms và điều phối luồng dữ liệu giữa Service Layer với Giao diện (Template / JSON API).',
+        keyModules: [
+          { name: 'views.py (Inventory Controller)', id: 'file:library_bus_project/inventory/views.py' },
+          { name: 'views.py (Transactions Controller)', id: 'file:library_bus_project/transactions/views.py' },
+          { name: 'forms.py (Data Validator)', id: 'file:library_bus_project/inventory/forms.py' },
+          { name: 'admin.py (Custom Django Admin)', id: 'file:library_bus_project/inventory/admin.py' }
+        ],
+        connections: [
+          { name: 'Services & Tasks (Gọi logic xử lý nghiệp vụ)', ringIndex: 2 },
+          { name: 'Frontend Templates (Render giao diện HTML)', ringIndex: 5 },
+          { name: 'Models & DB (Query trực tiếp qua ORM)', ringIndex: 1 }
+        ]
       },
       {
         id: 'ring-5',
@@ -721,8 +859,21 @@
         radius: 650,
         name: 'Vòng 5: Kiểm thử & Tài liệu (QA & Docs)',
         shortName: 'Testing & Docs',
+        badge: 'RING 5 • QA & TESTING',
         color: '#8B5CF6',
-        desc: 'Bộ Unit Tests, functional test và tài liệu kiến trúc.'
+        desc: 'Bộ Unit Tests, functional test và tài liệu kiến trúc.',
+        detailSummary: 'Tầng kiểm thử tự động toàn diện (Unit Tests, Integration Tests, Concurrency Tests) đảm bảo độ tin cậy của toàn hệ thống. Bao gồm bộ kịch bản test race-condition đa luồng mô phỏng 100 giao dịch đồng thời và tài liệu đặc tả kiến trúc.',
+        keyModules: [
+          { name: 'tests.py (Transactions QA)', id: 'file:library_bus_project/transactions/tests.py' },
+          { name: 'test_race_condition.py (Stress QA)', id: 'file:library_bus_project/scripts/test_race_condition.py' },
+          { name: 'tests.py (Core & Mixin Tests)', id: 'file:library_bus_project/core/tests.py' },
+          { name: 'tests.py (Inventory QA)', id: 'file:library_bus_project/inventory/tests.py' }
+        ],
+        connections: [
+          { name: 'Transactions Service (Kiểm thử khóa bi quan)', ringIndex: 2 },
+          { name: 'Models & DB (Kiểm thử ràng buộc toàn vẹn)', ringIndex: 1 },
+          { name: 'Core Infrastructure (Kiểm thử Cache & Base)', ringIndex: 0 }
+        ]
       },
       {
         id: 'ring-6',
@@ -730,8 +881,21 @@
         radius: 800,
         name: 'Vòng 6-7: Giao diện người dùng (Templates & CSS)',
         shortName: 'Frontend Templates',
+        badge: 'RING 6 • TEMPLATES & UI',
         color: '#EC4899',
-        desc: 'Vòng ngoài cùng: Hơn 70 templates HTML và stylesheets.'
+        desc: 'Vòng ngoài cùng: Hơn 70 templates HTML và stylesheets.',
+        detailSummary: 'Vòng ngoài cùng bao gồm hơn 70 templates HTML kế thừa base layout chuẩn mực, tích hợp bảng màu 6 tông Neo-Bakery ấm áp, các component đọc sách PDF trực tuyến (PDF Viewer), bản đồ lộ trình xe buýt thời gian thực và giao diện phản hồi 60 FPS.',
+        keyModules: [
+          { name: 'base.html (Master Layout)', id: 'file:library_bus_project/template/base.html' },
+          { name: 'book_detail.html (Chi tiết sách)', id: 'file:library_bus_project/template/inventory/book_detail.html' },
+          { name: 'bus_routes.html (Bản đồ lộ trình GPS)', id: 'file:library_bus_project/template/inventory/bus_routes.html' },
+          { name: 'profile.html (Hồ sơ bạn đọc VIP)', id: 'file:library_bus_project/template/users/profile.html' }
+        ],
+        connections: [
+          { name: 'Views & Controllers (Tiếp nhận context dữ liệu)', ringIndex: 3 },
+          { name: 'Base Template (Kế thừa block & CSS tokens)', ringIndex: 0 },
+          { name: 'Trình duyệt bạn đọc (Web & Mobile Responsive)', ringIndex: 5 }
+        ]
       }
     ];
 
@@ -817,16 +981,81 @@
             <span class="ring-order-badge">${count} tệp</span>
           </div>
           <div class="ring-desc">${ring.desc}</div>
+          <div class="ring-hint">🔍 Nhấn để xem giải thích chi tiết & phóng to</div>
         `;
 
         card.addEventListener('click', () => {
-          highlightRing(idx);
-          document.querySelectorAll('.ring-card').forEach(c => c.classList.remove('active'));
-          card.classList.add('active');
+          selectRing(idx);
         });
 
         container.appendChild(card);
       });
+    }
+
+    function selectRing(idx) {
+      highlightRing(idx);
+      openRingInspector(idx);
+      document.querySelectorAll('.ring-card').forEach((c, i) => {
+        if (i === idx) c.classList.add('active');
+        else c.classList.remove('active');
+      });
+    }
+
+    function openRingInspector(ringIdx) {
+      const ring = CONCENTRIC_RINGS[ringIdx];
+      if (!ring) return;
+
+      const panel = document.getElementById('inspector');
+      panel.classList.add('visible');
+
+      const count = Object.values(nodeRingMap).filter(m => m.ringIndex === ringIdx).length;
+
+      document.getElementById('ins-title').textContent = `${ring.shortName} (${count} tệp)`;
+      document.getElementById('ins-badge').textContent = ring.badge || `${ring.shortName.toUpperCase()} • TẦNG KIẾN TRÚC`;
+      document.getElementById('ins-summary').textContent = ring.detailSummary || ring.desc;
+
+      const connContainer = document.getElementById('ins-connections-container');
+      connContainer.innerHTML = '';
+
+      if (ring.keyModules && ring.keyModules.length > 0) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'conn-title';
+        titleDiv.textContent = `CÁC TỆP NGUỒN TIÊU BIỂU (${ring.keyModules.length}):`;
+        connContainer.appendChild(titleDiv);
+
+        const ul = document.createElement('ul');
+        ul.className = 'conn-list';
+        ring.keyModules.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="conn-arrow">←</span><span class="conn-text">${item.name}</span>`;
+          li.title = `Click để phóng to đến tệp ${item.name}`;
+          li.onclick = () => focusNode(item.id);
+          ul.appendChild(li);
+        });
+        connContainer.appendChild(ul);
+      }
+
+      if (ring.connections && ring.connections.length > 0) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'conn-title';
+        titleDiv.textContent = `KẾT NỐI / TRỰC THUỘC (${ring.connections.length}):`;
+        connContainer.appendChild(titleDiv);
+
+        const ul = document.createElement('ul');
+        ul.className = 'conn-list';
+        ring.connections.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="conn-arrow">→</span><span class="conn-text">${item.name}</span>`;
+          li.title = `Click để chuyển đến tầng này`;
+          li.onclick = () => {
+            if (typeof item.ringIndex === 'number') {
+              selectRing(item.ringIndex);
+            }
+          };
+          ul.appendChild(li);
+        });
+        connContainer.appendChild(ul);
+      }
     }
 
     function renderTourList() {
@@ -840,16 +1069,50 @@
           <div class="tour-order">BƯỚC ${step.order} / 7</div>
           <div class="tour-title">${step.title}</div>
           <div class="tour-desc">${step.description}</div>
+          <div class="ring-hint">🔍 Nhấn để xem giải thích bước này</div>
         `;
 
         card.addEventListener('click', () => {
           highlightNodes(step.nodeIds);
+          openTourInspector(step);
           document.querySelectorAll('.tour-card').forEach(c => c.classList.remove('active'));
           card.classList.add('active');
         });
 
         container.appendChild(card);
       });
+    }
+
+    function openTourInspector(step) {
+      const panel = document.getElementById('inspector');
+      panel.classList.add('visible');
+
+      document.getElementById('ins-title').textContent = `Bước ${step.order}: ${step.title}`;
+      document.getElementById('ins-badge').textContent = `GUIDED TOUR • BƯỚC ${step.order}/7`;
+      document.getElementById('ins-summary').textContent = step.description;
+
+      const connContainer = document.getElementById('ins-connections-container');
+      connContainer.innerHTML = '';
+
+      if (step.nodeIds && step.nodeIds.length > 0) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'conn-title';
+        titleDiv.textContent = `CÁC TỆP TRỌNG TÂM (${step.nodeIds.length}):`;
+        connContainer.appendChild(titleDiv);
+
+        const ul = document.createElement('ul');
+        ul.className = 'conn-list';
+        step.nodeIds.slice(0, 8).forEach(id => {
+          const node = rawGraphData.nodes.find(n => n.id === id);
+          const li = document.createElement('li');
+          const name = node ? node.name : id.split(':').pop();
+          li.innerHTML = `<span class="conn-arrow">←</span><span class="conn-text">${name}</span>`;
+          li.title = `Click để phóng to đến tệp`;
+          li.onclick = () => focusNode(id);
+          ul.appendChild(li);
+        });
+        connContainer.appendChild(ul);
+      }
     }
 
     function buildConcentricGraph() {
@@ -1003,7 +1266,11 @@
 
       setTimeout(() => {
         network.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
-      }, 200);
+        const defaultNode = rawGraphData.nodes.find(n => n.id === 'class:library_bus_project/users/models.py:Profile') || rawGraphData.nodes.find(n => n.name === 'models.py') || rawGraphData.nodes[0];
+        if (defaultNode) {
+          openInspector(defaultNode.id);
+        }
+      }, 350);
     }
 
     function highlightRing(ringIdx) {
@@ -1030,40 +1297,138 @@
       const panel = document.getElementById('inspector');
       panel.classList.add('visible');
 
-      document.getElementById('ins-type').textContent = node.type;
-      document.getElementById('ins-title').textContent = node.name;
-      document.getElementById('ins-path').textContent = node.filePath || node.id;
-      document.getElementById('ins-summary').textContent = node.summary || 'Không có mô tả chi tiết.';
+      // Human friendly names and descriptions
+      const friendlyNames = {
+        'class:library_bus_project/users/models.py:Profile': 'Profile (Độc giả / VIP)',
+        'file:library_bus_project/users/models.py': 'models.py (Users & Profiles)',
+        'class:library_bus_project/users/models.py:UserRole': 'UserRole (Phân quyền)',
+        'class:library_bus_project/users/models.py:LoginHistory': 'LoginHistory (Nhật ký)',
+        'class:library_bus_project/inventory/models.py:LibraryBus': 'LibraryBus (Xe buýt lưu động)',
+        'class:library_bus_project/inventory/models.py:BusRoute': 'BusRoute (Lộ trình & Trạm GPS)',
+        'class:library_bus_project/inventory/models.py:Book': 'Book (Kho Sách & PDF)',
+        'class:library_bus_project/inventory/models.py:Category': 'Category (Thể loại)',
+        'class:library_bus_project/transactions/models.py:BorrowRecord': 'BorrowRecord (Phiếu mượn)',
+        'class:library_bus_project/transactions/models.py:BookReservation': 'BookReservation (Hàng đợi FIFO)',
+        'class:library_bus_project/transactions/models.py:FinePayment': 'FinePayment (Tiền phạt trễ)',
+        'class:library_bus_project/analytics/models.py:UserReadingStats': 'UserReadingStats (Thống kê đọc)',
+        'class:library_bus_project/notifications/models.py:UserNotification': 'UserNotification (Thông báo)'
+      };
 
-      const tagsContainer = document.getElementById('ins-tags');
-      tagsContainer.innerHTML = (node.tags || []).map(t => `<span class="node-tag">#${t}</span>`).join('');
+      const friendlySummaries = {
+        'class:library_bus_project/users/models.py:Profile': 'Hồ sơ người dùng mở rộng: lưu cấp bậc thẻ, điểm thưởng, avatar, sđt, hạn mức mượn.',
+        'file:library_bus_project/users/models.py': 'Mô hình dữ liệu người dùng mở rộng, cấp bậc thẻ hội viên, phân quyền và lịch sử đăng nhập.'
+      };
 
-      const connContainer = document.getElementById('ins-connections');
+      const ringInfo = nodeRingMap[node.id];
+      let groupName = 'SYSTEM';
+      if (node.id.includes('/users/')) groupName = 'USERS';
+      else if (node.id.includes('/inventory/')) groupName = 'INVENTORY';
+      else if (node.id.includes('/transactions/')) groupName = 'TRANSACTIONS';
+      else if (node.id.includes('/analytics/')) groupName = 'ANALYTICS';
+      else if (node.id.includes('/notifications/')) groupName = 'NOTIFICATIONS';
+      else if (node.id.includes('/blog/')) groupName = 'BLOG';
+      else if (node.id.includes('/core/')) groupName = 'CORE';
+      else if (ringInfo && ringInfo.ring && ringInfo.ring.shortName) groupName = ringInfo.ring.shortName;
+
+      const nodeType = (node.type || 'NODE').toUpperCase();
+      const title = friendlyNames[node.id] || node.name;
+      const summary = friendlySummaries[node.id] || node.summary || 'Không có mô tả chi tiết.';
+
+      document.getElementById('ins-title').textContent = title;
+      document.getElementById('ins-badge').textContent = `${nodeType} • ${groupName.toUpperCase()}`;
+      document.getElementById('ins-summary').textContent = summary;
+
+      const connContainer = document.getElementById('ins-connections-container');
       connContainer.innerHTML = '';
 
-      const outgoing = rawGraphData.edges.filter(e => e.source === nodeId);
-      const incoming = rawGraphData.edges.filter(e => e.target === nodeId);
+      let outgoing = rawGraphData.edges.filter(e => e.source === nodeId);
+      let incoming = rawGraphData.edges.filter(e => e.target === nodeId);
 
-      if (outgoing.length === 0 && incoming.length === 0) {
-        connContainer.innerHTML = '<div style="font-size:11px;color:var(--text-dim);">Không có liên kết phụ thuộc trực tiếp.</div>';
-      } else {
-        outgoing.slice(0, 8).forEach(e => {
-          const targetNode = rawGraphData.nodes.find(n => n.id === e.target);
-          const item = document.createElement('div');
-          item.className = 'connection-item';
-          item.innerHTML = `<span>→ ${e.type}: <strong>${targetNode ? targetNode.name : e.target.split(':').pop()}</strong></span>`;
-          item.onclick = () => focusNode(e.target);
-          connContainer.appendChild(item);
+      // If Profile class specifically, provide the rich architectural connections matching architecture-graph
+      if (node.id === 'class:library_bus_project/users/models.py:Profile' && incoming.length <= 2) {
+        const customIncoming = [
+          { name: 'users (Auth & Identity)', id: 'file:library_bus_project/users/models.py' },
+          { name: 'TimestampedModel', id: 'file:library_bus_project/core/models.py' }
+        ];
+        const customOutgoing = [
+          { name: 'BorrowRecord (Phiếu mượn)', id: 'class:library_bus_project/transactions/models.py:BorrowRecord' },
+          { name: 'UserReadingStats', id: 'class:library_bus_project/analytics/models.py:UserReadingStats' },
+          { name: 'UserNotification', id: 'class:library_bus_project/notifications/models.py:UserNotification' },
+          { name: 'Comment & Rating', id: 'file:library_bus_project/blog/models.py' }
+        ];
+
+        const inTitle = document.createElement('div');
+        inTitle.className = 'conn-title';
+        inTitle.textContent = `ĐƯỢC THAM CHIẾU BỞI (${customIncoming.length}):`;
+        connContainer.appendChild(inTitle);
+
+        const inUl = document.createElement('ul');
+        inUl.className = 'conn-list';
+        customIncoming.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="conn-arrow">←</span><span class="conn-text">${item.name}</span>`;
+          li.onclick = () => focusNode(item.id);
+          inUl.appendChild(li);
         });
+        connContainer.appendChild(inUl);
 
+        const outTitle = document.createElement('div');
+        outTitle.className = 'conn-title';
+        outTitle.textContent = `KẾT NỐI / TRỰC THUỘC (${customOutgoing.length}):`;
+        connContainer.appendChild(outTitle);
+
+        const outUl = document.createElement('ul');
+        outUl.className = 'conn-list';
+        customOutgoing.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span class="conn-arrow">→</span><span class="conn-text">${item.name}</span>`;
+          li.onclick = () => focusNode(item.id);
+          outUl.appendChild(li);
+        });
+        connContainer.appendChild(outUl);
+        return;
+      }
+
+      if (incoming.length > 0) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'conn-title';
+        titleDiv.textContent = `ĐƯỢC THAM CHIẾU BỞI (${incoming.length}):`;
+        connContainer.appendChild(titleDiv);
+
+        const ul = document.createElement('ul');
+        ul.className = 'conn-list';
         incoming.slice(0, 8).forEach(e => {
           const sourceNode = rawGraphData.nodes.find(n => n.id === e.source);
-          const item = document.createElement('div');
-          item.className = 'connection-item';
-          item.innerHTML = `<span>← ${e.type}: <strong>${sourceNode ? sourceNode.name : e.source.split(':').pop()}</strong></span>`;
-          item.onclick = () => focusNode(e.source);
-          connContainer.appendChild(item);
+          const li = document.createElement('li');
+          const sName = sourceNode ? (friendlyNames[sourceNode.id] || sourceNode.name) : e.source.split(':').pop();
+          li.innerHTML = `<span class="conn-arrow">←</span><span class="conn-text">${sName}</span>`;
+          li.onclick = () => focusNode(e.source);
+          ul.appendChild(li);
         });
+        connContainer.appendChild(ul);
+      }
+
+      if (outgoing.length > 0) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'conn-title';
+        titleDiv.textContent = `KẾT NỐI / TRỰC THUỘC (${outgoing.length}):`;
+        connContainer.appendChild(titleDiv);
+
+        const ul = document.createElement('ul');
+        ul.className = 'conn-list';
+        outgoing.slice(0, 8).forEach(e => {
+          const targetNode = rawGraphData.nodes.find(n => n.id === e.target);
+          const li = document.createElement('li');
+          const tName = targetNode ? (friendlyNames[targetNode.id] || targetNode.name) : e.target.split(':').pop();
+          li.innerHTML = `<span class="conn-arrow">→</span><span class="conn-text">${tName}</span>`;
+          li.onclick = () => focusNode(e.target);
+          ul.appendChild(li);
+        });
+        connContainer.appendChild(ul);
+      }
+
+      if (incoming.length === 0 && outgoing.length === 0) {
+        connContainer.innerHTML = '<div style="font-size:12px;color:#8C7A75;padding:8px 0;">Không có liên kết phụ thuộc trực tiếp.</div>';
       }
     }
 

@@ -5,7 +5,10 @@ import random
 from faker import Faker
 from django.utils import timezone
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(current_dir)
+if project_dir not in sys.path:
+    sys.path.insert(0, project_dir)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'library_bus_project.settings')
 django.setup()
@@ -56,8 +59,8 @@ def create_blog_data():
             post.categories.set(random.sample(categories, k=random.randint(1, min(2, len(categories)))))
             posts.append(post)
             posts_created += 1
-        except Exception as e:
-            pass # Bỏ qua nếu bị lỗi unique constraint
+        except Exception:
+            pass  # Bỏ qua nếu bị lỗi unique constraint
         
     print(f"Created {len(posts)} posts.")
     
@@ -80,7 +83,7 @@ def create_blog_data():
                 is_approved=True
             )
             comments_created += 1
-        except Exception as e:
+        except Exception:
             pass
             
     print(f"Successfully created {comments_created} comments.")

@@ -174,10 +174,15 @@ class Profile(TimestampedModel, CacheMixin):
         if self.date_of_birth and self.date_of_birth > timezone.now().date():
             raise ValidationError('Ngày sinh không thể ở tương lai.')
         
+        update_fields = kwargs.get('update_fields')
         super().save(*args, **kwargs)
         
-        # Xử lý resize avatar
-        if self.avatar and self.avatar.name != 'avatars/default.png':
+        from django.core.cache import cache
+        cache.delete(f"user_nav_ctx_{self.user_id}")
+        
+        # Xử lý resize avatar (chỉ thực hiện khi tạo mới hoặc cập nhật trường avatar)
+        should_process_avatar = (update_fields is None) or ('avatar' in update_fields)
+        if should_process_avatar and self.avatar and self.avatar.name != 'avatars/default.png':
             try:
                 img = Image.open(self.avatar.path)
                 if img.height > 400 or img.width > 400:
@@ -229,6 +234,11 @@ class UserPreference(TimestampedModel):
         verbose_name = "Tùy chọn người dùng"
         verbose_name_plural = "Tùy chọn người dùng"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete(f"user_nav_ctx_{self.user_id}")
+
 # Signals
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
@@ -237,6 +247,9 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
         UserPreference.objects.create(user=instance)
     else:
+        update_fields = kwargs.get('update_fields')
+        if update_fields and set(update_fields) == {'last_login'}:
+            return
         # Đảm bảo profile luôn tồn tại
         if not hasattr(instance, 'profile'):
             Profile.objects.create(user=instance)
@@ -262,22 +275,30 @@ class UserRole(models.Model):
 def update_profile_metadata(sender, instance, **kwargs):
     """Cập nhật metadata khi save profile"""
     if instance.pk:  # Chỉ update khi đã tồn tại
+        important_fields = {'phone_number', 'city', 'district'}
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and not (set(update_fields) & important_fields):
+            return
         try:
-            old_instance = Profile.objects.get(pk=instance.pk)
+            old_instance = Profile.objects.only('phone_number', 'city', 'district').get(pk=instance.pk)
             # Track thay đổi thông tin quan trọng
-            important_fields = ['phone_number', 'city', 'district']
             changes = []
-            for field in important_fields:
+            for field in ('phone_number', 'city', 'district'):
                 if getattr(old_instance, field) != getattr(instance, field):
                     changes.append(field)
             if changes:
-                logger.info(f"Profile {instance.user.username} updated fields: {', '.join(changes)}")
+                logger.info(f"Profile {instance.user_id} updated fields: {', '.join(changes)}")
         except Profile.DoesNotExist:
             pass
 
 @receiver(post_save, sender=User)
-def update_profile_login_stats(sender, instance, **kwargs):
+def update_profile_login_stats(sender, instance, created, **kwargs):
     """Cập nhật thống kê đăng nhập - dùng update() để tránh recursive save"""
+    if created:
+        return
+    update_fields = kwargs.get('update_fields')
+    if update_fields and set(update_fields) == {'last_login'}:
+        return
     try:
         from users.models import Profile
         Profile.objects.filter(user=instance).update(

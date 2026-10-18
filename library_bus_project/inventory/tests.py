@@ -3,16 +3,13 @@
 # Test cases cho Inventory App — Models, QuerySets, Views
 # ==============================================================================
 
-from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
-from django.utils import timezone
+from django.test import Client, TestCase
+from django.urls import reverse
 
 from inventory.models import (
-    Book, Category, LibraryBus, BookStatusHistory,
-    BusRoute, InventoryAlert, BookDonation, BookRating
+    Book, BookDonation, BookRating, BookStatusHistory, Category, LibraryBus
 )
 
 User = get_user_model()

@@ -16,7 +16,7 @@
     overflow: hidden;
     position: relative;
     z-index: 1;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-medium);
 }
 
 #bus-map {
@@ -30,11 +30,11 @@
     top: 20px;
     left: 20px;
     z-index: 1000;
-    width: 360px;
+    width: min(360px, calc(100% - 40px));
     background: var(--bg-surface);
     border-radius: var(--radius-pill);
     box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-medium);
     display: flex;
     align-items: center;
     padding: 4px 18px;
@@ -60,7 +60,7 @@
     box-shadow: var(--shadow-lg) !important;
     background: var(--bg-surface) !important;
     color: var(--text-primary) !important;
-    border: 1px solid var(--border-color) !important;
+    border: 1px solid var(--border-medium) !important;
 }
 .leaflet-popup-content {
     margin: 16px !important;
@@ -111,7 +111,7 @@
     <!-- Nút tìm kiếm nổi trên map -->
     <div class="map-search-overlay">
         <i class="fas fa-search map-search-icon"></i>
-        <input type="text" id="bus-search-input" class="map-search-input" placeholder="Tìm kiếm xe theo tên...">
+        <input type="text" id="bus-search-input" class="map-search-input" placeholder="Tìm kiếm xe theo tên..." aria-label="Tìm kiếm xe theo tên">
     </div>
     
     <!-- Vùng hiển thị bản đồ -->
