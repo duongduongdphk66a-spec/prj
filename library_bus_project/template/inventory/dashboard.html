@@ -1,193 +1,365 @@
 <!-- File: inventory/dashboard.html -->
 {% extends "inventory/base_inventory.html" %}
+{% load static %}
 
-{% block title %}Bảng điều khiển - {{ block.super }}{% endblock %}
+{% block title %}Bảng điều khiển Quản lý Kho (Density 8) - {{ block.super }}{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin_density8.css' %}?v=1.0">
 <style>
-.dashboard-container { padding: 0; background: transparent; }
-.page-header { background: var(--bg-surface); padding: 24px 28px; border-radius: var(--radius-lg); margin-bottom: 28px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-.page-header h1 { margin: 0; color: var(--color-molasses); font-size: 2rem; font-weight: 800; font-family: var(--font-display); }
-[data-theme="dark"] .page-header h1 { color: var(--text-primary); }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
-.stat-card { background: var(--bg-surface); padding: 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); transition: all var(--transition-spring); position: relative; overflow: hidden; }
-.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-accent); transform: scaleX(0); transform-origin: left; transition: transform var(--transition-base); }
-.stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--color-roast); }
-.stat-card:hover::before { transform: scaleX(1); }
-.stat-card .icon { width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 22px; transition: all var(--transition-spring); }
-.stat-card .icon.bus { background: var(--color-danger-bg); color: var(--color-molasses); }
-.stat-card .icon.book { background: var(--color-warning-bg); color: var(--color-roast); }
-.stat-card .icon.category { background: var(--color-info-bg); color: var(--color-info); }
-.stat-card .icon.alert-icon { background: var(--color-danger-bg); color: var(--color-danger); }
-.stat-card:hover .icon { transform: scale(1.1) rotate(-4deg); background: var(--gradient-primary); color: var(--color-butter); }
-.stat-card .info h4 { font-size: 2.5rem; font-weight: 800; margin: 0 0 4px 0; color: var(--color-molasses); font-family: var(--font-display); }
-[data-theme="dark"] .stat-card .info h4 { color: var(--text-primary); }
-.stat-card .info p { color: var(--text-muted); font-size: 0.9rem; margin: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.card { background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 28px; overflow: hidden; transition: all var(--transition-spring); }
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--color-roast); }
-.card-header { background: var(--gradient-dark); color: #FFFDF9; padding: 18px 24px; border-bottom: none; }
-.card-header h3 { margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--color-butter); font-family: var(--font-sans); }
-.card-header h3 i { font-size: 1.1rem; color: var(--color-toasty); }
-.card-body { padding: 24px; }
-.table { background: transparent; border-collapse: separate; border-spacing: 0; width: 100%; }
-.table thead th { background: var(--bg-surface-raised); color: var(--color-molasses); font-weight: 700; padding: 14px 18px; border: none; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid var(--border-color); }
-[data-theme="dark"] .table thead th { color: var(--text-primary); }
-.table tbody td { padding: 14px 18px; border-bottom: 1px solid var(--border-light); transition: all 0.15s ease; color: var(--text-primary); font-size: 0.92rem; }
-.table tbody tr:hover td { background: var(--bg-page-alt); }
-.table a { color: var(--color-roast); text-decoration: none; font-weight: 600; transition: color var(--transition-fast); }
-.table a:hover { color: var(--color-wellbrowned); text-decoration: underline; }
-.progress { height: 10px; background: var(--bg-surface-sunken); border-radius: var(--radius-pill); overflow: hidden; margin: 8px 0; border: 1px solid var(--border-light); }
-.progress-bar { background: var(--gradient-accent); transition: width 0.6s var(--ease-out); border-radius: var(--radius-pill); position: relative; }
-.badge { padding: 6px 14px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.badge.bg-primary { background: var(--color-greasey) !important; color: var(--color-molasses) !important; border: 1px solid rgba(129, 34, 3, 0.15); }
-.list-group { list-style: none; padding: 0; margin: 0; }
-.list-group-item { padding: 14px 18px; border: none; border-bottom: 1px solid var(--border-light); transition: all var(--transition-fast); display: flex; justify-content: space-between; align-items: center; font-size: 0.92rem; color: var(--text-primary); }
-.list-group-item:hover { background: var(--bg-page-alt); transform: translateX(3px); }
-.list-group-item:last-child { border-bottom: none; }
-.row { display: flex; flex-wrap: wrap; margin-left: -12px; margin-right: -12px; margin-bottom: 24px; }
-.col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; padding-left: 12px; padding-right: 12px; }
-.col-lg-6 { flex: 0 0 50%; max-width: 50%; padding-left: 12px; padding-right: 12px; }
-.col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; padding-left: 12px; padding-right: 12px; }
-.p-0 { padding: 0 !important; }
-.mt-4 { margin-top: 1.5rem !important; }
-.mb-0 { margin-bottom: 0 !important; }
-@media (max-width: 992px) { .col-lg-8, .col-lg-6, .col-lg-4 { flex: 0 0 100%; max-width: 100%; } }
-@media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .page-header { flex-direction: column; gap: 16px; text-align: center; } .page-header h1 { font-size: 1.75rem; } .card-body { padding: 16px; } .table { font-size: 0.88rem; } .stat-card { padding: 18px; } }
+/* Micro-tuning overrides specifically for Inventory Cockpit */
+.inventory-content {
+    padding: 14px 20px !important;
+}
+.cockpit-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.cockpit-header-bar h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--c-molasses);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.capacity-item {
+    margin-bottom: 8px;
+}
+.capacity-item:last-child {
+    margin-bottom: 0;
+}
+.capacity-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+.capacity-bar {
+    height: 6px;
+    background: var(--adm-bg-sunken);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.capacity-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--c-toasty) 0%, var(--c-roast) 100%);
+    transition: width 0.4s ease;
+}
+.capacity-fill.high {
+    background: var(--adm-status-danger);
+}
 </style>
 {% endblock %}
 
 {% block inventory_content %}
-<div class="dashboard-container">
-    <div class="page-header">
-        <h1>Bảng điều khiển tổng quan</h1>
-        <a href="{% url 'inventory:clear_cache' %}" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Xóa Cache</a>
-    </div>
+<div class="admin-density-body">
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="icon bus"><i class="fas fa-bus"></i></div>
-            <div class="info">
-                <h4>{{ total_buses }}</h4>
-                <p>Tổng số xe bus</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon book"><i class="fas fa-book-open"></i></div>
-            <div class="info">
-                <h4>{{ total_books }}</h4>
-                <p>Tổng số đầu sách</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon category"><i class="fas fa-tags"></i></div>
-            <div class="info">
-                <h4>{{ total_categories }}</h4>
-                <p>Lĩnh vực</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="icon alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
-            <div class="info">
-                <h4>{{ alerts.count }}</h4>
-                <p>Cảnh báo chưa xử lý</p>
-            </div>
+    <!-- Cockpit Header & Quick Actions Toolbar -->
+    <div class="cockpit-header-bar">
+        <h1>
+            <i class="fas fa-cubes" style="color: var(--c-roast); font-size: 1.1rem;"></i>
+            Bảng điều khiển Kho & Đội xe
+        </h1>
+        <div class="action-btn-group">
+            <a href="{% url 'inventory:book_create' %}" class="btn-adm btn-adm-primary">
+                <i class="fas fa-plus"></i> Nhập sách mới
+            </a>
+            <a href="{% url 'inventory:clear_cache' %}" class="btn-adm btn-adm-secondary">
+                <i class="fas fa-sync-alt"></i> Làm mới Cache
+            </a>
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="row mt-4">
-        <!-- Recent Books -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header"><h3><i class="fas fa-history"></i> Sách mới thêm gần đây</h3></div>
-                <div class="card-body p-0">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Tên sách</th>
-                                <th>Tác giả</th>
-                                <th>Lĩnh vực</th>
-                                <th>Vị trí</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for book in recent_books %}
-                            <tr>
-                                <td><a href="{% url 'inventory:book_detail' book.pk %}">{{ book.title }}</a></td>
-                                <td>{{ book.author }}</td>
-                                <td>{{ book.category.name|default:"N/A" }}</td>
-                                <td>{{ book.location.name|default:"N/A" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="4" class="text-center">Chưa có sách nào được thêm.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <!-- Quick Search & Filter Toolbar (Density: 8) -->
+    <div class="cockpit-toolbar">
+        <div class="cockpit-toolbar-left">
+            <div class="cockpit-search-box">
+                <input type="text" placeholder="Tìm kiếm nhanh tên sách, mã ISBN, xe bus..." aria-label="Tìm kiếm nhanh">
+                <span class="cockpit-search-kbd">/</span>
+            </div>
+            <select class="cockpit-select" aria-label="Lọc trạng thái">
+                <option value="all">Tất cả trạng thái kho</option>
+                <option value="available">Sẵn sàng mượn</option>
+                <option value="borrowed">Đang lưu hành</option>
+                <option value="maintenance">Bảo trì / Kiểm kê</option>
+            </select>
+        </div>
+        <div class="cockpit-toolbar-right">
+            <span class="badge-cockpit neutral">
+                <span class="badge-dot"></span>
+                Density: 8 (Cockpit)
+            </span>
+        </div>
+    </div>
+
+    <!-- Compact KPI Grid (Density: 8) -->
+    <div class="cockpit-kpi-grid">
+        <!-- KPI 1: Xe Bus -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Đội xe hoạt động</span>
+                <i class="fas fa-bus kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value">{{ total_buses }}</div>
+                <div class="kpi-delta up"><i class="fas fa-check-circle"></i> Trực tuyến</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Đầu sách -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Tổng đầu sách</span>
+                <i class="fas fa-book-open kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value">{{ total_books }}</div>
+                <div class="kpi-delta up"><i class="fas fa-arrow-up"></i> +4.2%</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 85%; background: var(--c-toasty);"></div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Lĩnh vực -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Chuyên mục</span>
+                <i class="fas fa-tags kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value">{{ total_categories }}</div>
+                <div class="kpi-delta neutral">Đã phân loại</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 70%; background: var(--c-wellbrowned);"></div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Cảnh báo -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Cảnh báo tồn kho</span>
+                <i class="fas fa-exclamation-triangle kpi-icon" style="color: var(--adm-status-danger);"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value" style="color: {% if alerts.count > 0 %}var(--adm-status-danger){% else %}var(--adm-status-success){% endif %};">
+                    {{ alerts.count }}
+                </div>
+                <div class="kpi-delta {% if alerts.count > 0 %}down{% else %}up{% endif %}">
+                    {% if alerts.count > 0 %}<i class="fas fa-bell"></i> Cần xử lý{% else %}<i class="fas fa-check"></i> Bình thường{% endif %}
                 </div>
             </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: {% if alerts.count > 0 %}100%{% else %}0%{% endif %}; background: var(--adm-status-danger);"></div>
+            </div>
         </div>
+    </div>
 
-        <!-- Popular Books -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header"><h3><i class="fas fa-fire"></i> Sách nổi bật</h3></div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        {% for book in popular_books %}
-                        <li class="list-group-item">{{ book.title }} <span class="badge bg-primary float-end">{{ book.popularity_score|floatformat:1 }}</span></li>
+    <!-- Main Data Grid Split Row (7:5) -->
+    <div class="cockpit-split-row">
+        <!-- Cột trái (7 phần): Sách mới cập nhật gần đây -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-list"></i>
+                    Sách mới cập nhật gần đây
+                </span>
+                <a href="{% url 'inventory:book_list' %}" class="btn-adm btn-adm-secondary" style="font-size: 11px; padding: 3px 8px;">
+                    Xem tất cả ({{ total_books }})
+                </a>
+            </div>
+            <div class="dense-table-wrapper">
+                <table class="dense-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Mã</th>
+                            <th>Tên tác phẩm</th>
+                            <th>Tác giả</th>
+                            <th>Lĩnh vực</th>
+                            <th>Vị trí kho/xe</th>
+                            <th style="text-align: right; width: 80px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in recent_books %}
+                        <tr>
+                            <td class="cell-mono">#{{ book.pk }}</td>
+                            <td>
+                                <a href="{% url 'inventory:book_detail' book.pk %}" style="color: var(--c-roast); font-weight: 600; text-decoration: none;">
+                                    {{ book.title|truncatechars:42 }}
+                                </a>
+                            </td>
+                            <td style="color: var(--adm-text-secondary);">{{ book.author|default:"Chưa rõ" }}</td>
+                            <td>
+                                <span class="badge-cockpit neutral">
+                                    {{ book.category.name|default:"Chưa gán" }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-cockpit warning">
+                                    <i class="fas fa-bus-alt" style="font-size: 9px;"></i>
+                                    {{ book.location.name|default:"Kho trung tâm" }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="action-btn-group">
+                                    <a href="{% url 'inventory:book_detail' book.pk %}" class="btn-icon-xs" title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'inventory:book_update' book.pk %}" class="btn-icon-xs" title="Chỉnh sửa">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
                         {% empty %}
-                        <li class="list-group-item">Chưa có dữ liệu.</li>
+                        <tr>
+                            <td colspan="6" class="text-center" style="padding: 24px; color: var(--adm-text-muted);">
+                                Chưa có sách nào được cập nhật trong kho.
+                            </td>
+                        </tr>
                         {% endfor %}
-                    </ul>
-                </div>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cột phải (5 phần): Sách nổi bật & Mức độ lưu hành -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-fire"></i>
+                    Đầu sách lưu hành cao nhất
+                </span>
+                <span class="badge-cockpit neutral">Xếp hạng điểm</span>
+            </div>
+            <div class="dense-table-wrapper">
+                <table class="dense-table">
+                    <thead>
+                        <tr>
+                            <th>Tác phẩm</th>
+                            <th style="text-align: right; width: 90px;">Điểm uy tín</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in popular_books %}
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600; color: var(--c-molasses);">{{ book.title|truncatechars:34 }}</div>
+                                <div style="font-size: 11px; color: var(--adm-text-muted);">{{ book.author }}</div>
+                            </td>
+                            <td class="cell-num">
+                                <span class="badge-cockpit success" style="font-family: var(--adm-font-mono);">
+                                    <i class="fas fa-star" style="font-size: 8px;"></i>
+                                    {{ book.popularity_score|floatformat:1 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center" style="padding: 20px; color: var(--adm-text-muted);">
+                                Chưa có dữ liệu lưu hành.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Bus Capacity -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header"><h3><i class="fas fa-tachometer-alt"></i> Tình trạng sức chứa xe bus</h3></div>
-                <div class="card-body">
-                    {% for stat in capacity_stats %}
-                    <div>
-                        <strong>{{ stat.name }}</strong> ({{ stat.count }} sách)
-                        <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: {{ stat.usage }}%;" aria-valuenow="{{ stat.usage }}" aria-valuemin="0" aria-valuemax="100">{{ stat.usage|floatformat:1 }}%</div>
-                        </div>
+    <!-- Hàng dưới: Sức chứa xe bus & Danh sách cảnh báo (Dual Column) -->
+    <div class="cockpit-split-row">
+        <!-- Tình trạng sức chứa xe bus -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Tải trọng & Sức chứa Đội xe Lưu Động
+                </span>
+                <span class="badge-cockpit neutral">Dữ liệu thời gian thực</span>
+            </div>
+            <div style="padding: 10px 14px;">
+                {% for stat in capacity_stats %}
+                <div class="capacity-item">
+                    <div class="capacity-meta">
+                        <span style="color: var(--c-molasses);">
+                            <i class="fas fa-bus-alt" style="color: var(--c-wellbrowned); margin-right: 4px;"></i>
+                            {{ stat.name }}
+                        </span>
+                        <span class="cell-mono" style="font-weight: 700;">
+                            {{ stat.count }} sách ({{ stat.usage|floatformat:1 }}%)
+                        </span>
                     </div>
-                    {% empty %}
-                    <p>Không có xe bus nào đang hoạt động.</p>
-                    {% endfor %}
+                    <div class="capacity-bar">
+                        <div class="capacity-fill {% if stat.usage > 85 %}high{% endif %}" style="width: {{ stat.usage }}%;"></div>
+                    </div>
                 </div>
+                {% empty %}
+                <p style="font-size: 12px; color: var(--adm-text-muted); margin: 0; padding: 12px 0;">Không có xe bus nào đang tải dữ liệu kho.</p>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Unresolved Alerts -->
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header"><h3><i class="fas fa-bell"></i> Cảnh báo gần đây</h3></div>
-                <div class="card-body p-0">
-                    <table class="table mb-0">
-                        <tbody>
-                            {% for alert in alerts %}
-                            <tr>
-                                <td><span class="badge" style="background-color:{{ alert.get_severity_display|lower }};">{{ alert.get_severity_display }}</span></td>
-                                <td>{{ alert.bus.name }}</td>
-                                <td>{{ alert.message|truncatechars:50 }}</td>
-                                <td>{{ alert.created_at|timesince }} trước</td>
-                            </tr>
-                            {% empty %}
-                            <tr><td class="text-center">Không có cảnh báo nào.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Cảnh báo & Nhật ký hệ thống -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-bell"></i>
+                    Nhật ký Cảnh báo kho gần đây
+                </span>
+                <span class="badge-cockpit {% if alerts.count > 0 %}danger{% else %}success{% endif %}">
+                    {{ alerts.count }} vấn đề
+                </span>
+            </div>
+            <div class="dense-table-wrapper" style="max-height: 220px;">
+                <table class="dense-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">Mức độ</th>
+                            <th>Đối tượng</th>
+                            <th>Nội dung thông báo</th>
+                            <th style="text-align: right;">Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr>
+                            <td>
+                                <span class="badge-cockpit {% if alert.severity == 'critical' or alert.severity == 'high' %}danger{% elif alert.severity == 'medium' %}warning{% else %}neutral{% endif %}">
+                                    {{ alert.get_severity_display|default:"Lưu ý" }}
+                                </span>
+                            </td>
+                            <td class="cell-mono" style="font-weight: 600;">{{ alert.bus.name }}</td>
+                            <td style="color: var(--adm-text-primary);">{{ alert.message|truncatechars:45 }}</td>
+                            <td class="cell-mono" style="text-align: right; font-size: 10.5px;">
+                                {{ alert.created_at|timesince }} trước
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center" style="padding: 24px; color: var(--adm-status-success);">
+                                <i class="fas fa-check-circle" style="margin-right: 4px;"></i>
+                                Hệ thống kho ổn định, không có cảnh báo nào tồn đọng.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

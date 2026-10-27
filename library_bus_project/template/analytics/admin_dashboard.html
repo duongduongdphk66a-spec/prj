@@ -2,192 +2,267 @@
 {% extends "analytics/base_analytics.html" %}
 {% load static %}
 
-{% block analytics_title %}Admin Dashboard - Analytics{% endblock %}
+{% block analytics_title %}Admin Cockpit (Density 8) - Analytics{% endblock %}
 
-{% block analytics_heading %}Tổng quan Quản trị viên{% endblock %}
+{% block analytics_heading %}Tổng quan Quản trị viên (Cockpit Dense){% endblock %}
 
-{% block analytics_description %}Thống kê toàn hệ thống Library Bus.{% endblock %}
+{% block analytics_description %}Giám sát hoạt động thời gian thực & hiệu suất đội xe toàn hệ thống Library Bus.{% endblock %}
 
 {% block breadcrumb_items %}
-<li class="breadcrumb-item active" aria-current="page">Admin Dashboard</li>
+<li class="breadcrumb-item active" aria-current="page">Admin Cockpit (Density 8)</li>
 {% endblock %}
 
 {% block analytics_extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_density8.css' %}?v=1.0">
 <style>
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 30px; }
-.stat-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; transition: all 0.3s ease; position: relative; overflow: hidden; }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(64,31,18,0.12); border-color: #b8691a; }
-.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--analytics-gradient); }
-.stat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.stat-card-header h4 { margin: 0; font-size: 1rem; font-weight: 700; color: #401f12; }
-.stat-card-icon { width: 48px; height: 48px; border-radius: 12px; background: #f2e9e1; display: flex; align-items: center; justify-content: center; color: var(--analytics-primary); font-size: 1.5rem; }
-.stat-card-value { font-size: 2.5rem; font-weight: 800; color: #b8691a; margin: 8px 0; line-height: 1; }
-.stat-card-footer { font-size: 0.875rem; color: #401f12; opacity: 0.8; display: flex; align-items: center; gap: 8px; font-weight: 600; }
-.stat-card-footer .positive { color: #b8691a; font-weight: 700; }
-.stat-card-footer .negative { color: #401f12; font-weight: 700; }
-.content-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
-.grid-col-span-4 { grid-column: span 4; }
-.grid-col-span-6 { grid-column: span 6; }
-.grid-col-span-8 { grid-column: span 8; }
-.content-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(64,31,18,0.06); border: 2px solid #ddceae; }
-.content-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #ddceae; }
-.content-card-header h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #401f12; }
-.content-card-body { overflow-x: auto; }
-.chart-container { position: relative; height: 300px; margin-top: 16px; }
-.custom-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.custom-table th, .custom-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f2e9e1; }
-.custom-table th { background: #f2e9e1; font-weight: 700; color: #401f12; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; }
-.custom-table tbody tr:hover { background: #f2e9e1; }
-.custom-table tbody tr:nth-child(even) { background: #fcf9f6; }
-.custom-table tbody tr:nth-child(even):hover { background: #f2e9e1; }
-.badge { display: inline-block; padding: 4px 8px; font-size: 0.75rem; font-weight: 700; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-.bg-primary { background: var(--analytics-primary); color: #f2e9e1; }
-.text-warning { color: #daae5d; }
-.text-center { text-align: center; }
-@media (max-width: 1024px) {
-    .content-grid { grid-template-columns: 1fr; }
-    .grid-col-span-4, .grid-col-span-6, .grid-col-span-8 { grid-column: span 1; }
-    .stats-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.analytics-main {
+    padding: 14px 20px !important;
 }
-@media (max-width: 768px) {
-    .stats-grid { grid-template-columns: 1fr; }
-    .stat-card { padding: 20px; }
-    .stat-card-value { font-size: 2rem; }
-    .content-card { padding: 20px; }
-    .chart-container { height: 250px; }
+.chart-container-dense {
+    position: relative;
+    height: 220px;
+    margin-top: 8px;
 }
 </style>
 {% endblock %}
 
 {% block analytics_content %}
-<!-- Stats Grid -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <h4>Tổng người dùng</h4>
-            <span class="stat-card-icon"><i class="fas fa-users"></i></span>
-        </div>
-        <div class="stat-card-value">{{ total_users }}</div>
-        <div class="stat-card-footer">
-            <span class="positive">{{ active_users_today }}</span> active hôm nay
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <h4>Tổng số sách</h4>
-            <span class="stat-card-icon"><i class="fas fa-book"></i></span>
-        </div>
-        <div class="stat-card-value">{{ total_books }}</div>
-        <div class="stat-card-footer">Trong hệ thống</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <h4>Lượt mượn hôm nay</h4>
-            <span class="stat-card-icon"><i class="fas fa-hand-holding-heart"></i></span>
-        </div>
-        <div class="stat-card-value">{{ total_borrows_today }}</div>
-        <div class="stat-card-footer">Tính đến hiện tại</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-header">
-            <h4>Hiệu suất xe bus</h4>
-            <span class="stat-card-icon"><i class="fas fa-bus"></i></span>
-        </div>
-        <div class="stat-card-value">{{ top_buses.0.efficiency_score|default:0|floatformat:1 }}%</div>
-        <div class="stat-card-footer">Xe bus hàng đầu</div>
-    </div>
-</div>
+<div class="admin-density-body">
 
-<!-- Content Grid with Charts -->
-<div class="content-grid">
-    <div class="grid-col-span-8">
-        <div class="content-card">
-            <div class="content-card-header">
-                <h3>Hoạt động 4 tuần qua</h3>
+    <!-- Cockpit Toolbar -->
+    <div class="cockpit-toolbar">
+        <div class="cockpit-toolbar-left">
+            <div class="cockpit-search-box">
+                <input type="text" placeholder="Tìm người dùng, giao dịch mượn/trả..." aria-label="Tìm kiếm">
+                <span class="cockpit-search-kbd">/</span>
             </div>
-            <div class="chart-container">
-                <canvas id="activityChart"></canvas>
+            <select class="cockpit-select" aria-label="Phạm vi thời gian">
+                <option value="4w">4 tuần gần nhất</option>
+                <option value="7d">7 ngày qua</option>
+                <option value="today">Hôm nay</option>
+            </select>
+        </div>
+        <div class="cockpit-toolbar-right">
+            <span class="badge-cockpit success">
+                <span class="badge-dot"></span>
+                Dữ liệu trực tiếp
+            </span>
+        </div>
+    </div>
+
+    <!-- 4 Compact KPI Cards (Density 8) -->
+    <div class="cockpit-kpi-grid">
+        <!-- KPI 1 -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Tổng người dùng</span>
+                <i class="fas fa-users kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value stat-card-value">{{ total_users }}</div>
+                <div class="kpi-delta up"><i class="fas fa-user-check"></i> {{ active_users_today }} active</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 82%;"></div>
+            </div>
+        </div>
+
+        <!-- KPI 2 -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Tổng số sách</span>
+                <i class="fas fa-book kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value stat-card-value">{{ total_books }}</div>
+                <div class="kpi-delta up"><i class="fas fa-database"></i> Trong kho</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 90%; background: var(--c-toasty);"></div>
+            </div>
+        </div>
+
+        <!-- KPI 3 -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Lượt mượn hôm nay</span>
+                <i class="fas fa-hand-holding-heart kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value stat-card-value" style="color: var(--c-roast);">{{ total_borrows_today }}</div>
+                <div class="kpi-delta up"><i class="fas fa-arrow-up"></i> Hôm nay</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: 65%; background: var(--c-roast);"></div>
+            </div>
+        </div>
+
+        <!-- KPI 4 -->
+        <div class="kpi-compact-card">
+            <div class="kpi-header">
+                <span class="kpi-label">Hiệu suất xe bus</span>
+                <i class="fas fa-bus kpi-icon"></i>
+            </div>
+            <div class="kpi-body">
+                <div class="kpi-value stat-card-value" style="color: var(--c-wellbrowned);">
+                    {{ top_buses.0.efficiency_score|default:0|floatformat:1 }}%
+                </div>
+                <div class="kpi-delta up"><i class="fas fa-star"></i> Dẫn đầu</div>
+            </div>
+            <div class="kpi-micro-bar">
+                <div class="kpi-micro-fill" style="width: {{ top_buses.0.efficiency_score|default:0 }}%; background: var(--c-wellbrowned);"></div>
             </div>
         </div>
     </div>
-    <div class="grid-col-span-4">
-        <div class="content-card">
-            <div class="content-card-header">
-                <h3>Phân bố người dùng</h3>
+
+    <!-- Charts Split Row (8:4) -->
+    <div class="cockpit-split-row" style="grid-template-columns: 8fr 4fr; margin-bottom: 12px;">
+        <!-- Line Chart: Hoạt động 4 tuần qua -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-chart-line"></i>
+                    Lưu lượng Mượn & Trả sách (4 tuần gần nhất)
+                </span>
+                <div class="action-btn-group">
+                    <span class="badge-cockpit warning" style="background: rgba(189, 87, 5, 0.15); color: var(--c-roast);">
+                        Mượn
+                    </span>
+                    <span class="badge-cockpit neutral" style="background: rgba(78, 7, 5, 0.1); color: var(--c-molasses);">
+                        Trả
+                    </span>
+                </div>
             </div>
-            <div class="chart-container">
-                <canvas id="levelDistributionChart"></canvas>
+            <div style="padding: 10px 14px;">
+                <div class="chart-container-dense">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doughnut Chart: Phân bố cấp độ thành viên -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Phân bố người dùng
+                </span>
+                <span class="badge-cockpit neutral">Hạng hội viên</span>
+            </div>
+            <div style="padding: 10px 14px;">
+                <div class="chart-container-dense">
+                    <canvas id="levelDistributionChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    <div class="grid-col-span-6">
-        <div class="content-card">
-            <div class="content-card-header">
-                <h3>Sách phổ biến nhất</h3>
+
+    <!-- Tables Split Row (6:6) -->
+    <div class="cockpit-split-row" style="grid-template-columns: 1fr 1fr;">
+        <!-- Sách phổ biến nhất -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-fire"></i>
+                    Sách phổ biến nhất
+                </span>
+                <span class="badge-cockpit neutral">Xếp theo lượt mượn</span>
             </div>
-            <div class="content-card-body">
-                <table class="custom-table">
+            <div class="dense-table-wrapper">
+                <table class="dense-table">
                     <thead>
                         <tr>
-                            <th>Sách</th>
-                            <th>Lượt mượn</th>
-                            <th>Đánh giá</th>
+                            <th>Tên sách</th>
+                            <th style="text-align: right; width: 90px;">Lượt mượn</th>
+                            <th style="text-align: right; width: 90px;">Đánh giá</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for book in popular_books %}
+                        {% for book in popular_books %}
                         <tr>
-                            <td>{{ book.book__title }}</td>
-                            <td>{{ book.total_borrows }}</td>
-                            <td><i class="fas fa-star text-warning"></i> {{ book.average_rating }}</td>
+                            <td>
+                                <span style="font-weight: 600; color: var(--c-molasses);">
+                                    {{ book.book__title|truncatechars:36 }}
+                                </span>
+                            </td>
+                            <td class="cell-num" style="color: var(--c-roast);">
+                                {{ book.total_borrows }}
+                            </td>
+                            <td class="cell-num">
+                                <span style="color: var(--c-toasty);">
+                                    <i class="fas fa-star" style="font-size: 9px;"></i>
+                                    {{ book.average_rating|default:"5.0"|floatformat:1 }}
+                                </span>
+                            </td>
                         </tr>
-                    {% empty %}
+                        {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center">Chưa có dữ liệu.</td>
+                            <td colspan="3" class="text-center" style="padding: 20px; color: var(--adm-text-muted);">
+                                Chưa có dữ liệu mượn.
+                            </td>
                         </tr>
-                    {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
-    <div class="grid-col-span-6">
-        <div class="content-card">
-            <div class="content-card-header">
-                <h3>Độc giả hàng đầu</h3>
+
+        <!-- Độc giả hàng đầu -->
+        <div class="cockpit-panel">
+            <div class="cockpit-panel-header">
+                <span class="cockpit-panel-title">
+                    <i class="fas fa-award"></i>
+                    Độc giả tích cực nhất
+                </span>
+                <span class="badge-cockpit success">BXH Uy tín</span>
             </div>
-            <div class="content-card-body">
-                <table class="custom-table">
+            <div class="dense-table-wrapper">
+                <table class="dense-table">
                     <thead>
                         <tr>
                             <th>Người dùng</th>
-                            <th>Điểm</th>
-                            <th>Hạng</th>
+                            <th style="text-align: right; width: 90px;">Điểm uy tín</th>
+                            <th style="text-align: right; width: 100px;">Cấp bậc</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for reader in top_readers %}
+                        {% for reader in top_readers %}
                         <tr>
-                            <td>{{ reader.user.username }}</td>
-                            <td>{{ reader.reputation_score }}</td>
-                            <td><span class="badge bg-primary">{{ reader.get_member_level_display }}</span></td>
+                            <td>
+                                <span class="cell-mono" style="font-weight: 600; color: var(--c-molasses);">
+                                    {{ reader.user.username }}
+                                </span>
+                            </td>
+                            <td class="cell-num" style="color: var(--c-roast);">
+                                {{ reader.reputation_score }}
+                            </td>
+                            <td style="text-align: right;">
+                                <span class="badge-cockpit neutral">
+                                    {{ reader.get_member_level_display|default:"Thành viên" }}
+                                </span>
+                            </td>
                         </tr>
-                    {% empty %}
+                        {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center">Chưa có dữ liệu.</td>
+                            <td colspan="3" class="text-center" style="padding: 20px; color: var(--adm-text-muted);">
+                                Chưa có dữ liệu xếp hạng.
+                            </td>
                         </tr>
-                    {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
 </div>
 {% endblock analytics_content %}
 
 {% block analytics_extra_js %}
 <script>
-// Pass data from Django template to JavaScript for charts
+// Data for Chart.js calibrated with the 6-Tone Palette:
+// Molasses (#4E0705), Well-browned (#812203), Roast (#BD5705), Toasty (#ED9040), Greasey (#FFC270), Butter (#FDE971)
+
 const weeklyLabels = [{% for stat in weekly_stats|slice:"::-1" %}"{{ stat.date|date:'d/m' }}",{% endfor %}];
 const weeklyBorrows = [{% for stat in weekly_stats|slice:"::-1" %}{{ stat.total_borrows|default:0 }},{% endfor %}];
 const weeklyReturns = [{% for stat in weekly_stats|slice:"::-1" %}{{ stat.total_returns|default:0 }},{% endfor %}];
@@ -199,33 +274,45 @@ const weeklyStatsData = {
     datasets: [{
         label: 'Lượt mượn',
         data: weeklyBorrows,
-        borderColor: '#b8691a',
-        backgroundColor: 'rgba(184, 105, 26, 0.1)',
+        borderColor: '#BD5705', /* Roast */
+        backgroundColor: 'rgba(189, 87, 5, 0.12)',
         fill: true,
-        tension: 0.4
+        tension: 0.35,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#BD5705'
     }, {
         label: 'Lượt trả',
         data: weeklyReturns,
-        borderColor: '#401f12',
-        backgroundColor: 'rgba(64, 31, 18, 0.1)',
+        borderColor: '#4E0705', /* Molasses */
+        backgroundColor: 'rgba(78, 7, 5, 0.08)',
         fill: true,
-        tension: 0.4
+        tension: 0.35,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#4E0705'
     }]
 };
 
 const levelDistributionData = {
     labels: levelLabels,
     datasets: [{
-        label: 'Phân bố người dùng',
+        label: 'Hội viên',
         data: levelCounts,
-        backgroundColor: ['#401f12', '#b8691a', '#daae5d', '#ddceae', '#f2e9e1'],
-        hoverOffset: 4
+        backgroundColor: [
+            '#4E0705', /* Molasses */
+            '#812203', /* Well-browned */
+            '#BD5705', /* Roast */
+            '#ED9040', /* Toasty */
+            '#FFC270'  /* Greasey */
+        ],
+        borderWidth: 2,
+        borderColor: '#FFFFFF'
     }]
 };
 
-// Initialize charts when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Activity Chart
+    // Activity Chart (Line)
     const activityCtx = document.getElementById('activityChart');
     if (activityCtx) {
         new Chart(activityCtx, {
@@ -235,21 +322,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Hoạt động 4 tuần qua'
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#4E0705',
+                        titleColor: '#FDE971',
+                        bodyColor: '#FFFFFF',
+                        cornerRadius: 4,
+                        padding: 8
                     }
                 },
                 scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, family: "'JetBrains Mono', monospace" }, color: '#94584A' }
+                    },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: { color: 'rgba(78, 7, 5, 0.06)' },
+                        ticks: { font: { size: 10, family: "'JetBrains Mono', monospace" }, color: '#94584A' }
                     }
                 }
             }
         });
     }
 
-    // Level Distribution Chart
+    // Level Distribution Chart (Doughnut)
     const levelCtx = document.getElementById('levelDistributionChart');
     if (levelCtx) {
         new Chart(levelCtx, {
@@ -259,23 +358,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'Phân bố người dùng theo cấp độ'
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 10,
+                            font: { size: 11, family: "'Outfit', sans-serif" },
+                            color: '#2C0705'
+                        }
                     }
-                }
+                },
+                cutout: '70%'
             }
         });
     }
-
-    // Animate counters
-    const counters = document.querySelectorAll('.stat-card-value');
-    counters.forEach(counter => {
-        const value = parseInt(counter.textContent);
-        if (!isNaN(value)) {
-            animateCounter(counter, 0, value, 2000);
-        }
-    });
 });
 </script>
 {% endblock %}

@@ -1,0 +1,496 @@
+/* ==========================================================================
+   ADMIN & COCKPIT DASHBOARD — HIGH DENSITY (DENSITY: 8)
+   Palette: Molasses (#4E0705) | Well-browned (#812203) | Roast (#BD5705)
+            Toasty (#ED9040)   | Greasey (#FFC270)      | Butter (#FDE971)
+   Architecture: Cockpit Dense (8-12px grid, tabular-nums, zero wasted space)
+   ========================================================================== */
+
+:root {
+    /* ========== DIAL SETTINGS ========== */
+    --admin-density: 8;
+    --admin-radius: 6px;
+    --admin-radius-sm: 4px;
+    --admin-sidebar-width: 230px;
+    --admin-header-height: 48px;
+
+    /* ========== 6-TONE PALETTE ANCHORS ========== */
+    --c-molasses:     #4E0705; /* Deep mahogany ink & dark accents */
+    --c-wellbrowned:  #812203; /* Roasted chestnut / borders & secondary elements */
+    --c-roast:        #BD5705; /* Caramel bronze / Primary action accent */
+    --c-toasty:       #ED9040; /* Amber orange / In-progress, warning states */
+    --c-greasey:      #FFC270; /* Honey butter / Badge backgrounds */
+    --c-butter:       #FDE971; /* Pale butter cream / Alert highlights */
+
+    /* ========== SURFACES (DENSITY 8 CANVAS) ========== */
+    --adm-bg-canvas:      #FAF7F2; /* Soft ivory bone canvas (reduces eye strain) */
+    --adm-bg-surface:     #FFFFFF; /* Pure white container surface */
+    --adm-bg-hover:       #F7F1E8; /* Subtle row hover */
+    --adm-bg-sunken:      #F2EBE1; /* Table headers, search box, filters */
+    --adm-bg-active:      #EDE3D4; /* Active tab, pressed state */
+
+    /* ========== TYPOGRAPHIC INK ========== */
+    --adm-text-primary:   #2C0705; /* Ultra high contrast Molasses ink */
+    --adm-text-secondary: #6B291B; /* Roasted secondary labels */
+    --adm-text-muted:     #94584A; /* Metadata, timestamps, help text */
+    --adm-text-inverse:   #FFFDF9; /* White ivory text on dark surfaces */
+
+    /* ========== CRISP HAILINES & BORDERS ========== */
+    --adm-border-subtle:  rgba(78, 7, 5, 0.08); /* 1px hairline divider */
+    --adm-border-card:    rgba(78, 7, 5, 0.14); /* Crisp card perimeter */
+    --adm-border-strong:  rgba(78, 7, 5, 0.28); /* Input active border */
+    --adm-focus-ring:     2px solid var(--c-roast);
+
+    /* ========== STATUS COLORS ========== */
+    --adm-status-success:    #186938;
+    --adm-status-success-bg: #E7F5EC;
+    --adm-status-warning:    #9C4B00;
+    --adm-status-warning-bg: #FEF3E2;
+    --adm-status-danger:     #9E1A16;
+    --adm-status-danger-bg:  #FDECEB;
+    --adm-status-info:       #1E5E94;
+    --adm-status-info-bg:    #E9F2FA;
+
+    /* ========== TYPOGRAPHY STACK ========== */
+    /* Cockpit Constraint: Sans-Serif exclusively for controls + Monospace for data */
+    --adm-font-ui:   'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --adm-font-mono: 'JetBrains Mono', Consolas, 'SF Mono', monospace;
+}
+
+/* Base Body Override for Admin */
+.admin-density-body {
+    background-color: var(--adm-bg-canvas);
+    color: var(--adm-text-primary);
+    font-family: var(--adm-font-ui);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   1. COCKPIT TOP TOOLBAR & QUICK FILTERS
+   ========================================================================== */
+.cockpit-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--adm-bg-surface);
+    border: 1px solid var(--adm-border-card);
+    border-radius: var(--admin-radius);
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.cockpit-toolbar-left,
+.cockpit-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cockpit-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cockpit-search-box input {
+    background: var(--adm-bg-sunken);
+    border: 1px solid var(--adm-border-subtle);
+    border-radius: var(--admin-radius-sm);
+    padding: 5px 28px 5px 10px;
+    font-size: 12px;
+    font-family: var(--adm-font-ui);
+    color: var(--adm-text-primary);
+    width: 220px;
+    transition: all 0.15s ease;
+}
+
+.cockpit-search-box input:focus {
+    outline: none;
+    background: var(--adm-bg-surface);
+    border-color: var(--c-roast);
+    box-shadow: 0 0 0 2px rgba(189, 87, 5, 0.15);
+    width: 280px;
+}
+
+.cockpit-search-kbd {
+    position: absolute;
+    right: 8px;
+    font-family: var(--adm-font-mono);
+    font-size: 10px;
+    background: var(--adm-bg-surface);
+    border: 1px solid var(--adm-border-subtle);
+    border-radius: 3px;
+    padding: 1px 4px;
+    color: var(--adm-text-muted);
+    pointer-events: none;
+}
+
+.cockpit-select {
+    background: var(--adm-bg-sunken);
+    border: 1px solid var(--adm-border-subtle);
+    border-radius: var(--admin-radius-sm);
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: var(--adm-font-ui);
+    color: var(--adm-text-primary);
+    cursor: pointer;
+}
+
+.cockpit-select:focus {
+    outline: none;
+    border-color: var(--c-roast);
+}
+
+/* ==========================================================================
+   2. COMPACT KPI METRIC BAR (DENSITY: 8)
+   ========================================================================== */
+.cockpit-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.kpi-compact-card {
+    background: var(--adm-bg-surface);
+    border: 1px solid var(--adm-border-card);
+    border-radius: var(--admin-radius);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: border-color 0.15s ease;
+}
+
+.kpi-compact-card:hover {
+    border-color: var(--c-roast);
+}
+
+.kpi-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--adm-text-muted);
+}
+
+.kpi-icon {
+    font-size: 13px;
+    color: var(--c-wellbrowned);
+}
+
+.kpi-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.kpi-value {
+    font-family: var(--adm-font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--c-molasses);
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi-delta {
+    font-family: var(--adm-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.kpi-delta.up { color: var(--adm-status-success); }
+.kpi-delta.down { color: var(--adm-status-danger); }
+.kpi-delta.neutral { color: var(--adm-text-muted); }
+
+.kpi-micro-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--adm-bg-sunken);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+.kpi-micro-fill {
+    height: 100%;
+    background: var(--c-roast);
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   3. DENSE DATA TABLE (DENSITY: 8)
+   ========================================================================== */
+.cockpit-panel {
+    background: var(--adm-bg-surface);
+    border: 1px solid var(--adm-border-card);
+    border-radius: var(--admin-radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.cockpit-panel-header {
+    padding: 8px 12px;
+    background: var(--adm-bg-surface);
+    border-bottom: 1px solid var(--adm-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cockpit-panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--c-molasses);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cockpit-panel-title i {
+    color: var(--c-roast);
+    font-size: 13px;
+}
+
+.dense-table-wrapper {
+    overflow-x: auto;
+    max-height: 520px;
+    scrollbar-width: thin;
+}
+
+.dense-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+
+.dense-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--adm-bg-sunken);
+    color: var(--c-molasses);
+    font-family: var(--adm-font-ui);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--adm-border-card);
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.dense-table tbody td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--adm-border-subtle);
+    color: var(--adm-text-primary);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.dense-table tbody tr:hover td {
+    background: var(--adm-bg-hover);
+}
+
+.dense-table tbody tr.selected td {
+    background: rgba(253, 233, 113, 0.22); /* Butter accent tint */
+}
+
+/* Monospace alignment for codes and numbers */
+.cell-mono {
+    font-family: var(--adm-font-mono);
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--adm-text-secondary);
+}
+
+.cell-num {
+    font-family: var(--adm-font-mono);
+    font-size: 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+/* Status Badges in Density 8 */
+.badge-cockpit {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: var(--admin-radius-sm);
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+}
+
+.badge-cockpit .badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+.badge-cockpit.success {
+    background: var(--adm-status-success-bg);
+    color: var(--adm-status-success);
+}
+.badge-cockpit.success .badge-dot { background: var(--adm-status-success); }
+
+.badge-cockpit.warning {
+    background: var(--adm-status-warning-bg);
+    color: var(--adm-status-warning);
+}
+.badge-cockpit.warning .badge-dot { background: var(--c-toasty); }
+
+.badge-cockpit.danger {
+    background: var(--adm-status-danger-bg);
+    color: var(--adm-status-danger);
+}
+.badge-cockpit.danger .badge-dot { background: var(--adm-status-danger); }
+
+.badge-cockpit.neutral {
+    background: var(--c-greasey);
+    color: var(--c-molasses);
+}
+.badge-cockpit.neutral .badge-dot { background: var(--c-wellbrowned); }
+
+/* Table Action Buttons */
+.action-btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-icon-xs {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--adm-border-subtle);
+    background: var(--adm-bg-surface);
+    color: var(--adm-text-secondary);
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.1s ease;
+}
+
+.btn-icon-xs:hover {
+    border-color: var(--c-roast);
+    color: var(--c-roast);
+    background: var(--adm-bg-sunken);
+}
+
+.btn-icon-xs.delete:hover {
+    border-color: var(--adm-status-danger);
+    color: var(--adm-status-danger);
+}
+
+/* ==========================================================================
+   4. DENSE FORM CONTROLS & BUTTONS
+   ========================================================================== */
+.btn-adm {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-family: var(--adm-font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: var(--admin-radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.2;
+    transition: all 0.12s ease;
+    border: 1px solid transparent;
+}
+
+.btn-adm-primary {
+    background: var(--c-roast);
+    color: var(--adm-text-inverse);
+    border-color: var(--c-wellbrowned);
+}
+
+.btn-adm-primary:hover {
+    background: var(--c-wellbrowned);
+}
+
+.btn-adm-secondary {
+    background: var(--adm-bg-sunken);
+    color: var(--c-molasses);
+    border-color: var(--adm-border-card);
+}
+
+.btn-adm-secondary:hover {
+    background: var(--adm-bg-active);
+    border-color: var(--c-wellbrowned);
+}
+
+/* ==========================================================================
+   5. TWO-COLUMN SPLIT (7:5) FOR DENSE AUDIT & FLEET
+   ========================================================================== */
+.cockpit-split-row {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 12px;
+}
+
+@media (max-width: 1024px) {
+    .cockpit-split-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dense-log-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.dense-log-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--adm-border-subtle);
+    font-size: 11.5px;
+}
+
+.dense-log-item:hover {
+    background: var(--adm-bg-hover);
+}
+
+.log-time {
+    font-family: var(--adm-font-mono);
+    color: var(--adm-text-muted);
+    font-size: 10.5px;
+    white-space: nowrap;
+}
+
+.log-user {
+    font-weight: 600;
+    color: var(--c-molasses);
+}
+
